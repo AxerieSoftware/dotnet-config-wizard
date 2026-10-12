@@ -84,30 +84,36 @@ describe('toEditorConfigFiles', () => {
 });
 
 describe('version gating', () => {
+	const previewCatalog = readCatalog('11.0.1xx');
+
+	function toPreviewConfig(langVersion: string | null, ...scopes: ScopeConfig[]): WizardConfig {
+		return { versions: { sdkBand: '11.0.1xx', langVersion }, scopes };
+	}
+
 	it('leaves out a rule the language version is too old for', () => {
-		const file = toRootOutput({ tfms: ['net6.0'], severities: { IDE0300: 'warning' } });
+		const output = toRootOutput({ tfms: ['net10.0'], severities: { IDE0410: 'warning' } });
 
-		expect(file.skippedKeys).toEqual([{ key: 'IDE0300', reason: 'Needs C# 12.0' }]);
+		expect(output.skippedKeys).toEqual([{ key: 'IDE0410', reason: 'Needs C# 15.0' }]);
 	});
 
-	it('keeps a rule when LangVersion is raised above the target framework default', () => {
-		const config: WizardConfig = { versions: { sdkBand: BAND, langVersion: 'latest' }, scopes: [{ path: '', tfms: ['netstandard2.0'], severities: { IDE0300: 'warning' } }] };
+	it('keeps a rule when LangVersion latest raises C# above the target framework default', () => {
+		const config = toPreviewConfig('latest', { path: '', tfms: ['net10.0'], severities: { IDE0410: 'warning' } });
 
-		expect(toEditorConfigFiles(config, catalog, { commentStyle: 'idAndTitle' }).skippedKeys).toEqual([]);
+		expect(toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' }).skippedKeys).toEqual([]);
 	});
 
-	it('leaves out a rule whose APIs one of the target frameworks lacks', () => {
-		const file = toRootOutput({ tfms: ['net10.0', 'netstandard2.0'], severities: { CA1510: 'warning' } });
+	it('uses the oldest target framework when a scope multi-targets', () => {
+		const config = toPreviewConfig(null, { path: '', tfms: ['net11.0', 'net10.0'], severities: { IDE0410: 'warning' } });
 
-		expect(file.skippedKeys).toEqual([{ key: 'CA1510', reason: 'Needs net6.0 APIs in every target' }]);
+		expect(toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' }).skippedKeys.map(skipped => skipped.key)).toEqual(['IDE0410']);
 	});
 
 	it('checks a scope against its own target frameworks, not the root ones', () => {
-		const config = toConfig({ path: '', tfms: ['net10.0'], severities: { IDE0330: 'warning' } }, { path: 'src/Legacy', tfms: ['netstandard2.0'], severities: { IDE0330: 'error' } });
+		const config = toPreviewConfig(null, { path: '', tfms: ['net11.0'], severities: { IDE0410: 'warning' } }, { path: 'src/Lts', tfms: ['net10.0'], severities: { IDE0410: 'error' } });
 
-		const output = toEditorConfigFiles(config, catalog, { commentStyle: 'idAndTitle' });
+		const output = toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' });
 
-		expect(output.skippedKeys).toEqual([{ scopePath: 'src/Legacy', key: 'IDE0330', reason: 'Needs C# 13.0' }]);
+		expect(output.skippedKeys).toEqual([{ scopePath: 'src/Lts', key: 'IDE0410', reason: 'Needs C# 15.0' }]);
 		expect(output.files.map(file => file.path)).toEqual(['.editorconfig']);
 	});
 

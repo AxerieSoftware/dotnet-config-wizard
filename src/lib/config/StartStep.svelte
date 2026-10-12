@@ -1,21 +1,20 @@
 <script lang="ts">
 	import { BANDS } from '../catalog/loadCatalog.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
-	import { COMMON_TARGET_FRAMEWORKS, compareCSharpVersions, getDefaultCSharpVersion, hasApisOf, isKnownTargetFramework } from './targetFrameworks.ts';
+	import { compareCSharpVersions, getDefaultCSharpVersion, getTargetFrameworksForChannel, isSupportedTargetFramework } from './targetFrameworks.ts';
 	import { PROJECT_KINDS, type ProjectKind } from './wizardConfig.ts';
 	import { getWizardState } from './wizardState.svelte.ts';
 
-	const LANG_VERSIONS = ['7.3', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0', '15.0'];
+	const LANG_VERSIONS = ['14.0', '15.0'];
 
 	const wizard = getWizardState();
 	const newestCSharpVersion = $derived(getDefaultCSharpVersion(`net${wizard.catalog.band.channel}`));
 	const langVersionChoices = $derived(['latest', ...LANG_VERSIONS.filter(version => compareCSharpVersions(version, newestCSharpVersion) <= 0)]);
-	const bandTfm = $derived(`net${wizard.catalog.band.channel}`);
-	// An SDK can't build frameworks newer than itself.
-	const offeredTfms = $derived(COMMON_TARGET_FRAMEWORKS.filter(tfm => tfm === bandTfm || !hasApisOf(tfm, bandTfm)));
+	const offeredTfms = $derived(getTargetFrameworksForChannel(wizard.catalog.band.channel));
 	const tfms = $derived(wizard.rootScope.tfms ?? []);
-	const otherTfms = $derived(tfms.filter(tfm => !COMMON_TARGET_FRAMEWORKS.includes(tfm)));
-	const unknownTfms = $derived(tfms.filter(tfm => !isKnownTargetFramework(tfm)));
+	const otherTfms = $derived(tfms.filter(tfm => !offeredTfms.includes(tfm)));
+	// An SDK can't build a framework newer than itself, and the wizard doesn't support .NET Framework or .NET Standard.
+	const unsupportedTfms = $derived(tfms.filter(tfm => !isSupportedTargetFramework(tfm) || !offeredTfms.some(offered => tfm.startsWith(offered))));
 	let isLoadingBand = $state(false);
 
 	function toBandLabel(band: (typeof BANDS)[number]): string {
@@ -39,7 +38,7 @@
 			.split(/[;,\s]+/)
 			.map(tfm => tfm.trim())
 			.filter(tfm => tfm !== '');
-		wizard.setRootTargetFrameworks([...tfms.filter(tfm => COMMON_TARGET_FRAMEWORKS.includes(tfm)), ...typed]);
+		wizard.setRootTargetFrameworks([...tfms.filter(tfm => offeredTfms.includes(tfm)), ...typed]);
 	}
 </script>
 
@@ -84,11 +83,11 @@
 		{/each}
 	</div>
 	<label class="field">
-		<span>Other target frameworks, separated by semicolons</span>
-		<input aria-label="Other target frameworks" value={otherTfms.join(';')} placeholder="net6.0;net462" onchange={event => setOtherTfms(event.currentTarget.value)}>
+		<span>Platform-specific target frameworks, separated by semicolons</span>
+		<input aria-label="Platform-specific target frameworks" value={otherTfms.join(';')} placeholder="net10.0-windows;net10.0-android" onchange={event => setOtherTfms(event.currentTarget.value)}>
 	</label>
-	{#if unknownTfms.length > 0}
-		<p class="warning" role="alert">Not a target framework the wizard recognizes: {unknownTfms.join(', ')}.</p>
+	{#if unsupportedTfms.length > 0}
+		<p class="warning" role="alert">SDK {wizard.catalog.band.band} can't target {unsupportedTfms.join(', ')}. The wizard supports .NET 10 and later only, with no .NET Framework or .NET Standard.</p>
 	{/if}
 </section>
 

@@ -38,8 +38,9 @@ dotnet/docs documents 14 IDE rules that the SDK's code-style assemblies don't re
 ## Version requirements
 
 - An "Applicable languages" cell such as `C# 12+` gives a rule's minimum C# version. An option gets one only when every rule it feeds has one; IDE0028 uses `dotnet_style_prefer_collection_expression` on any version.
-- Gaps in the docs, such as C# 10 for IDE0161, and rules tied to framework APIs, such as CA1510 needing net6.0, live in `src/lib/catalog/versionOverlay.ts`.
-- Without LangVersion, the compiler uses the target framework's default C# version; with several frameworks, the oldest default decides.
+- Gaps in the docs, such as C# 10 for IDE0161, live in `src/lib/catalog/versionOverlay.ts`.
+- The wizard supports .NET 10 and later only, as SDK and as target framework; there's no .NET Framework or .NET Standard. Every rule's API needs are met from net10.0, so only the C# version gates rules.
+- Without LangVersion, the compiler uses the target framework's default C# version (C# 14 for net10.0, C# 15 for net11.0); with several frameworks, the oldest default decides.
 
 ## Docs table conventions
 

@@ -47,11 +47,6 @@ export function parseWizardConfig(value: unknown): ParseResult {
 	return { status: 'valid', config: value as WizardConfig };
 }
 
-/** Returns the root scope, which every config has. */
-export function getRootScope(config: WizardConfig): ScopeConfig {
-	return config.scopes[0];
-}
-
 function findScopeProblem(scope: unknown): string | undefined {
 	if (!isRecord(scope)) return 'must be an object.';
 	if (typeof scope.path !== 'string') return 'path must be a string.';

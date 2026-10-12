@@ -39,19 +39,20 @@ test('rules the build never runs are labeled editor only', async ({ page }) => {
 	await expect(page.locator('.rule-row', { hasText: 'IDE0003' }).getByText('Editor only')).toBeVisible();
 });
 
-test('targeting an older framework hides rules its C# version lacks until asked', async ({ page }) => {
+test('a rule that needs a newer C# than the target framework is hidden until asked', async ({ page }) => {
 	await page.goto('/wizard/start');
-	await page.getByRole('checkbox', { name: 'net10.0' }).uncheck();
-	await page.getByRole('checkbox', { name: 'netstandard2.0' }).check();
-	await expect(page.getByTestId('effective-csharp')).toHaveText('Code compiles as C# 7.3.');
+	await page.getByRole('combobox', { name: 'SDK band' }).selectOption('11.0.1xx');
+	await page.getByRole('checkbox', { name: 'net11.0' }).uncheck();
+	await page.getByRole('checkbox', { name: 'net10.0' }).check();
+	await expect(page.getByTestId('effective-csharp')).toHaveText('Code compiles as C# 14.0.');
 	await page.getByRole('link', { name: 'Code style' }).first().click();
 
-	await expect(page.getByRole('combobox', { name: 'IDE0300 severity' })).toHaveCount(0);
+	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toHaveCount(0);
 
 	await page.getByRole('checkbox', { name: /Show options and rules/ }).check();
 
-	await expect(page.getByRole('combobox', { name: 'IDE0300 severity' })).toBeDisabled();
-	await expect(page.locator('.rule-row', { hasText: 'IDE0300' }).getByText('Needs C# 12.0')).toBeVisible();
+	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toBeDisabled();
+	await expect(page.locator('.rule-row', { hasText: 'IDE0410' }).getByText('Needs C# 15.0')).toBeVisible();
 });
 
 test('switching to the preview SDK updates the file header', async ({ page }) => {

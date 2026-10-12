@@ -1,6 +1,6 @@
 import type { Catalog, CatalogOption, CatalogRule } from '../catalog/catalog.ts';
 import type { ResolvedScope } from './scopes.ts';
-import { compareCSharpVersions, getDefaultCSharpVersion, hasApisOf } from './targetFrameworks.ts';
+import { compareCSharpVersions, getDefaultCSharpVersion } from './targetFrameworks.ts';
 import type { WizardConfig } from './wizardConfig.ts';
 
 const LATEST_LANG_VERSION = 'latest';
@@ -16,7 +16,6 @@ export function toGateContext(config: WizardConfig, scope: ResolvedScope, catalo
 /** Why a rule doesn't apply to a scope, or undefined when it does. */
 export function getRuleBlocker(rule: CatalogRule, context: GateContext): string | undefined {
 	if (rule.minimumCSharpVersion && compareCSharpVersions(context.csharpVersion, rule.minimumCSharpVersion) < 0) return `Needs C# ${rule.minimumCSharpVersion}`;
-	if (rule.minimumTargetFramework && !context.tfms.every(tfm => hasApisOf(tfm, rule.minimumTargetFramework as string))) return `Needs ${rule.minimumTargetFramework} APIs in every target`;
 	return undefined;
 }
 

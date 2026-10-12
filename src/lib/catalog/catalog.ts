@@ -1,6 +1,6 @@
 import type { BandEntry, SdkCatalogFile, StyleOptionCatalogFile, StyleOptionEntry } from './catalogFiles.ts';
 import { OPTION_GROUPS } from './optionGroups.ts';
-import { MINIMUM_CSHARP_VERSIONS, MINIMUM_TARGET_FRAMEWORKS } from './versionOverlay.ts';
+import { MINIMUM_CSHARP_VERSIONS } from './versionOverlay.ts';
 
 const CODE_STYLE_SOURCE = 'Microsoft.CodeAnalysis.CSharp.CodeStyle';
 const STYLE_RULES_URL = 'https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules';
@@ -14,8 +14,6 @@ export type CatalogRule = {
 	/** False for the IDE rules dotnet/docs documents but the SDK never runs; they only show in the editor. */
 	isEnforcedOnBuild: boolean;
 	minimumCSharpVersion: string | null;
-	/** The oldest target framework that has the APIs the rule suggests, such as `net9.0`. */
-	minimumTargetFramework: string | null;
 };
 
 export type CatalogOption = StyleOptionEntry & { groupTitle: string; groupOrder: number };
@@ -39,8 +37,7 @@ export function createCatalog(band: BandEntry, sdkCatalog: SdkCatalogFile, style
 			category: rule.category,
 			helpLink: rule.helpLink,
 			isEnforcedOnBuild: true,
-			minimumCSharpVersion: MINIMUM_CSHARP_VERSIONS[rule.id] ?? ruleDocs.get(rule.id)?.minimumCSharpVersion ?? null,
-			minimumTargetFramework: MINIMUM_TARGET_FRAMEWORKS[rule.id] ?? null
+			minimumCSharpVersion: MINIMUM_CSHARP_VERSIONS[rule.id] ?? ruleDocs.get(rule.id)?.minimumCSharpVersion ?? null
 		});
 	}
 
@@ -54,8 +51,7 @@ export function createCatalog(band: BandEntry, sdkCatalog: SdkCatalogFile, style
 			category: ruleDoc.category,
 			helpLink: `${STYLE_RULES_URL}/${ruleDoc.docFile.replace(/\.md$/, '')}`,
 			isEnforcedOnBuild: false,
-			minimumCSharpVersion: MINIMUM_CSHARP_VERSIONS[ruleDoc.id] ?? ruleDoc.minimumCSharpVersion,
-			minimumTargetFramework: MINIMUM_TARGET_FRAMEWORKS[ruleDoc.id] ?? null
+			minimumCSharpVersion: MINIMUM_CSHARP_VERSIONS[ruleDoc.id] ?? ruleDoc.minimumCSharpVersion
 		});
 	}
 
