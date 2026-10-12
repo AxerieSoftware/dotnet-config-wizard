@@ -15,7 +15,9 @@
 	const BANNED_API_PACKAGE = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
 
 	const wizard = getWizardState();
-	const scope = $derived(wizard.resolvedRootScope);
+	const scope = $derived(wizard.resolvedActiveScope);
+	const isInheritingPackages = $derived(!wizard.isRootActive && wizard.activeScope.packages === undefined);
+	const inheritedBannedApis = $derived(wizard.inheritedScope?.bannedApis ?? []);
 	const analysisMode = $derived(parseAnalysisLevel(scope.build.AnalysisLevel, wizard.catalog.band).mode);
 
 	let searchText = $state('');
@@ -42,9 +44,10 @@
 		availableRules
 			.map(rule => ({
 				rule,
-				configured: scope.severities[rule.id],
+				configured: wizard.activeScope.severities?.[rule.id],
+				inherited: wizard.inheritedScope?.severities[rule.id],
 				effective: getEffectiveSeverity(rule, scope, wizard.catalog),
-				blocker: getRuleBlocker(rule, wizard.rootContext),
+				blocker: getRuleBlocker(rule, wizard.activeContext),
 				ownerId: ownerIdsByDuplicate.get(rule.id)
 			}))
 			.filter(row => matchesFilters(row))
@@ -75,10 +78,21 @@
 
 <section class="card">
 	<h2>Analyzer packages</h2>
-	<p class="note">The SDK's own analyzers always run. Packages are referenced from every project; their rules only apply where they're referenced.</p>
+	<p class="note">The SDK's own analyzers always run. Packages are referenced from every project in this folder; their rules only apply where they're referenced.</p>
+	{#if !wizard.isRootActive}
+		<label class="checkbox">
+			<input type="checkbox" checked={isInheritingPackages} onchange={event => wizard.setInheritsPackages(event.currentTarget.checked)}>
+			Same packages as the folder above
+		</label>
+	{/if}
 	{#each PACKAGES as analyzerPackage (analyzerPackage.id)}
 		<label class="checkbox package-row">
-			<input type="checkbox" checked={scope.packages.includes(analyzerPackage.id)} onchange={event => wizard.setPackageSelected(analyzerPackage.id, event.currentTarget.checked)}>
+			<input
+				type="checkbox"
+				disabled={isInheritingPackages}
+				checked={scope.packages.includes(analyzerPackage.id)}
+				onchange={event => wizard.setPackageSelected(analyzerPackage.id, event.currentTarget.checked)}
+			>
 			<span>
 				<strong>{analyzerPackage.title}</strong>
 				<code>{analyzerPackage.id} {analyzerPackage.version}</code>
@@ -114,13 +128,15 @@
 			Enforce code style on build
 		</label>
 	</div>
-	<label class="field">
-		<span>Write rule severities to</span>
-		<select aria-label="Severity file" value={wizard.config.severityFile ?? 'editorconfig'} onchange={event => wizard.setSeverityFile(event.currentTarget.value as 'editorconfig' | 'globalconfig')}>
-			<option value="editorconfig">.editorconfig, by folder</option>
-			<option value="globalconfig">Analyzers.globalconfig, by project</option>
-		</select>
-	</label>
+	{#if wizard.isRootActive}
+		<label class="field">
+			<span>Write rule severities to (whole repo)</span>
+			<select aria-label="Severity file" value={wizard.config.severityFile ?? 'editorconfig'} onchange={event => wizard.setSeverityFile(event.currentTarget.value as 'editorconfig' | 'globalconfig')}>
+				<option value="editorconfig">.editorconfig, by folder</option>
+				<option value="globalconfig">Analyzers.globalconfig, by project</option>
+			</select>
+		</label>
+	{/if}
 	<p class="note">
 		The mode is written as <code>AnalysisLevel=latest-&lt;mode&gt;</code> so new rules arrive with SDK updates. Without enforcing code style on build, IDE rules only show in the editor.
 	</p>
@@ -191,10 +207,10 @@
 	<RuleBrowser {rows} onSeverityChange={(ruleId, severity) => wizard.setSeverity(ruleId, severity)} />
 </section>
 
-{#if sonarRules.length > 0}
+{#if sonarRules.length > 0 && wizard.isRootActive}
 	<section class="card">
 		<h2>Sonar rule parameters</h2>
-		<p class="note">Written to <code>SonarLint.xml</code>. Leave a value empty to keep Sonar's default.</p>
+		<p class="note">Written to <code>SonarLint.xml</code>, which Sonar reads for the whole repo. Leave a value empty to keep Sonar's default.</p>
 		{#each sonarRules as rule (rule.id)}
 			<div class="option-row">
 				<strong>{rule.id}</strong>
@@ -227,7 +243,13 @@
 				<button type="button" class="secondary" onclick={() => wizard.addBannedApis(set.apis)}>Add: {set.title}</button>
 			{/each}
 		</div>
-		{#each scope.bannedApis as api (api.symbol)}
+		{#each inheritedBannedApis as api (api.symbol)}
+			<div class="rule-row unavailable">
+				<span><code>{api.symbol}</code> {api.message}</span>
+				<span class="badge">Inherited</span>
+			</div>
+		{/each}
+		{#each wizard.activeScope.bannedApis ?? [] as api (api.symbol)}
 			<div class="rule-row">
 				<span><code>{api.symbol}</code> {api.message}</span>
 				<button type="button" class="secondary" onclick={() => wizard.removeBannedApi(api.symbol)}>Remove</button>

@@ -2,6 +2,7 @@
 	import type { CatalogOption, CatalogRule } from '../catalog/catalog.ts';
 	import { getOptionBlocker, getRuleBlocker } from '../config/versionGates.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
+	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import SeveritySelect from '../ui/SeveritySelect.svelte';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 
@@ -13,7 +14,7 @@
 			wizard.catalog.options
 				.values()
 				.filter(option => option.languages.includes('csharp'))
-				.map(option => ({ option, blocker: getOptionBlocker(option, wizard.rootContext) }))
+				.map(option => ({ option, blocker: getOptionBlocker(option, wizard.activeContext) }))
 				.filter(entry => isUnavailableShown || !entry.blocker)
 				.toArray()
 				.sort((left, right) => left.option.groupOrder - right.option.groupOrder || left.option.name.localeCompare(right.option.name)),
@@ -29,7 +30,7 @@
 			.sort()
 			.map(id => wizard.catalog.rules.get(id))
 			.filter(rule => rule !== undefined)
-			.map(rule => ({ rule, blocker: getRuleBlocker(rule, wizard.rootContext) }))
+			.map(rule => ({ rule, blocker: getRuleBlocker(rule, wizard.activeContext) }))
 			.filter(entry => isUnavailableShown || !entry.blocker);
 	}
 
@@ -43,7 +44,7 @@
 
 <label class="checkbox toggle">
 	<input type="checkbox" bind:checked={isUnavailableShown}>
-	Show options and rules that need a newer C# version or framework than C# {wizard.rootContext.csharpVersion} and {wizard.rootContext.tfms.join(', ')}
+	Show options and rules that need a newer C# version or framework than C# {wizard.activeContext.csharpVersion} and {wizard.activeContext.tfms.join(', ')}
 </label>
 
 {#each groups as group (group.title)}
@@ -62,17 +63,17 @@
 						<input
 							aria-label={option.name}
 							disabled={Boolean(blocker)}
-							value={wizard.rootScope.options?.[option.name] ?? ''}
-							placeholder={option.defaultValue ?? ''}
+							value={wizard.activeScope.options?.[option.name] ?? ''}
+							placeholder={wizard.inheritedScope?.options[option.name] ?? option.defaultValue ?? ''}
 							onchange={event => wizard.setOption(option.name, event.currentTarget.value.trim() === '' ? undefined : event.currentTarget.value.trim())}
 						>
 					{:else}
 						<ValueSelect
 							label={option.name}
 							disabled={Boolean(blocker)}
-							value={wizard.rootScope.options?.[option.name]}
+							value={wizard.activeScope.options?.[option.name]}
 							values={toValueChoices(option)}
-							unsetLabel={option.defaultValue ? `Default (${option.defaultValue})` : 'Default'}
+							unsetLabel={toUnsetLabel(wizard.inheritedScope?.options[option.name], option.defaultValue ? `Default (${option.defaultValue})` : 'Default')}
 							onchange={value => wizard.setOption(option.name, value)}
 						/>
 					{/if}
@@ -96,7 +97,13 @@
 					{:else if !rule.isEnforcedOnBuild}
 						<span class="badge" title="dotnet build never runs this rule; only the editor reports it.">Editor only</span>
 					{/if}
-					<SeveritySelect ruleId={rule.id} disabled={Boolean(blocker)} value={wizard.rootScope.severities?.[rule.id]} onchange={severity => wizard.setSeverity(rule.id, severity)} />
+					<SeveritySelect
+						ruleId={rule.id}
+						disabled={Boolean(blocker)}
+						value={wizard.activeScope.severities?.[rule.id]}
+						inheritedValue={wizard.inheritedScope?.severities[rule.id]}
+						onchange={severity => wizard.setSeverity(rule.id, severity)}
+					/>
 				</div>
 			{/each}
 		{/if}

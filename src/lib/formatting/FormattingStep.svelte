@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getWizardState } from '../config/wizardState.svelte.ts';
+	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 	import { FORMATTING_GLOBS, FORMATTING_KEYS } from './formattingKeys.ts';
 
@@ -21,9 +22,9 @@
 					<span>{formattingKey.label}</span>
 					<ValueSelect
 						label={`${section.title}: ${formattingKey.label}`}
-						value={wizard.rootScope.formatting?.[section.glob]?.[formattingKey.key]}
+						value={wizard.activeScope.formatting?.[section.glob]?.[formattingKey.key]}
 						values={formattingKey.values}
-						unsetLabel="Not set"
+						unsetLabel={toUnsetLabel(wizard.inheritedScope?.formatting[section.glob]?.[formattingKey.key], 'Not set')}
 						onchange={value => wizard.setFormatting(section.glob, formattingKey.key, value)}
 					/>
 				</label>

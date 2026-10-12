@@ -4,6 +4,7 @@
 	import type { Catalog } from '../catalog/catalog.ts';
 	import { setWizardState, WizardState } from '../config/wizardState.svelte.ts';
 	import GeneratedFiles from '../export/GeneratedFiles.svelte';
+	import ScopeSwitcher from './ScopeSwitcher.svelte';
 	import { WIZARD_STEPS } from './wizardSteps.ts';
 
 	type Props = { catalog: Catalog; children: Snippet };
@@ -28,6 +29,7 @@
 	</nav>
 
 	<main>
+		<ScopeSwitcher />
 		{@render children()}
 		<div class="step-links">
 			{#if previousStep}

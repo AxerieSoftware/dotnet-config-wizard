@@ -20,6 +20,8 @@ export type BuildProperty = {
 	example?: string;
 	/** Set on the Analyzers step rather than the Build step. */
 	isOnAnalyzersStep?: boolean;
+	/** Applies to the whole repo, so only the root scope can set it. */
+	isRepoWide?: boolean;
 };
 
 const BOOLEAN = ['true', 'false'] as const;
@@ -196,10 +198,25 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 		group: 'Central package management',
 		description: 'Package versions live in Directory.Packages.props instead of each project.',
 		values: BOOLEAN,
-		file: 'packages'
+		file: 'packages',
+		isRepoWide: true
 	},
-	{ name: 'CentralPackageTransitivePinningEnabled', group: 'Central package management', description: 'Central versions also pin transitive packages.', values: BOOLEAN, file: 'packages' },
-	{ name: 'CentralPackageVersionOverrideEnabled', group: 'Central package management', description: 'Whether a project may override a central version.', values: BOOLEAN, file: 'packages' }
+	{
+		name: 'CentralPackageTransitivePinningEnabled',
+		group: 'Central package management',
+		description: 'Central versions also pin transitive packages.',
+		values: BOOLEAN,
+		file: 'packages',
+		isRepoWide: true
+	},
+	{
+		name: 'CentralPackageVersionOverrideEnabled',
+		group: 'Central package management',
+		description: 'Whether a project may override a central version.',
+		values: BOOLEAN,
+		file: 'packages',
+		isRepoWide: true
+	}
 ];
 
 export const BUILD_PROPERTIES_BY_NAME: ReadonlyMap<string, BuildProperty> = new Map(BUILD_PROPERTIES.map(property => [property.name, property]));

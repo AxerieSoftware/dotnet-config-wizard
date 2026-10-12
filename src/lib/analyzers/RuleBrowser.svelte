@@ -2,7 +2,7 @@
 	import type { CatalogRule } from '../catalog/catalog.ts';
 	import type { Severity } from '../config/wizardConfig.ts';
 
-	export type RuleRow = { rule: CatalogRule; configured: Severity | undefined; effective: Severity; blocker: string | undefined; ownerId: string | undefined };
+	export type RuleRow = { rule: CatalogRule; configured: Severity | undefined; inherited: Severity | undefined; effective: Severity; blocker: string | undefined; ownerId: string | undefined };
 </script>
 
 <script lang="ts">
@@ -70,7 +70,7 @@
 				<div role="cell" class="source-cell">{row.rule.sourceTitle} · {row.rule.category}</div>
 				<div role="cell">{row.effective}</div>
 				<div role="cell">
-					<SeveritySelect ruleId={row.rule.id} disabled={Boolean(row.blocker)} value={row.configured} onchange={severity => onSeverityChange(row.rule.id, severity)} />
+					<SeveritySelect ruleId={row.rule.id} disabled={Boolean(row.blocker)} value={row.configured} inheritedValue={row.inherited} onchange={severity => onSeverityChange(row.rule.id, severity)} />
 				</div>
 			</div>
 		{/each}

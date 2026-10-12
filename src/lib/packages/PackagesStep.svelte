@@ -35,6 +35,9 @@
 
 <section class="card">
 	<h2>nuget.config</h2>
+	{#if !wizard.isRootActive}
+		<p class="note">nuget.config applies to the whole repo, whichever folder is selected.</p>
+	{/if}
 	<label class="checkbox">
 		<input type="checkbox" checked={nuget !== undefined} onchange={event => setNuGetEnabled(event.currentTarget.checked)}>
 		Generate nuget.config

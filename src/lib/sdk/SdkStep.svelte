@@ -24,6 +24,10 @@
 <h1>SDK</h1>
 <p class="lead"><code>global.json</code> pins the SDK every machine and CI agent builds with. It's the one place new analyzer rules and warning waves come from, since AnalysisLevel tracks it.</p>
 
+{#if !wizard.isRootActive}
+	<p class="note">global.json applies to the whole repo, whichever folder is selected.</p>
+{/if}
+
 <section class="card">
 	<label class="checkbox">
 		<input

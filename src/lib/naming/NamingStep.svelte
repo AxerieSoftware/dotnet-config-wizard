@@ -4,8 +4,10 @@
 	import { ACCESSIBILITIES, CAPITALIZATIONS, MICROSOFT_NAMING_SYMBOLS, MODIFIERS, NAMING_TEMPLATES, SYMBOL_KINDS, toRuleName, toSymbolGroupName } from './namingRule.ts';
 
 	const wizard = getWizardState();
-	const rules = $derived(wizard.rootScope.naming ?? []);
-	const unusedTemplates = $derived(NAMING_TEMPLATES.filter(template => !rules.some(rule => rule.symbols === template.symbols)));
+	const rules = $derived(wizard.activeScope.naming ?? []);
+	const ownSymbols = $derived(new Set(rules.map(rule => rule.symbols)));
+	const inheritedRules = $derived((wizard.inheritedScope?.naming ?? []).filter(rule => !ownSymbols.has(rule.symbols)));
+	const unusedTemplates = $derived(NAMING_TEMPLATES.filter(template => !wizard.resolvedActiveScope.naming.some(rule => rule.symbols === template.symbols)));
 
 	function addMicrosoftConventions(): void {
 		for (const template of unusedTemplates.filter(entry => MICROSOFT_NAMING_SYMBOLS.includes(entry.symbols))) wizard.addNamingRule(template);
@@ -23,6 +25,16 @@
 	Naming rules feed IDE1006. Roslyn applies the most specific rule that matches a symbol, so order doesn't matter: a rule for <code>private static readonly</code> fields wins over one for all private
 	fields.
 </p>
+
+{#if inheritedRules.length > 0}
+	<section class="card">
+		<h2>Inherited rules</h2>
+		<p class="note">These come from the folder above. Add a rule with the same symbol group name to replace one here.</p>
+		{#each inheritedRules as rule (rule.symbols)}
+			<div class="rule-row unavailable"><code>{toRuleName(rule)}</code></div>
+		{/each}
+	</section>
+{/if}
 
 {#each rules as rule, index (index)}
 	<section class="card naming-rule" aria-label={`Naming rule ${rule.symbols}`}>

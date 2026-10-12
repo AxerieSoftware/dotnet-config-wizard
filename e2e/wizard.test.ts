@@ -137,3 +137,48 @@ test('central package management, nuget.config and global.json all download in t
 	expect(strFromU8(files['Directory.Packages.props'])).toContain('<GlobalPackageReference Include="Meziantou.Analyzer"');
 	expect(JSON.parse(strFromU8(files['global.json'])).sdk.rollForward).toBe('latestFeature');
 });
+
+test('the tests folder preset relaxes test-only rules and stops packing', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+
+	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('dotnet_diagnostic.CA1707.severity = none');
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<IsPackable>false</IsPackable>');
+});
+
+test('a folder override shows what it inherits and only writes what it changes', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+	await page.getByRole('link', { name: 'Formatting' }).first().click();
+
+	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
+	await expect(indentStyle.locator('option:checked')).toHaveText('Inherited (space)');
+	await indentStyle.selectOption('tab');
+
+	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('#### All files ####\n[*]\nindent_style = tab');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('indent_style = space');
+});
+
+test('a folder can drop an analyzer package its parent references', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	await page.getByRole('link', { name: 'Start' }).first().click();
+	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+	await page.getByRole('link', { name: 'Analyzers' }).first().click();
+
+	await page.getByRole('checkbox', { name: 'Same packages as the folder above' }).uncheck();
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).uncheck();
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<PackageReference Remove="Meziantou.Analyzer" />');
+});
+
+test('a custom folder outside the repo is rejected', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('textbox', { name: 'New folder' }).fill('../shared');
+	await page.getByRole('button', { name: 'Add folder' }).click();
+
+	await expect(page.getByRole('alert')).toHaveText('The folder must be inside the repo.');
+});
