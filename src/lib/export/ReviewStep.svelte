@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
+	import ValidationList from '../validation/ValidationList.svelte';
 	import GeneratedFiles from './GeneratedFiles.svelte';
 	import { toZip } from './zipFiles.ts';
 
@@ -39,16 +40,7 @@
 	</select>
 </label>
 
-{#if wizard.output.skippedKeys.length > 0}
-	<div class="warning" role="alert">
-		<p>These settings were left out of the files:</p>
-		<ul>
-			{#each wizard.output.skippedKeys as skipped (`${skipped.scopePath}:${skipped.key}`)}
-				<li><code>{skipped.key}</code> in {skipped.scopePath || 'the root'}: {skipped.reason}</li>
-			{/each}
-		</ul>
-	</div>
-{/if}
+<ValidationList issues={wizard.issues} />
 
 <div class="actions">
 	<button type="button" onclick={copy}>{isCopied ? 'Copied' : 'Copy root .editorconfig'}</button>

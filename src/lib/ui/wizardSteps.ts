@@ -1,3 +1,5 @@
+export const REVIEW_STEP_PATH = '/wizard/review';
+
 /** Wizard steps in order. Wide steps hide the preview pane: the review step shows the files itself, and the rule browser needs the room. */
 export const WIZARD_STEPS: readonly { path: string; title: string; isWide?: boolean }[] = [
 	{ path: '/wizard/start', title: 'Start' },
@@ -8,5 +10,5 @@ export const WIZARD_STEPS: readonly { path: string; title: string; isWide?: bool
 	{ path: '/wizard/build', title: 'Build' },
 	{ path: '/wizard/packages', title: 'Packages' },
 	{ path: '/wizard/sdk', title: 'SDK' },
-	{ path: '/wizard/review', title: 'Review and export', isWide: true }
+	{ path: REVIEW_STEP_PATH, title: 'Review and export', isWide: true }
 ];

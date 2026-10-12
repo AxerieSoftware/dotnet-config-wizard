@@ -6,6 +6,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { loadCatalog } from '../catalog/loadCatalog.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
+import { validateConfig } from '../validation/validateConfig.ts';
 import { type PresetId, toPresetConfig } from './presets.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
 import { toGateContext } from './versionGates.ts';
@@ -23,6 +24,7 @@ export class WizardState {
 	/** The preset the config started from, which share links store their changes against. */
 	public presetId = $state<PresetId>('microsoft-defaults');
 	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
 	public readonly inheritedScope: ResolvedScope | undefined = $derived.by(() => {

@@ -194,3 +194,13 @@ test('applying the Recommended preset fills in every file it needs', async ({ pa
 	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('dotnet_diagnostic.CA1707.severity = none');
 	await expect(page.getByTestId('file-nuget.config')).toContainText('<clear />');
 });
+
+test('a risky combination shows as a check on the review step and a count in the nav', async ({ page }) => {
+	await page.goto('/wizard/build');
+	await page.getByRole('combobox', { name: 'RestoreLockedMode', exact: true }).selectOption('true');
+
+	await expect(page.getByRole('link', { name: /Review and export\s*1 problems/ })).toBeVisible();
+	await page.getByRole('link', { name: /Review and export/ }).first().click();
+
+	await expect(page.locator('.issue-error')).toContainText('RestoreLockedMode needs RestorePackagesWithLockFile');
+});

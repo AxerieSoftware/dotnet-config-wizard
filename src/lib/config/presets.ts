@@ -111,6 +111,8 @@ const RECOMMENDED_BUILD: Record<string, string> = {
 	EnforceCodeStyleInBuild: 'true',
 	GenerateDocumentationFile: 'true',
 	WarningsAsErrors: 'nullable',
+	// Newly published advisories stay warnings, so they don't fail builds that treat warnings as errors.
+	WarningsNotAsErrors: 'NU1901;NU1902;NU1903;NU1904',
 	Deterministic: 'true',
 	ManagePackageVersionsCentrally: 'true',
 	CentralPackageTransitivePinningEnabled: 'true',
@@ -148,6 +150,7 @@ export function toPresetConfig(presetId: PresetId, catalog: Catalog): WizardConf
 	root.options = { ...CONVENTION_OPTIONS };
 	root.severities = { ...CONVENTION_SEVERITIES };
 	root.naming = NAMING_TEMPLATES.filter(template => MICROSOFT_NAMING_SYMBOLS.includes(template.symbols)).map(template => structuredClone(template));
+	root.build = { EnforceCodeStyleInBuild: 'true' };
 	if (presetId === 'microsoft-conventions') return withoutUnknownRules(config, catalog);
 
 	const projectKind: ProjectKind | undefined = presetId === 'library' ? 'library' : presetId === 'service' ? 'service' : undefined;
@@ -157,7 +160,7 @@ export function toPresetConfig(presetId: PresetId, catalog: Catalog): WizardConf
 	// XML docs are generated for IDE0005 to run on build; outside libraries, missing docs aren't worth a warning.
 	if (projectKind !== 'library') root.severities.CS1591 = 'none';
 	root.categorySeverities = { Performance: 'warning', Security: 'error' };
-	root.build = { ...RECOMMENDED_BUILD };
+	root.build = { ...root.build, ...RECOMMENDED_BUILD };
 	root.ciBuild = { TreatWarningsAsErrors: 'true', RestoreLockedMode: 'true' };
 	root.packages = [MEZIANTOU, BANNED_API];
 	root.bannedApis = BANNED_API_SETS.filter(set => set.projectKinds.includes(projectKind ?? 'service')).flatMap(set => set.apis);
@@ -178,7 +181,10 @@ export function toPresetConfig(presetId: PresetId, catalog: Catalog): WizardConf
 		root.packages = [...root.packages, PUBLIC_API];
 	}
 
-	config.scopes.push(structuredClone(SCOPE_PRESETS.find(preset => preset.scope.path === 'tests')?.scope ?? { path: 'tests' }));
+	const testsScope = structuredClone(SCOPE_PRESETS.find(preset => preset.scope.path === 'tests')?.scope ?? { path: 'tests' });
+	// Test projects aren't shipped, so they don't inherit a library's AOT compatibility.
+	if (root.build.IsAotCompatible === 'true') testsScope.build = { ...testsScope.build, IsAotCompatible: 'false' };
+	config.scopes.push(testsScope);
 	return withoutDuplicateRules(withoutUnknownRules(config, catalog), catalog);
 }
 
