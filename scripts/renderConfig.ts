@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { parseWizardConfig } from '../src/lib/config/wizardConfig.ts';
-import { toRootEditorConfig } from '../src/lib/export/rootEditorConfig.ts';
+import { toEditorConfigFiles } from '../src/lib/export/editorConfigFiles.ts';
 import { readCatalog } from './readCatalog.ts';
 
 // Renders a wizard config's files. With --check it compares them to the files on disk instead of writing,
@@ -20,22 +20,37 @@ if (parseResult.status === 'invalid') {
 }
 
 const config = parseResult.config;
-const file = toRootEditorConfig(config, readCatalog(config.versions.sdkBand), { commentStyle: 'idAndTitle' });
-if (file.skippedKeys.length > 0) {
-	console.error(`The catalog doesn't know these keys, so they were left out: ${file.skippedKeys.join(', ')}.`);
+const { files, skippedKeys } = toEditorConfigFiles(config, readCatalog(config.versions.sdkBand), { commentStyle: 'idAndTitle' });
+if (skippedKeys.length > 0) {
+	console.error(`These keys were left out:\n${skippedKeys.map(skipped => `${skipped.scopePath || '(root)'}: ${skipped.key} (${skipped.reason})`).join('\n')}`);
 	process.exit(1);
 }
 
-const path = join(values.out, file.path);
-if (!values.check) {
-	writeFileSync(path, file.content);
-	console.log(`Wrote ${path}.`);
-	process.exit(0);
+let mismatchCount = 0;
+for (const file of files) {
+	const path = join(values.out, file.path);
+	if (!values.check) {
+		mkdirSync(dirname(path), { recursive: true });
+		writeFileSync(path, file.content);
+		console.log(`Wrote ${path}.`);
+	} else if (readFileOrEmpty(path) !== file.content) {
+		console.error(`${path} doesn't match ${positionals[0]}.`);
+		mismatchCount++;
+	}
 }
 
-if (readFileSync(path, 'utf8') !== file.content) {
-	console.error(`${path} doesn't match ${positionals[0]}. Run: node scripts/renderConfig.ts ${positionals[0]} --out ${values.out}`);
+if (mismatchCount > 0) {
+	console.error(`Run: node scripts/renderConfig.ts ${positionals[0]} --out ${values.out}`);
 	process.exit(1);
 }
 
-console.log(`${path} matches ${positionals[0]}.`);
+if (values.check) console.log(`Every file matches ${positionals[0]}.`);
+
+function readFileOrEmpty(path: string): string {
+	try {
+		return readFileSync(path, 'utf8');
+	} catch {
+		// A missing file just doesn't match.
+		return '';
+	}
+}

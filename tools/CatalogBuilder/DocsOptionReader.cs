@@ -62,7 +62,11 @@ internal static partial class DocsOptionReader
 
 		// Options documented in includes/ have no languages of their own, so they take their rules' languages.
 		var languages = option.Languages.Count > 0 ? option.Languages : mappedRules.SelectMany(rule => rule.Languages).Distinct().ToList();
-		return option with { RuleIds = ruleIds, Group = group, Languages = languages };
+		// An option only needs a newer language when every rule it feeds does; IDE0028 uses dotnet_style_prefer_collection_expression on any version.
+		var minimumCSharpVersion = mappedRules.Count > 0 && mappedRules.All(rule => rule.MinimumCSharpVersion is not null)
+			? mappedRules.Select(rule => rule.MinimumCSharpVersion!).MinBy(Version.Parse)
+			: null;
+		return option with { RuleIds = ruleIds, Group = group, Languages = languages, MinimumCSharpVersion = minimumCSharpVersion };
 	}
 
 	/// <summary>One table can document several IDs, such as <c>IDE0390, IDE0391</c>. Tables that describe the table format itself have none.</summary>
@@ -74,6 +78,7 @@ internal static partial class DocsOptionReader
 			table.Value("Category"),
 			table.Has("Subcategory") ? table.Value("Subcategory") : null,
 			ToLanguages(table.Value("Applicable languages")),
+			ToMinimumCSharpVersion(table.Value("Applicable languages")),
 			table.Values("Options").SelectMany(Codes).ToList(),
 			fileName));
 
@@ -88,6 +93,7 @@ internal static partial class DocsOptionReader
 			FirstCode(table.Value("Option name")) ?? table.Value("Option name"),
 			table.Section ?? FallbackGroup,
 			table.Has("Applicable languages") ? ToLanguages(table.Value("Applicable languages")) : fileLanguages,
+			null,
 			values,
 			valueRows.Any(IsValueList),
 			ToDefaultValue(table),
@@ -120,6 +126,17 @@ internal static partial class DocsOptionReader
 		if (cell.Contains("Visual Basic", StringComparison.Ordinal))
 			languages.Add("visualbasic");
 		return languages;
+	}
+
+	/// <summary>Reads <c>C# 12+</c> or <c>C# 8.0+</c> as <c>12.0</c> or <c>8.0</c>, so versions compare with <see cref="Version"/>.</summary>
+	private static string? ToMinimumCSharpVersion(string cell)
+	{
+		var match = MinimumCSharpVersionPattern().Match(cell);
+		if (!match.Success)
+			return null;
+
+		var minor = match.Groups["minor"].Success ? match.Groups["minor"].Value : "0";
+		return $"{match.Groups["major"].Value}.{minor}";
 	}
 
 	/// <summary>Returns the first <c>```csharp</c> block after a table, stopping at the next heading.</summary>
@@ -201,6 +218,9 @@ internal static partial class DocsOptionReader
 
 	[GeneratedRegex(@"\bIDE\d{4}\b")]
 	private static partial Regex RuleIdPattern();
+
+	[GeneratedRegex(@"C# (?<major>\d+)(\.(?<minor>\d+))?\+")]
+	private static partial Regex MinimumCSharpVersionPattern();
 
 	[GeneratedRegex("^:?-+:?$")]
 	private static partial Regex SeparatorPattern();

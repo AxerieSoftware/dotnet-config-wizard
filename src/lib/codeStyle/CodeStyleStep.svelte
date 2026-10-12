@@ -1,28 +1,36 @@
 <script lang="ts">
-	import type { CatalogOption } from '../catalog/catalog.ts';
+	import type { CatalogOption, CatalogRule } from '../catalog/catalog.ts';
+	import { getOptionBlocker, getRuleBlocker } from '../config/versionGates.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import SeveritySelect from '../ui/SeveritySelect.svelte';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 
 	const wizard = getWizardState();
+	let isUnavailableShown = $state(false);
 
-	const groups = Map.groupBy(
-		wizard.catalog.options
-			.values()
-			.filter(option => option.languages.includes('csharp'))
+	const groups = $derived(
+		Map.groupBy(
+			wizard.catalog.options
+				.values()
+				.filter(option => option.languages.includes('csharp'))
+				.map(option => ({ option, blocker: getOptionBlocker(option, wizard.rootContext) }))
+				.filter(entry => isUnavailableShown || !entry.blocker)
+				.toArray()
+				.sort((left, right) => left.option.groupOrder - right.option.groupOrder || left.option.name.localeCompare(right.option.name)),
+			entry => entry.option.groupTitle
+		)
+			.entries()
+			.map(([title, entries]) => ({ title, entries, rules: toRules(entries.map(entry => entry.option)) }))
 			.toArray()
-			.sort((left, right) => left.groupOrder - right.groupOrder || left.name.localeCompare(right.name)),
-		option => option.groupTitle
-	)
-		.entries()
-		.map(([title, options]) => ({ title, options, rules: toRules(options) }))
-		.toArray();
+	);
 
-	function toRules(options: CatalogOption[]) {
+	function toRules(options: CatalogOption[]): { rule: CatalogRule; blocker: string | undefined }[] {
 		return [...new Set(options.flatMap(option => option.ruleIds))]
 			.sort()
 			.map(id => wizard.catalog.rules.get(id))
-			.filter(rule => rule !== undefined);
+			.filter(rule => rule !== undefined)
+			.map(rule => ({ rule, blocker: getRuleBlocker(rule, wizard.rootContext) }))
+			.filter(entry => isUnavailableShown || !entry.blocker);
 	}
 
 	function toValueChoices(option: CatalogOption): string[] {
@@ -33,16 +41,27 @@
 <h1>Code style</h1>
 <p class="lead">Every C# code-style option, grouped the way the output file groups them. An option says what you prefer; its rule's severity says how loudly to complain.</p>
 
+<label class="checkbox toggle">
+	<input type="checkbox" bind:checked={isUnavailableShown}>
+	Show options and rules that need a newer C# version or framework than C# {wizard.rootContext.csharpVersion} and {wizard.rootContext.tfms.join(', ')}
+</label>
+
 {#each groups as group (group.title)}
 	<section class="card">
 		<h2>{group.title}</h2>
-		{#each group.options as option (option.name)}
-			<div class="option-row">
+		{#each group.entries as { option, blocker } (option.name)}
+			<div class="option-row" class:unavailable={blocker}>
 				<label class="field">
-					<code>{option.name}</code>
+					<span class="option-name">
+						<code>{option.name}</code>
+						{#if blocker}
+							<span class="badge">{blocker}</span>
+						{/if}
+					</span>
 					{#if option.allowsMultipleValues}
 						<input
 							aria-label={option.name}
+							disabled={Boolean(blocker)}
 							value={wizard.rootScope.options?.[option.name] ?? ''}
 							placeholder={option.defaultValue ?? ''}
 							onchange={event => wizard.setOption(option.name, event.currentTarget.value.trim() === '' ? undefined : event.currentTarget.value.trim())}
@@ -50,6 +69,7 @@
 					{:else}
 						<ValueSelect
 							label={option.name}
+							disabled={Boolean(blocker)}
 							value={wizard.rootScope.options?.[option.name]}
 							values={toValueChoices(option)}
 							unsetLabel={option.defaultValue ? `Default (${option.defaultValue})` : 'Default'}
@@ -68,13 +88,15 @@
 
 		{#if group.rules.length > 0}
 			<h3>Rules</h3>
-			{#each group.rules as rule (rule.id)}
-				<div class="rule-row">
+			{#each group.rules as { rule, blocker } (rule.id)}
+				<div class="rule-row" class:unavailable={blocker}>
 					<span><strong>{rule.id}</strong> {rule.title}</span>
-					{#if !rule.isEnforcedOnBuild}
+					{#if blocker}
+						<span class="badge">{blocker}</span>
+					{:else if !rule.isEnforcedOnBuild}
 						<span class="badge" title="dotnet build never runs this rule; only the editor reports it.">Editor only</span>
 					{/if}
-					<SeveritySelect ruleId={rule.id} value={wizard.rootScope.severities?.[rule.id]} onchange={severity => wizard.setSeverity(rule.id, severity)} />
+					<SeveritySelect ruleId={rule.id} disabled={Boolean(blocker)} value={wizard.rootScope.severities?.[rule.id]} onchange={severity => wizard.setSeverity(rule.id, severity)} />
 				</div>
 			{/each}
 		{/if}

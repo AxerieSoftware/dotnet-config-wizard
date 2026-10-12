@@ -1,13 +1,15 @@
 {
 	"versions": {
-		"sdkBand": "10.0.3xx",
+		"sdkBand": "10.0.4xx",
 		"langVersion": null
 	},
 	"scopes": [
 		{
 			"path": "",
 			"projectKind": "service",
-			"tfms": ["net10.0"],
+			"tfms": [
+				"net10.0"
+			],
 			"formatting": {
 				"[*]": {
 					"charset": "utf-8",
@@ -18,9 +20,16 @@
 					"insert_final_newline": "true",
 					"trim_trailing_whitespace": "true"
 				},
-				"[*.md]": { "trim_trailing_whitespace": "false" },
-				"[*.{yml,yaml}]": { "indent_style": "space", "indent_size": "2" },
-				"[*.{cmd,bat}]": { "end_of_line": "crlf" }
+				"[*.md]": {
+					"trim_trailing_whitespace": "false"
+				},
+				"[*.{yml,yaml}]": {
+					"indent_style": "space",
+					"indent_size": "2"
+				},
+				"[*.{cmd,bat}]": {
+					"end_of_line": "crlf"
+				}
 			},
 			"options": {
 				"dotnet_sort_system_directives_first": "true",
@@ -49,7 +58,8 @@
 				"IDE0049": "warning",
 				"IDE0055": "warning",
 				"IDE0161": "warning",
-				"IDE0300": "warning"
+				"IDE0300": "warning",
+				"IDE1006": "warning"
 			},
 			"build": {
 				"Nullable": "enable",
@@ -60,7 +70,159 @@
 				"Deterministic": "true",
 				"UseArtifactsOutput": "true",
 				"InvariantGlobalization": "true"
-			}
+			},
+			"naming": [
+				{
+					"symbols": "interfaces",
+					"applicableKinds": [
+						"interface"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "I",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "type_parameters",
+					"applicableKinds": [
+						"type_parameter"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "T",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "types",
+					"applicableKinds": [
+						"class",
+						"struct",
+						"interface",
+						"enum",
+						"delegate"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "members",
+					"applicableKinds": [
+						"property",
+						"method",
+						"event"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "async_methods",
+					"applicableKinds": [
+						"method"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [
+						"async"
+					],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "Async",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "constants",
+					"applicableKinds": [
+						"field",
+						"local"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [
+						"const"
+					],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "private_static_readonly_fields",
+					"applicableKinds": [
+						"field"
+					],
+					"applicableAccessibilities": [
+						"private"
+					],
+					"requiredModifiers": [
+						"static",
+						"readonly"
+					],
+					"capitalization": "pascal_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "private_fields",
+					"applicableKinds": [
+						"field"
+					],
+					"applicableAccessibilities": [
+						"private"
+					],
+					"requiredModifiers": [],
+					"capitalization": "camel_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				},
+				{
+					"symbols": "parameters_and_locals",
+					"applicableKinds": [
+						"parameter",
+						"local"
+					],
+					"applicableAccessibilities": [
+						"*"
+					],
+					"requiredModifiers": [],
+					"capitalization": "camel_case",
+					"requiredPrefix": "",
+					"requiredSuffix": "",
+					"wordSeparator": "",
+					"severity": "warning"
+				}
+			]
 		},
 		{
 			"path": "tools/CatalogBuilder.Tests",

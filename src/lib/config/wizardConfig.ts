@@ -1,3 +1,5 @@
+import { CAPITALIZATIONS, type Capitalization, type NamingRule } from '../naming/namingRule.ts';
+
 export const SEVERITIES = ['none', 'silent', 'suggestion', 'warning', 'error'] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
@@ -17,9 +19,11 @@ export type ScopeConfig = {
 	severities?: Record<string, Severity>;
 	/** MSBuild property name to value. */
 	build?: Record<string, string>;
+	naming?: NamingRule[];
 };
 
 export type WizardConfig = {
+	/** `langVersion` is null for the target framework's default, `latest`, or a version such as `12.0`. */
 	versions: { sdkBand: string; langVersion: string | null };
 	scopes: ScopeConfig[];
 };
@@ -52,14 +56,35 @@ function findScopeProblem(scope: unknown): string | undefined {
 	if (!isRecord(scope)) return 'must be an object.';
 	if (typeof scope.path !== 'string') return 'path must be a string.';
 	if (scope.projectKind !== undefined && !PROJECT_KINDS.includes(scope.projectKind as ProjectKind)) return `projectKind must be one of ${PROJECT_KINDS.join(', ')}.`;
-	if (scope.tfms !== undefined && !(Array.isArray(scope.tfms) && scope.tfms.every(tfm => typeof tfm === 'string'))) return 'tfms must be an array of strings.';
+	if (scope.tfms !== undefined && !isStringArray(scope.tfms)) return 'tfms must be an array of strings.';
 	if (scope.formatting !== undefined && !(isRecord(scope.formatting) && Object.values(scope.formatting).every(isStringRecord))) return 'formatting must map globs to string key/value objects.';
 	if (scope.options !== undefined && !isStringRecord(scope.options)) return 'options must map names to strings.';
 	if (scope.build !== undefined && !isStringRecord(scope.build)) return 'build must map property names to strings.';
 	if (scope.severities !== undefined && !(isRecord(scope.severities) && Object.values(scope.severities).every(severity => SEVERITIES.includes(severity as Severity))))
 		return `severities must map rule IDs to one of ${SEVERITIES.join(', ')}.`;
+	if (scope.naming !== undefined && !(Array.isArray(scope.naming) && scope.naming.every(isNamingRule))) return 'naming must be an array of naming rules.';
 
 	return undefined;
+}
+
+function isNamingRule(value: unknown): value is NamingRule {
+	return (
+		isRecord(value) &&
+		typeof value.symbols === 'string' &&
+		/^\w+$/.test(value.symbols) &&
+		isStringArray(value.applicableKinds) &&
+		isStringArray(value.applicableAccessibilities) &&
+		isStringArray(value.requiredModifiers) &&
+		CAPITALIZATIONS.includes(value.capitalization as Capitalization) &&
+		typeof value.requiredPrefix === 'string' &&
+		typeof value.requiredSuffix === 'string' &&
+		typeof value.wordSeparator === 'string' &&
+		SEVERITIES.includes(value.severity as Severity)
+	);
+}
+
+function isStringArray(value: unknown): value is string[] {
+	return Array.isArray(value) && value.every(entry => typeof entry === 'string');
 }
 
 function invalid(reason: string): ParseResult {

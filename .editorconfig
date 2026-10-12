@@ -1,4 +1,4 @@
-# Settings for .NET SDK 10.0.3xx
+# Settings for .NET SDK 10.0.4xx
 root = true
 
 #### All files ####
@@ -57,6 +57,68 @@ csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
 csharp_new_line_before_open_brace = all
 
+## Naming rules (IDE1006)
+dotnet_naming_rule.interfaces_should_be_prefix_i_pascal_case.severity = warning
+dotnet_naming_rule.interfaces_should_be_prefix_i_pascal_case.symbols = interfaces
+dotnet_naming_rule.interfaces_should_be_prefix_i_pascal_case.style = prefix_i_pascal_case
+dotnet_naming_rule.type_parameters_should_be_prefix_t_pascal_case.severity = warning
+dotnet_naming_rule.type_parameters_should_be_prefix_t_pascal_case.symbols = type_parameters
+dotnet_naming_rule.type_parameters_should_be_prefix_t_pascal_case.style = prefix_t_pascal_case
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.members_should_be_pascal_case.symbols = members
+dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffix_async.severity = warning
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffix_async.symbols = async_methods
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffix_async.style = pascal_case_suffix_async
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.symbols = private_static_readonly_fields
+dotnet_naming_rule.private_static_readonly_fields_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case
+
+## Naming symbol groups
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameters.applicable_accessibilities = *
+dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+dotnet_naming_symbols.members.applicable_kinds = property, method, event
+dotnet_naming_symbols.members.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameters_and_locals.applicable_accessibilities = *
+
+## Naming styles
+dotnet_naming_style.prefix_i_pascal_case.capitalization = pascal_case
+dotnet_naming_style.prefix_i_pascal_case.required_prefix = I
+dotnet_naming_style.prefix_t_pascal_case.capitalization = pascal_case
+dotnet_naming_style.prefix_t_pascal_case.required_prefix = T
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.pascal_case_suffix_async.capitalization = pascal_case
+dotnet_naming_style.pascal_case_suffix_async.required_suffix = Async
+dotnet_naming_style.camel_case.capitalization = camel_case
+
 ### Diagnostic severities ###
 ## Code style: Style
 # IDE0003: Name can be simplified (editor only)
@@ -75,3 +137,5 @@ dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0161.severity = warning
 # IDE0300: Simplify collection initialization
 dotnet_diagnostic.IDE0300.severity = warning
+# IDE1006: Naming Styles
+dotnet_diagnostic.IDE1006.severity = warning

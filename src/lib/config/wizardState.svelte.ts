@@ -1,19 +1,46 @@
 import { createContext } from 'svelte';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import { toRootEditorConfig } from '../export/rootEditorConfig.ts';
-import type { ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
+import type { BandEntry } from '../catalog/catalogFiles.ts';
+import { loadCatalog } from '../catalog/loadCatalog.ts';
+import { toEditorConfigFiles } from '../export/editorConfigFiles.ts';
+import type { NamingRule } from '../naming/namingRule.ts';
+import { resolveScope } from './scopes.ts';
+import { toGateContext } from './versionGates.ts';
+import type { ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
 /** The config being edited and the files it renders to. Values set to undefined go back to the tool's default. */
 export class WizardState {
-	public config = $state<WizardConfig>(createStarterConfig());
+	public catalog: Catalog;
+	public config: WizardConfig;
 	public commentStyle = $state<CommentStyle>('idAndTitle');
-	public readonly editorConfig = $derived.by(() => toRootEditorConfig(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly output = $derived.by(() => toEditorConfigFiles(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly rootContext = $derived.by(() => toGateContext(this.config, resolveScope(this.config, this.rootScope), this.catalog));
 
-	public constructor(public readonly catalog: Catalog) {}
+	public constructor(catalog: Catalog) {
+		this.catalog = $state.raw(catalog);
+		this.config = $state(createStarterConfig(catalog.band));
+	}
 
 	public get rootScope(): ScopeConfig {
 		return this.config.scopes[0];
+	}
+
+	public async selectBand(bandName: string): Promise<void> {
+		this.catalog = await loadCatalog(bandName);
+		this.config.versions.sdkBand = bandName;
+	}
+
+	public setLangVersion(langVersion: string | undefined): void {
+		this.config.versions.langVersion = langVersion ?? null;
+	}
+
+	public setRootTargetFrameworks(tfms: string[]): void {
+		this.rootScope.tfms = tfms;
+	}
+
+	public setRootProjectKind(projectKind: ProjectKind | undefined): void {
+		setOrDelete(this.rootScope, 'projectKind', projectKind);
 	}
 
 	public setFormatting(glob: string, key: string, value: string | undefined): void {
@@ -34,16 +61,26 @@ export class WizardState {
 		this.rootScope.severities ??= {};
 		setOrDelete(this.rootScope.severities, ruleId, severity);
 	}
+
+	public addNamingRule(rule: NamingRule): void {
+		this.rootScope.naming ??= [];
+		this.rootScope.naming.push(structuredClone(rule));
+	}
+
+	public removeNamingRule(index: number): void {
+		this.rootScope.naming?.splice(index, 1);
+	}
 }
 
 export const [getWizardState, setWizardState] = createContext<WizardState>();
 
-function createStarterConfig(): WizardConfig {
+function createStarterConfig(band: BandEntry): WizardConfig {
 	return {
-		versions: { sdkBand: '10.0.3xx', langVersion: null },
+		versions: { sdkBand: band.band, langVersion: null },
 		scopes: [
 			{
 				path: '',
+				tfms: [`net${band.channel}`],
 				formatting: {
 					'[*]': { charset: 'utf-8', end_of_line: 'lf', indent_style: 'space', indent_size: '4', insert_final_newline: 'true', trim_trailing_whitespace: 'true' },
 					'[*.{yml,yaml}]': { indent_size: '2' }
@@ -53,7 +90,7 @@ function createStarterConfig(): WizardConfig {
 	};
 }
 
-function setOrDelete<TValue>(record: Record<string, TValue>, key: string, value: TValue | undefined): void {
+function setOrDelete<TRecord extends object, TKey extends keyof TRecord>(record: TRecord, key: TKey, value: TRecord[TKey] | undefined): void {
 	if (value === undefined) delete record[key];
 	else record[key] = value;
 }

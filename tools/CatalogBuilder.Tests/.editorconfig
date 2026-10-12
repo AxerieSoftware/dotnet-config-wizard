@@ -1,10 +1,10 @@
-#### Test scope ####
+#### C# files ####
 [*.cs]
-
-## Microsoft.CodeAnalysis.NetAnalyzers — Naming
+### Diagnostic severities ###
+## .NET analyzers: Naming
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
 
-## Microsoft.CodeAnalysis.NetAnalyzers — Performance
+## .NET analyzers: Performance
 # CA1861: Avoid constant arrays as arguments
 dotnet_diagnostic.CA1861.severity = none

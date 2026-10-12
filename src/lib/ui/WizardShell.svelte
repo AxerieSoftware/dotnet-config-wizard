@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import type { Catalog } from '../catalog/catalog.ts';
 	import { setWizardState, WizardState } from '../config/wizardState.svelte.ts';
+	import GeneratedFiles from '../export/GeneratedFiles.svelte';
 	import { REVIEW_STEP_PATH, WIZARD_STEPS } from './wizardSteps.ts';
 
 	type Props = { catalog: Catalog; children: Snippet };
@@ -41,8 +42,7 @@
 
 	{#if isPreviewShown}
 		<aside aria-label="Preview">
-			<h2>{wizard.editorConfig.path}</h2>
-			<pre class="file" data-testid="preview-file"><code>{wizard.editorConfig.content}</code></pre>
+			<GeneratedFiles files={wizard.output.files} />
 		</aside>
 	{/if}
 </div>

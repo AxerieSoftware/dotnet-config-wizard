@@ -6,6 +6,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -30,6 +31,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -54,6 +56,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -78,6 +81,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -102,6 +106,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "flush_left",
@@ -130,6 +135,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -154,6 +160,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -178,6 +185,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -202,6 +210,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -226,6 +235,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -250,6 +260,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -274,6 +285,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "all",
@@ -346,6 +358,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -370,6 +383,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -398,6 +412,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -422,6 +437,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -446,6 +462,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -470,6 +487,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -494,6 +512,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "13.0",
 			"values": [
 				{
 					"value": "true",
@@ -518,6 +537,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "public",
@@ -546,6 +566,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -570,6 +591,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -594,6 +616,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -618,6 +641,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -642,6 +666,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -666,6 +691,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -690,6 +716,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -714,6 +741,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -738,6 +766,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "before_and_after",
@@ -766,6 +795,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "ignore",
@@ -790,6 +820,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -814,6 +845,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -838,6 +870,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -862,6 +895,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -886,6 +920,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -910,6 +945,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -934,6 +970,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -958,6 +995,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -982,6 +1020,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1006,6 +1045,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1030,6 +1070,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1054,6 +1095,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1078,6 +1120,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "control_flow_statements",
@@ -1110,6 +1153,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1134,6 +1178,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1158,6 +1203,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1182,6 +1228,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1206,6 +1253,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1230,6 +1278,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1254,6 +1303,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1278,6 +1328,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1302,6 +1353,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1330,6 +1382,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1358,6 +1411,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1386,6 +1440,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1414,6 +1469,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1442,6 +1498,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1470,6 +1527,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1499,6 +1557,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1527,6 +1586,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"values": [
 				{
 					"value": "true",
@@ -1551,6 +1611,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1575,6 +1636,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "block_scoped",
@@ -1600,6 +1662,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1625,6 +1688,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1650,6 +1714,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1674,6 +1739,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1698,6 +1764,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -1722,6 +1789,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "15.0",
 			"values": [
 				{
 					"value": "true",
@@ -1746,6 +1814,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1770,6 +1839,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "11.0",
 			"values": [
 				{
 					"value": "true",
@@ -1794,6 +1864,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"values": [
 				{
 					"value": "true",
@@ -1818,6 +1889,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1842,6 +1914,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"values": [
 				{
 					"value": "true",
@@ -1866,6 +1939,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"values": [
 				{
 					"value": "true",
@@ -1890,6 +1964,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -1914,6 +1989,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -1938,6 +2014,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -1962,6 +2039,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "13.0",
 			"values": [
 				{
 					"value": "true",
@@ -1986,6 +2064,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"values": [
 				{
 					"value": "true",
@@ -2010,6 +2089,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"values": [
 				{
 					"value": "true",
@@ -2035,6 +2115,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2059,6 +2140,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "14.0",
 			"values": [
 				{
 					"value": "true",
@@ -2083,6 +2165,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "11.0",
 			"values": [
 				{
 					"value": "true",
@@ -2107,6 +2190,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2131,6 +2215,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "discard_variable",
@@ -2155,6 +2240,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "discard_variable",
@@ -2179,6 +2265,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2204,6 +2291,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2229,6 +2317,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2254,6 +2343,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "outside_namespace",
@@ -2279,6 +2369,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "all",
@@ -2304,6 +2395,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2329,6 +2421,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "category:",
@@ -2358,6 +2451,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2383,6 +2477,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2408,6 +2503,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2433,6 +2529,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2458,6 +2555,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2485,6 +2583,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2510,6 +2609,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2535,6 +2635,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2560,6 +2661,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2585,6 +2687,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2610,6 +2713,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always_for_clarity",
@@ -2636,6 +2740,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always_for_clarity",
@@ -2662,6 +2767,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always_for_clarity",
@@ -2688,6 +2794,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always_for_clarity",
@@ -2714,6 +2821,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2739,6 +2847,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2764,6 +2873,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2789,6 +2899,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2833,6 +2944,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2859,6 +2971,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2884,6 +2997,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2908,6 +3022,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always",
@@ -2933,6 +3048,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2958,6 +3074,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -2983,6 +3100,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3007,6 +3125,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3032,6 +3151,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3057,6 +3177,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3082,6 +3203,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3108,6 +3230,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3134,6 +3257,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3160,6 +3284,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3186,6 +3311,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3211,6 +3337,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "always",
@@ -3244,6 +3371,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "{fileName}",
@@ -3268,6 +3396,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "Partial",
@@ -3296,6 +3425,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3320,6 +3450,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "true",
@@ -3344,6 +3475,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "unused_local_variable",
@@ -3364,6 +3496,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"values": [
 				{
 					"value": "unused_local_variable",
@@ -3389,6 +3522,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0001.md"
 		},
@@ -3398,6 +3532,7 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0001.md"
 		},
@@ -3410,6 +3545,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0002.md"
 		},
@@ -3422,6 +3558,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_qualification_for_field",
 				"dotnet_style_qualification_for_property",
@@ -3439,6 +3576,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_qualification_for_field",
 				"dotnet_style_qualification_for_property",
@@ -3456,6 +3594,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0004.md"
 		},
@@ -3468,6 +3607,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0005.md"
 		},
@@ -3477,6 +3617,7 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0005.md"
 		},
@@ -3488,6 +3629,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_var_for_built_in_types",
 				"csharp_style_var_when_type_is_apparent",
@@ -3503,6 +3645,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_var_for_built_in_types",
 				"csharp_style_var_when_type_is_apparent",
@@ -3519,6 +3662,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0010.md"
 		},
@@ -3530,6 +3674,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_prefer_braces"
 			],
@@ -3543,6 +3688,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_throw_expression"
 			],
@@ -3557,6 +3703,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_object_initializer"
 			],
@@ -3570,6 +3717,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_inlined_variable_declaration"
 			],
@@ -3583,6 +3731,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_pattern_matching_over_as_with_null_check"
 			],
@@ -3596,6 +3745,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_pattern_matching_over_is_with_cast_check"
 			],
@@ -3609,6 +3759,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_pattern_matching_over_is_with_cast_check"
 			],
@@ -3622,6 +3773,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_constructors"
 			],
@@ -3635,6 +3787,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_methods"
 			],
@@ -3648,6 +3801,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_operators"
 			],
@@ -3661,6 +3815,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_operators"
 			],
@@ -3674,6 +3829,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_properties"
 			],
@@ -3687,6 +3843,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_indexers"
 			],
@@ -3700,6 +3857,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_accessors"
 			],
@@ -3714,6 +3872,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_collection_initializer",
 				"dotnet_style_prefer_collection_expression"
@@ -3729,6 +3888,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
 			],
@@ -3743,6 +3903,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
 			],
@@ -3757,6 +3918,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
 			],
@@ -3771,6 +3933,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_null_propagation"
 			],
@@ -3785,6 +3948,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_auto_properties"
 			],
@@ -3799,6 +3963,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_explicit_tuple_names"
 			],
@@ -3812,6 +3977,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_prefer_simple_default_expression"
 			],
@@ -3826,6 +3992,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0035.md"
 		},
@@ -3838,6 +4005,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_preferred_modifier_order",
 				"visual_basic_preferred_modifier_order"
@@ -3853,6 +4021,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_inferred_tuple_names",
 				"dotnet_style_prefer_inferred_anonymous_type_member_names"
@@ -3867,6 +4036,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_local_over_anonymous_function"
 			],
@@ -3881,6 +4051,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_require_accessibility_modifiers"
 			],
@@ -3895,6 +4066,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_is_null_check_over_reference_equality_method"
 			],
@@ -3908,6 +4080,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_deconstructed_variable_declaration"
 			],
@@ -3922,6 +4095,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0043.md"
 		},
@@ -3934,6 +4108,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_readonly_field"
 			],
@@ -3948,6 +4123,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_conditional_expression_over_assignment"
 			],
@@ -3962,6 +4138,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_conditional_expression_over_return"
 			],
@@ -3976,6 +4153,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_parentheses_in_arithmetic_binary_operators",
 				"dotnet_style_parentheses_in_relational_binary_operators",
@@ -3993,6 +4171,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_parentheses_in_arithmetic_binary_operators",
 				"dotnet_style_parentheses_in_relational_binary_operators",
@@ -4010,6 +4189,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_predefined_type_for_locals_parameters_members",
 				"dotnet_style_predefined_type_for_member_access"
@@ -4025,6 +4205,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0050.md"
 		},
@@ -4037,6 +4218,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0051.md"
 		},
@@ -4049,6 +4231,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0052.md"
 		},
@@ -4060,6 +4243,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_lambdas"
 			],
@@ -4074,6 +4258,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_compound_assignment"
 			],
@@ -4088,6 +4273,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_compound_assignment"
 			],
@@ -4102,6 +4288,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0055.md"
 		},
@@ -4113,6 +4300,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_style_prefer_index_operator"
 			],
@@ -4126,6 +4314,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_style_prefer_range_operator"
 			],
@@ -4140,6 +4329,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_unused_value_expression_statement_preference",
 				"visual_basic_style_unused_value_expression_statement_preference"
@@ -4155,6 +4345,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_unused_value_assignment_preference",
 				"visual_basic_style_unused_value_assignment_preference"
@@ -4167,6 +4358,7 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0059.md"
 		},
@@ -4179,6 +4371,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_code_quality_unused_parameters"
 			],
@@ -4192,6 +4385,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_expression_bodied_local_functions"
 			],
@@ -4205,6 +4399,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_prefer_static_local_function"
 			],
@@ -4218,6 +4413,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_prefer_simple_using_statement"
 			],
@@ -4231,6 +4427,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0064.md"
 		},
@@ -4242,6 +4439,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_using_directive_placement"
 			],
@@ -4255,6 +4453,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_style_prefer_switch_expression"
 			],
@@ -4269,6 +4468,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_prefer_system_hash_code"
 			],
@@ -4283,6 +4483,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_simplified_interpolation"
 			],
@@ -4296,6 +4497,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [],
 			"docFile": "ide0072.md"
 		},
@@ -4308,6 +4510,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"file_header_template"
 			],
@@ -4322,6 +4525,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_simplified_boolean_expressions"
 			],
@@ -4336,6 +4540,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0076.md"
 		},
@@ -4348,6 +4553,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0077.md"
 		},
@@ -4359,6 +4565,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"optionNames": [
 				"csharp_style_prefer_pattern_matching"
 			],
@@ -4372,6 +4579,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_pattern_matching_over_as_with_null_check"
 			],
@@ -4386,6 +4594,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_remove_unnecessary_suppression_exclusions"
 			],
@@ -4399,6 +4608,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0080.md"
 		},
@@ -4410,6 +4620,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0081.md"
 		},
@@ -4422,6 +4633,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0082.md"
 		},
@@ -4433,6 +4645,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"optionNames": [
 				"csharp_style_prefer_not_pattern"
 			],
@@ -4446,6 +4659,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"visual_basic_style_prefer_isnot_expression"
 			],
@@ -4459,6 +4673,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"optionNames": [
 				"csharp_style_implicit_object_creation_when_type_is_apparent"
 			],
@@ -4473,6 +4688,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0100.md"
 		},
@@ -4484,6 +4700,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0110.md"
 		},
@@ -4496,6 +4713,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0120.md"
 		},
@@ -4508,6 +4726,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0121.md"
 		},
@@ -4520,6 +4739,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_namespace_match_folder"
 			],
@@ -4533,6 +4753,7 @@
 			"languages": [
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"visual_basic_style_prefer_simplified_object_creation"
 			],
@@ -4546,6 +4767,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_null_check_over_type_check"
 			],
@@ -4559,6 +4781,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_namespace_declarations"
 			],
@@ -4572,6 +4795,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_namespace_declarations"
 			],
@@ -4585,6 +4809,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_extended_property_pattern"
 			],
@@ -4598,6 +4823,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_tuple_swap"
 			],
@@ -4611,6 +4837,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "11.0",
 			"optionNames": [
 				"csharp_style_prefer_method_group_conversion"
 			],
@@ -4624,6 +4851,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"optionNames": [
 				"csharp_style_prefer_top_level_statements"
 			],
@@ -4637,6 +4865,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "9.0",
 			"optionNames": [
 				"csharp_style_prefer_top_level_statements"
 			],
@@ -4650,6 +4879,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_foreach_explicit_cast_in_source"
 			],
@@ -4663,6 +4893,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_prefer_non_hidden_explicit_cast_in_source"
 			],
@@ -4676,6 +4907,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "11.0",
 			"optionNames": [
 				"csharp_style_prefer_utf8_string_literals"
 			],
@@ -4689,6 +4921,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0240.md"
 		},
@@ -4700,6 +4933,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0241.md"
 		},
@@ -4711,6 +4945,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_readonly_struct"
 			],
@@ -4724,6 +4959,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "8.0",
 			"optionNames": [
 				"csharp_style_prefer_readonly_struct_member"
 			],
@@ -4737,6 +4973,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0280.md"
 		},
@@ -4748,6 +4985,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"csharp_style_prefer_primary_constructors"
 			],
@@ -4761,6 +4999,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4774,6 +5013,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4787,6 +5027,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4800,6 +5041,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4813,6 +5055,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4826,6 +5069,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4839,6 +5083,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "12.0",
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
 			],
@@ -4852,6 +5097,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_prefer_static_anonymous_function"
 			],
@@ -4865,6 +5111,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "13.0",
 			"optionNames": [
 				"csharp_prefer_system_threading_lock"
 			],
@@ -4878,6 +5125,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "14.0",
 			"optionNames": [
 				"csharp_style_prefer_unbound_generic_type_in_nameof"
 			],
@@ -4891,6 +5139,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_prefer_implicitly_typed_lambda_expression"
 			],
@@ -4904,6 +5153,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "13.0",
 			"optionNames": [
 				"csharp_style_prefer_simple_property_accessors"
 			],
@@ -4917,6 +5167,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0370.md"
 		},
@@ -4928,6 +5179,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0380.md"
 		},
@@ -4939,6 +5191,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0390-ide0391.md"
 		},
@@ -4950,6 +5203,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide0390-ide0391.md"
 		},
@@ -4961,6 +5215,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": "15.0",
 			"optionNames": [
 				"csharp_style_prefer_labeled_jump_statements"
 			],
@@ -4974,6 +5229,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_conditional_delegate_call"
 			],
@@ -4987,6 +5243,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide1007.md"
 		},
@@ -4999,6 +5256,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_allow_multiple_blank_lines_experimental"
 			],
@@ -5012,6 +5270,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_allow_embedded_statements_on_same_line_experimental"
 			],
@@ -5025,6 +5284,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_allow_blank_lines_between_consecutive_braces_experimental"
 			],
@@ -5039,6 +5299,7 @@
 				"csharp",
 				"visualbasic"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"dotnet_style_allow_statement_immediately_after_block_experimental"
 			],
@@ -5052,6 +5313,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental"
 			],
@@ -5065,6 +5327,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental"
 			],
@@ -5078,6 +5341,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental"
 			],
@@ -5091,6 +5355,7 @@
 			"languages": [
 				"csharp"
 			],
+			"minimumCSharpVersion": null,
 			"optionNames": [],
 			"docFile": "ide3000.md"
 		}

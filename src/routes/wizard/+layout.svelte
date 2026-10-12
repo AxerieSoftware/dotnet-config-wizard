@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { loadCatalog } from '#lib/catalog/loadCatalog.ts';
+	import { DEFAULT_BAND, loadCatalog } from '#lib/catalog/loadCatalog.ts';
 	import WizardShell from '#lib/ui/WizardShell.svelte';
 
 	let { children }: { children: Snippet } = $props();
 </script>
 
-{#await loadCatalog()}
+{#await loadCatalog(DEFAULT_BAND.band)}
 	<p class="status">Loading rules and options…</p>
 {:then catalog}
 	<WizardShell {catalog}>{@render children()}</WizardShell>

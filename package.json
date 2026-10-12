@@ -15,7 +15,7 @@
 		"knip": "knip",
 		"test": "vitest run",
 		"e2e": "playwright test",
-		"catalog": "./scripts/build-catalog.sh"
+		"catalog": "node scripts/buildCatalog.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

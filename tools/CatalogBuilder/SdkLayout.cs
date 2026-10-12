@@ -15,6 +15,9 @@ internal sealed partial record SdkLayout(
 	/// <summary>Folders to resolve analyzer dependencies from. dotnet-format carries the Workspaces build that matches the SDK's Roslyn.</summary>
 	public IReadOnlyList<string> ProbeDirectories => [this.CodeStyleDirectory, this.NetAnalyzersDirectory, this.RoslynDirectory, this.FormatToolDirectory];
 
+	/// <summary>The release channel, such as <c>10.0</c>, that <c>releases-index.json</c> keys support details by.</summary>
+	public string Channel => string.Join('.', this.Band.Split('.').Take(2));
+
 	public IReadOnlyList<string> CodeStyleAssemblies => Directory.GetFiles(this.CodeStyleDirectory, "*.CodeStyle.dll");
 
 	public IReadOnlyList<string> NetAnalyzersAssemblies => Directory.GetFiles(this.NetAnalyzersDirectory, "*NetAnalyzers.dll")

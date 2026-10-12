@@ -8,5 +8,5 @@
 	<p class="lead">
 		Build an <code>.editorconfig</code> for a .NET repo from every formatting option, code-style option and analyzer rule the .NET SDK ships, grouped and commented so the file explains itself.
 	</p>
-	<a class="button" href="/wizard/formatting">Start</a>
+	<a class="button" href="/wizard/start">Start</a>
 </main>

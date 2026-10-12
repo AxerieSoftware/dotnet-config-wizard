@@ -47,15 +47,26 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
 
+      - name: Cache .NET SDKs for every cataloged band
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/dotnet
+          key: dotnet-sdks-${{ hashFiles('catalog/generated/bands.json') }}
+
       - name: Test CatalogBuilder
         run: dotnet test --solution dotnet-config-wizard.slnx
 
       # Proves the SDK layout assertions still hold and every analyzer loads. It doesn't compare the
-      # output, because dotnet/docs changes upstream; the scheduled refresh workflow owns that.
-      - name: Build catalog from the pinned SDK
-        run: ./scripts/build-catalog.sh
+      # output, because dotnet/docs and SDK releases change upstream; the scheduled refresh workflow owns that.
+      - name: Build catalog from every supported SDK
+        run: node scripts/buildCatalog.ts

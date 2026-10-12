@@ -84,6 +84,30 @@ public sealed class DocsOptionReaderTests
 	}
 
 	[TestMethod]
+	public void Read_ApplicableLanguagesWithVersion_SetsMinimumCSharpVersion()
+	{
+		var rule = Catalog.Rules.Single(rule => rule.Id == "IDE0300");
+
+		Assert.AreEqual("12.0", rule.MinimumCSharpVersion);
+	}
+
+	[TestMethod]
+	public void Read_OptionWhoseRulesAllNeedNewerCSharp_TakesTheLowestMinimum()
+	{
+		var option = Catalog.Options.Single(option => option.Name == "dotnet_style_prefer_collection_expression");
+
+		Assert.AreEqual("12.0", option.MinimumCSharpVersion);
+	}
+
+	[TestMethod]
+	public void Read_OptionWithAnUnversionedRule_HasNoMinimumCSharpVersion()
+	{
+		var option = Catalog.Options.Single(option => option.Name == "dotnet_style_qualification_for_field");
+
+		Assert.IsNull(option.MinimumCSharpVersion);
+	}
+
+	[TestMethod]
 	public void Read_FormattingOptionWithoutRuleTable_MapsToIde0055AndSectionGroup()
 	{
 		var option = Catalog.Options.Single(option => option.Name == "csharp_new_line_before_open_brace");

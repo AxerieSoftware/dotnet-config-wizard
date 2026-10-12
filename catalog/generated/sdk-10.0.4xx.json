@@ -1,6 +1,6 @@
 {
-	"sdkVersion": "10.0.300",
-	"band": "10.0.3xx",
+	"sdkVersion": "10.0.401",
+	"band": "10.0.4xx",
 	"rules": [
 		{
 			"id": "CA1000",
@@ -6216,6 +6216,21 @@
 			"tags": [
 				"Telemetry",
 				"EnforceOnBuild_WhenExplicitlyEnabled"
+			]
+		},
+		{
+			"id": "IDE0410",
+			"source": "Microsoft.CodeAnalysis.CSharp.CodeStyle",
+			"title": "Use labeled jump statement",
+			"category": "Style",
+			"defaultSeverity": "silent",
+			"isEnabledByDefault": true,
+			"helpLink": "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0410",
+			"description": null,
+			"tags": [
+				"Telemetry",
+				"EnforceOnBuild_Recommended",
+				"CustomSeverityConfigurable"
 			]
 		},
 		{

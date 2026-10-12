@@ -7,10 +7,10 @@ test('a formatting choice shows in the live preview', async ({ page }) => {
 
 	await page.getByRole('combobox', { name: 'C# files: Indent style' }).selectOption('tab');
 
-	await expect(page.getByTestId('preview-file')).toContainText('#### C# files ####\n[*.cs]\nindent_style = tab');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('#### C# files ####\n[*.cs]\nindent_style = tab');
 });
 
-test('code-style choices carry through to the downloaded .editorconfig', async ({ page }) => {
+test('code-style choices carry through to the downloaded zip', async ({ page }) => {
 	await page.goto('/');
 	await page.getByRole('link', { name: 'Start' }).click();
 	await page.getByRole('link', { name: 'Code style' }).first().click();
@@ -19,7 +19,7 @@ test('code-style choices carry through to the downloaded .editorconfig', async (
 	await page.getByRole('combobox', { name: 'IDE0009 severity' }).selectOption('warning');
 	await page.getByRole('link', { name: 'Review and export' }).first().click();
 
-	const reviewFile = page.getByTestId('review-file');
+	const reviewFile = page.getByTestId('file-.editorconfig');
 	await expect(reviewFile).toContainText('## this. and Me. qualification (IDE0003, IDE0009)\ndotnet_style_qualification_for_field = true');
 	await expect(reviewFile).toContainText('# IDE0009: Member access should be qualified\ndotnet_diagnostic.IDE0009.severity = warning');
 
@@ -36,7 +36,39 @@ test('code-style choices carry through to the downloaded .editorconfig', async (
 test('rules the build never runs are labeled editor only', async ({ page }) => {
 	await page.goto('/wizard/code-style');
 
-	const ruleRow = page.locator('.rule-row', { hasText: 'IDE0003' });
+	await expect(page.locator('.rule-row', { hasText: 'IDE0003' }).getByText('Editor only')).toBeVisible();
+});
 
-	await expect(ruleRow.getByText('Editor only')).toBeVisible();
+test('targeting an older framework hides rules its C# version lacks until asked', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('checkbox', { name: 'net10.0' }).uncheck();
+	await page.getByRole('checkbox', { name: 'netstandard2.0' }).check();
+	await expect(page.getByTestId('effective-csharp')).toHaveText('Code compiles as C# 7.3.');
+	await page.getByRole('link', { name: 'Code style' }).first().click();
+
+	await expect(page.getByRole('combobox', { name: 'IDE0300 severity' })).toHaveCount(0);
+
+	await page.getByRole('checkbox', { name: /Show options and rules/ }).check();
+
+	await expect(page.getByRole('combobox', { name: 'IDE0300 severity' })).toBeDisabled();
+	await expect(page.locator('.rule-row', { hasText: 'IDE0300' }).getByText('Needs C# 12.0')).toBeVisible();
+});
+
+test('switching to the preview SDK updates the file header', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('combobox', { name: 'SDK band' }).selectOption('11.0.1xx');
+
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('# Settings for .NET SDK 11.0.1xx');
+});
+
+test('a naming template adds a complete rule, symbol group and style', async ({ page }) => {
+	await page.goto('/wizard/naming');
+
+	await page.getByRole('button', { name: 'interfaces' }).click();
+
+	const preview = page.getByTestId('file-.editorconfig');
+	await expect(preview).toContainText('dotnet_naming_rule.interfaces_should_be_prefix_i_pascal_case.symbols = interfaces');
+	await expect(preview).toContainText('dotnet_naming_symbols.interfaces.applicable_kinds = interface');
+	await expect(preview).toContainText('dotnet_naming_style.prefix_i_pascal_case.required_prefix = I');
 });

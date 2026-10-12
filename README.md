@@ -10,9 +10,9 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 | `npm run check` | Typecheck, lint, find unused code and run unit tests. |
 | `npm run e2e` | Build the site and run the Playwright tests. |
 | `npm run build` | Build the static site into `build/`. |
-| `npm run catalog` | Regenerate `catalog/generated` from the SDK `global.json` selects and dotnet/docs. |
+| `npm run catalog` | Regenerate `catalog/generated` from the latest SDK of every supported .NET 10+ channel and dotnet/docs. SDKs install into `.cache/dotnet`. |
 | `node scripts/renderConfig.ts config/dogfood.json` | Regenerate this repo's `.editorconfig` from its wizard config. Add `--check` to compare instead of write. |
-| `node scripts/validateOutput.ts` | Build the sample projects in `validation/` with generated config and fail on config breakage. |
+| `node scripts/validateOutput.ts` | Build the sample projects in `validation/` with generated config on every cataloged SDK, failing on config breakage. |
 | `dotnet test --solution dotnet-config-wizard.slnx` | Test CatalogBuilder. |
 
 ## Layout

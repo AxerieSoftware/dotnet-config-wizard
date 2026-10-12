@@ -298,3 +298,78 @@ h1 {
 		max-height: 60vh;
 	}
 }
+
+.checkbox-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+	gap: 0.4rem;
+	margin-bottom: 0.75rem;
+}
+
+.checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin-right: 0.75rem;
+	font-size: 0.9rem;
+}
+
+.checkbox.toggle {
+	margin-bottom: 1rem;
+}
+
+fieldset {
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	margin: 0 0 0.75rem;
+	padding: 0.5rem 0.75rem;
+}
+
+legend {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+button.secondary {
+	background: var(--surface);
+	color: var(--text);
+	border-color: var(--border);
+	font-weight: 500;
+}
+
+.actions.wrap {
+	flex-wrap: wrap;
+}
+
+.naming-rule-header {
+	display: flex;
+	align-items: end;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.unavailable {
+	opacity: 0.6;
+}
+
+.option-name {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.file-path {
+	font-size: 0.9rem;
+	margin: 0 0 0.5rem;
+	font-family: var(--font-mono);
+}
+
+.file + .file-path {
+	margin-top: 1rem;
+}
+
+select:disabled,
+input:disabled {
+	opacity: 0.6;
+}

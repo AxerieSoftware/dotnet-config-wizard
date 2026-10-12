@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readCatalog } from '../../../scripts/readCatalog.ts';
 import { checkEditorConfigKeys } from './checkEditorConfigKeys.ts';
 
-const catalog = readCatalog('10.0.3xx');
+const catalog = readCatalog('10.0.4xx');
 
 describe('checkEditorConfigKeys', () => {
 	it('accepts standard, option, diagnostic and naming keys', () => {

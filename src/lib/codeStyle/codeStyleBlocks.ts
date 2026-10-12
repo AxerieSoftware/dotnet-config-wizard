@@ -1,19 +1,27 @@
 import type { Catalog, CatalogOption } from '../catalog/catalog.ts';
+import { type GateContext, getOptionBlocker } from '../config/versionGates.ts';
 import type { EditorConfigBlock } from '../export/editorConfigDocument.ts';
+import type { SkippedKey } from '../export/generatedFile.ts';
 
 const CSHARP_LANGUAGE = 'csharp';
 
-export type CodeStyleBlocks = { blocks: EditorConfigBlock[]; skippedKeys: string[] };
+export type CodeStyleBlocks = { blocks: EditorConfigBlock[]; skippedKeys: SkippedKey[] };
 
 /** Groups the configured code-style options by their catalog group, headed by the rules the options feed. */
-export function toCodeStyleBlocks(options: Record<string, string>, catalog: Catalog): CodeStyleBlocks {
-	const skippedKeys: string[] = [];
+export function toCodeStyleBlocks(options: Record<string, string>, catalog: Catalog, context: GateContext): CodeStyleBlocks {
+	const skippedKeys: SkippedKey[] = [];
 	const configured: { option: CatalogOption; value: string }[] = [];
 
 	for (const [name, value] of Object.entries(options)) {
 		const option = catalog.options.get(name);
 		if (!option?.languages.includes(CSHARP_LANGUAGE)) {
-			skippedKeys.push(name);
+			skippedKeys.push({ key: name, reason: 'Not a C# option the catalog knows' });
+			continue;
+		}
+
+		const blocker = getOptionBlocker(option, context);
+		if (blocker) {
+			skippedKeys.push({ key: name, reason: blocker });
 			continue;
 		}
 
