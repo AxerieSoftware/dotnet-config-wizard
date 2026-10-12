@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import SeveritySelect from '../ui/SeveritySelect.svelte';
-	import { ACCESSIBILITIES, CAPITALIZATIONS, MODIFIERS, NAMING_TEMPLATES, SYMBOL_KINDS, toRuleName, toSymbolGroupName } from './namingRule.ts';
+	import { ACCESSIBILITIES, CAPITALIZATIONS, MICROSOFT_NAMING_SYMBOLS, MODIFIERS, NAMING_TEMPLATES, SYMBOL_KINDS, toRuleName, toSymbolGroupName } from './namingRule.ts';
 
 	const wizard = getWizardState();
 	const rules = $derived(wizard.rootScope.naming ?? []);
 	const unusedTemplates = $derived(NAMING_TEMPLATES.filter(template => !rules.some(rule => rule.symbols === template.symbols)));
+
+	function addMicrosoftConventions(): void {
+		for (const template of unusedTemplates.filter(entry => MICROSOFT_NAMING_SYMBOLS.includes(entry.symbols))) wizard.addNamingRule(template);
+	}
 
 	function toggle(values: string[], value: string, isChecked: boolean): void {
 		const index = values.indexOf(value);
@@ -82,6 +86,14 @@
 
 <section class="card">
 	<h2>Add a rule</h2>
+	<p class="note">
+		Microsoft's conventions, from the .NET runtime team: PascalCase types, members and constants, <code>I</code> and <code>T</code> prefixes, <code>_camelCase</code> instance fields and
+		<code>s_camelCase</code>
+		static fields.
+	</p>
+	<div class="actions wrap">
+		<button type="button" onclick={addMicrosoftConventions}>Add Microsoft conventions</button>
+	</div>
 	<div class="actions wrap">
 		{#each unusedTemplates as template (template.symbols)}
 			<button type="button" class="secondary" onclick={() => wizard.addNamingRule(template)}>{template.symbols.replaceAll('_', ' ')}</button>

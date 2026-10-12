@@ -1,3 +1,4 @@
+import type { BannedApi } from '../analyzers/bannedApis.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
 import type { ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
@@ -11,6 +12,9 @@ export type ResolvedScope = {
 	severities: Record<string, Severity>;
 	build: Record<string, string>;
 	naming: NamingRule[];
+	packages: string[];
+	ruleParameters: Record<string, Record<string, string>>;
+	bannedApis: BannedApi[];
 };
 
 /** The closest scope whose folder contains this one; the root scope contains every other scope. */
@@ -30,15 +34,19 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		path: scope.path,
 		projectKind: scope.projectKind ?? inherited?.projectKind,
 		tfms: scope.tfms ?? inherited?.tfms ?? [],
-		formatting: mergeFormatting(inherited?.formatting ?? {}, scope.formatting ?? {}),
+		formatting: mergeNested(inherited?.formatting ?? {}, scope.formatting ?? {}),
 		options: { ...inherited?.options, ...scope.options },
 		severities: { ...inherited?.severities, ...scope.severities },
 		build: { ...inherited?.build, ...scope.build },
-		naming: mergeNaming(inherited?.naming ?? [], scope.naming ?? [])
+		naming: mergeNaming(inherited?.naming ?? [], scope.naming ?? []),
+		packages: scope.packages ?? inherited?.packages ?? [],
+		ruleParameters: mergeNested(inherited?.ruleParameters ?? {}, scope.ruleParameters ?? {}),
+		bannedApis: [...(inherited?.bannedApis ?? []), ...(scope.bannedApis ?? [])]
 	};
 }
 
-function mergeFormatting(inherited: Record<string, Record<string, string>>, own: Record<string, Record<string, string>>): Record<string, Record<string, string>> {
+/** Merges two levels of keyed settings, such as formatting by glob or parameters by rule, one key at a time. */
+function mergeNested(inherited: Record<string, Record<string, string>>, own: Record<string, Record<string, string>>): Record<string, Record<string, string>> {
 	const merged = { ...inherited };
 	for (const [glob, settings] of Object.entries(own)) merged[glob] = { ...merged[glob], ...settings };
 	return merged;

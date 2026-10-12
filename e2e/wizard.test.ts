@@ -73,3 +73,37 @@ test('a naming template adds a complete rule, symbol group and style', async ({ 
 	await expect(preview).toContainText('dotnet_naming_symbols.interfaces.applicable_kinds = interface');
 	await expect(preview).toContainText('dotnet_naming_style.prefix_i_pascal_case.required_prefix = I');
 });
+
+test('a package rule severity set in the rule browser lands in the exported files', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	await page.getByRole('textbox', { name: 'Search rules' }).fill('MA0004');
+
+	await page.getByRole('combobox', { name: 'MA0004 severity' }).selectOption('error');
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('## Meziantou.Analyzer: Usage\n# MA0004: Use Task.ConfigureAwait\ndotnet_diagnostic.MA0004.severity = error');
+});
+
+test('turning off duplicates leaves one active rule per concern', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	const concern = page.locator('.rule-row', { hasText: 'Forward CancellationToken' });
+	await expect(concern).toContainText('CA2016 (.NET analyzers), also MA0040');
+
+	await concern.getByRole('button', { name: 'Turn off duplicates' }).click();
+
+	await expect(concern).toHaveCount(0);
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_diagnostic.MA0040.severity = none');
+});
+
+test('banned APIs are exported as BannedSymbols.txt', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Banned API analyzers/ }).check();
+
+	await page.getByRole('button', { name: 'Add: Clock access: use TimeProvider' }).click();
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+
+	await expect(page.getByTestId('file-BannedSymbols.txt')).toContainText('P:System.DateTime.UtcNow;Use TimeProvider.GetUtcNow() so time can be faked in tests.');
+});

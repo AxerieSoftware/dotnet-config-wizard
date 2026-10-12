@@ -4,7 +4,7 @@ namespace CatalogBuilder.Tests;
 public sealed class AnalysisLevelReaderTests
 {
 	[TestMethod]
-	public void ReadSeverities_GlobalConfigLines_KeepsEnabledRulesOnly()
+	public void ReadSeverities_GlobalConfigLines_KeepsEveryRuleEntry()
 	{
 		string[] lines =
 		[
@@ -19,7 +19,7 @@ public sealed class AnalysisLevelReaderTests
 		var severities = AnalysisLevelReader.ReadSeverities(lines);
 
 		CollectionAssert.AreEquivalent(
-			new Dictionary<string, string> { ["CA1000"] = "warning", ["CA1002"] = "suggestion" },
+			new Dictionary<string, string> { ["CA1000"] = "warning", ["CA1001"] = "none", ["CA1002"] = "suggestion" },
 			severities.ToDictionary());
 	}
 }

@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { type Catalog, createCatalog } from '../src/lib/catalog/catalog.ts';
-import type { BandEntry, SdkCatalogFile, StyleOptionCatalogFile } from '../src/lib/catalog/catalogFiles.ts';
+import type { BandEntry, PackageCatalogFile, PackageEntry, SdkCatalogFile, StyleOptionCatalogFile } from '../src/lib/catalog/catalogFiles.ts';
 
 const GENERATED_DIRECTORY = join(import.meta.dirname, '..', 'catalog', 'generated');
 
@@ -15,7 +15,10 @@ export function readCatalog(bandName: string): Catalog {
 	const band = readBands().find(entry => entry.band === bandName);
 	if (!band) throw new Error(`The catalog has no SDK band '${bandName}'.`);
 
-	return createCatalog(band, readJson<SdkCatalogFile>(`sdk-${bandName}.json`), readJson<StyleOptionCatalogFile>('style-options.json'));
+	const packageCatalogs = readdirSync(GENERATED_DIRECTORY)
+		.filter(fileName => fileName.startsWith('package-'))
+		.map(fileName => readJson<PackageCatalogFile>(fileName));
+	return createCatalog(band, readJson<SdkCatalogFile>(`sdk-${bandName}.json`), readJson<StyleOptionCatalogFile>('style-options.json'), readJson<PackageEntry[]>('packages.json'), packageCatalogs);
 }
 
 function readJson<TValue>(fileName: string): TValue {

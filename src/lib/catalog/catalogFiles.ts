@@ -16,7 +16,29 @@ export type SdkRuleEntry = {
 	helpLink: string | null;
 	description: string | null;
 	tags: string[];
+	hasCodeFix: boolean;
+	/** Compiler warnings only: 1 to 4 are always on; 5 and up are warning waves that AnalysisLevel turns on. */
+	warningLevel: number | null;
+	/** Settings read from an additional file rather than .editorconfig, such as Sonar's `SonarLint.xml`. */
+	parameters: RuleParameter[];
 };
+
+export type RuleParameter = { key: string; description: string; type: string; defaultValue: string | null };
+
+/** One entry of `catalog/generated/packages.json`: an analyzer package with its maintenance details. */
+export type PackageEntry = {
+	id: string;
+	title: string;
+	version: string;
+	latestVersion: string;
+	latestPublished: string;
+	isDeprecated: boolean;
+	isStale: boolean;
+	ruleCount: number;
+};
+
+/** Shape of `catalog/generated/package-<id>.json`: an analyzer package's rules. */
+export type PackageCatalogFile = { id: string; version: string; rules: SdkRuleEntry[] };
 
 /** One entry of `catalog/generated/bands.json`: an SDK band the catalog covers, with its support details. */
 export type BandEntry = {

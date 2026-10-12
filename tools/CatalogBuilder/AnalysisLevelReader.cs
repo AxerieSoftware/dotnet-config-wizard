@@ -5,11 +5,11 @@ namespace CatalogBuilder;
 /// <summary>
 /// Reads the SDK's <c>analysislevel_&lt;level&gt;_&lt;mode&gt;.globalconfig</c> files into level, then mode, then rule ID to severity.
 /// Per-category and <c>_warnaserror</c> variants are skipped because they're filtered or promoted copies of these files.
+/// Every entry is kept, including <c>none</c>: the <c>default</c> mode only lists exceptions, so a rule a mode doesn't
+/// list keeps its analyzer's own default, which is different from being turned off.
 /// </summary>
 internal static partial class AnalysisLevelReader
 {
-	private const string DisabledSeverity = "none";
-
 	public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>> Read(string configDirectory)
 	{
 		var levels = new SortedDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(StringComparer.Ordinal);
@@ -36,7 +36,7 @@ internal static partial class AnalysisLevelReader
 		foreach (var line in lines)
 		{
 			var match = SeverityPattern().Match(line);
-			if (!match.Success || match.Groups["severity"].Value == DisabledSeverity)
+			if (!match.Success)
 				continue;
 
 			severities[match.Groups["id"].Value] = match.Groups["severity"].Value;

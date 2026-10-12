@@ -2,7 +2,7 @@ namespace CatalogBuilder.Models;
 
 /// <summary>
 /// Everything extracted from one installed SDK band. <c>AnalysisLevels</c> maps level, then mode, then rule ID to severity,
-/// leaving out rules a level sets to <c>none</c>.
+/// including <c>none</c>. Rules a mode doesn't list keep their analyzer's own default.
 /// </summary>
 internal sealed record SdkCatalog(
 	string SdkVersion,

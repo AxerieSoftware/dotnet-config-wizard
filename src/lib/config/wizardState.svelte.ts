@@ -1,11 +1,13 @@
 import { createContext } from 'svelte';
+import { type AnalysisMode, toAnalysisLevelValue } from '../analyzers/analysisLevel.ts';
+import type { BannedApi } from '../analyzers/bannedApis.ts';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import type { BandEntry } from '../catalog/catalogFiles.ts';
 import { loadCatalog } from '../catalog/loadCatalog.ts';
-import { toEditorConfigFiles } from '../export/editorConfigFiles.ts';
+import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
-import { resolveScope } from './scopes.ts';
+import { type ResolvedScope, resolveScope } from './scopes.ts';
 import { toGateContext } from './versionGates.ts';
 import type { ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
@@ -14,8 +16,9 @@ export class WizardState {
 	public catalog: Catalog;
 	public config: WizardConfig;
 	public commentStyle = $state<CommentStyle>('idAndTitle');
-	public readonly output = $derived.by(() => toEditorConfigFiles(this.config, this.catalog, { commentStyle: this.commentStyle }));
-	public readonly rootContext = $derived.by(() => toGateContext(resolveScope(this.config, this.rootScope), this.catalog));
+	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly resolvedRootScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.rootScope));
+	public readonly rootContext = $derived.by(() => toGateContext(this.resolvedRootScope, this.catalog));
 
 	public constructor(catalog: Catalog) {
 		this.catalog = $state.raw(catalog);
@@ -56,6 +59,42 @@ export class WizardState {
 	public setSeverity(ruleId: string, severity: Severity | undefined): void {
 		this.rootScope.severities ??= {};
 		setOrDelete(this.rootScope.severities, ruleId, severity);
+	}
+
+	public setBuildProperty(name: string, value: string | undefined): void {
+		this.rootScope.build ??= {};
+		setOrDelete(this.rootScope.build, name, value);
+	}
+
+	public setAnalysisMode(mode: AnalysisMode): void {
+		this.setBuildProperty('AnalysisLevel', toAnalysisLevelValue(mode));
+	}
+
+	public setPackageSelected(packageId: string, isSelected: boolean): void {
+		const packages = (this.rootScope.packages ?? []).filter(existing => existing !== packageId);
+		this.rootScope.packages = isSelected ? [...packages, packageId] : packages;
+	}
+
+	/** Sets the severity of many rules at once, such as every rule a filter shows. */
+	public setSeverities(ruleIds: readonly string[], severity: Severity | undefined): void {
+		for (const ruleId of ruleIds) this.setSeverity(ruleId, severity);
+	}
+
+	public setRuleParameter(ruleId: string, key: string, value: string | undefined): void {
+		this.rootScope.ruleParameters ??= {};
+		const parameters = this.rootScope.ruleParameters;
+		parameters[ruleId] ??= {};
+		setOrDelete(parameters[ruleId], key, value);
+		if (Object.keys(parameters[ruleId]).length === 0) delete parameters[ruleId];
+	}
+
+	public addBannedApis(apis: readonly BannedApi[]): void {
+		const existing = this.rootScope.bannedApis ?? [];
+		this.rootScope.bannedApis = [...existing, ...apis.filter(api => !existing.some(entry => entry.symbol === api.symbol))];
+	}
+
+	public removeBannedApi(symbol: string): void {
+		this.rootScope.bannedApis = (this.rootScope.bannedApis ?? []).filter(api => api.symbol !== symbol);
 	}
 
 	public addNamingRule(rule: NamingRule): void {

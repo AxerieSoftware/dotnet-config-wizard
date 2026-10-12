@@ -7,12 +7,8 @@ import type { SkippedKey } from '../export/generatedFile.ts';
 export const COMMENT_STYLES = ['none', 'idAndTitle', 'titleAndLink'] as const;
 export type CommentStyle = (typeof COMMENT_STYLES)[number];
 
-const SOURCE_TITLES: Record<string, string> = {
-	'Microsoft.CodeAnalysis.CSharp.CodeStyle': 'Code style',
-	'Microsoft.CodeAnalysis.NetAnalyzers': '.NET analyzers'
-};
-
-const SOURCE_ORDER = Object.keys(SOURCE_TITLES);
+// SDK analyzers come first in this order, then packages alphabetically.
+const SOURCE_ORDER = ['Microsoft.CodeAnalysis.CSharp', 'Microsoft.CodeAnalysis.CSharp.CodeStyle', 'Microsoft.CodeAnalysis.NetAnalyzers', 'Microsoft.NET.ILLink.Tasks'];
 
 export type SeverityBlocks = { blocks: EditorConfigBlock[]; skippedKeys: SkippedKey[] };
 
@@ -39,10 +35,10 @@ export function toSeverityBlocks(severities: Record<string, Severity>, catalog: 
 
 	configured.sort((left, right) => compareRules(left.rule, right.rule));
 
-	const blocks = Map.groupBy(configured, entry => `${entry.rule.source}\n${entry.rule.category}`)
+	const blocks = Map.groupBy(configured, entry => `${entry.rule.sourceTitle}\n${entry.rule.category}`)
 		.values()
 		.map(entries => ({
-			heading: `${SOURCE_TITLES[entries[0].rule.source] ?? entries[0].rule.source}: ${entries[0].rule.category}`,
+			heading: `${entries[0].rule.sourceTitle}: ${entries[0].rule.category}`,
 			entries: entries.map(entry => ({ comment: toComment(entry.rule, commentStyle), key: `dotnet_diagnostic.${entry.rule.id}.severity`, value: entry.severity }))
 		}))
 		.toArray();
@@ -51,7 +47,7 @@ export function toSeverityBlocks(severities: Record<string, Severity>, catalog: 
 }
 
 function compareRules(left: CatalogRule, right: CatalogRule): number {
-	return toSourceRank(left.source) - toSourceRank(right.source) || left.source.localeCompare(right.source) || left.category.localeCompare(right.category) || left.id.localeCompare(right.id);
+	return toSourceRank(left.source) - toSourceRank(right.source) || left.sourceTitle.localeCompare(right.sourceTitle) || left.category.localeCompare(right.category) || left.id.localeCompare(right.id);
 }
 
 function toSourceRank(source: string): number {

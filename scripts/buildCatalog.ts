@@ -39,7 +39,23 @@ run('git', ['-C', DOCS_DIRECTORY, 'sparse-checkout', 'set', ...DOCS_FOLDERS]);
 for (const fileName of readdirSync(OUTPUT_DIRECTORY).filter(name => name.startsWith('sdk-') || name.startsWith('package-'))) rmSync(join(OUTPUT_DIRECTORY, fileName));
 
 const sdkArguments = sdkVersions.flatMap(sdkVersion => ['--sdk', join(DOTNET_DIRECTORY, 'sdk', sdkVersion)]);
-run('dotnet', ['run', '--project', join(REPO_ROOT, 'tools', 'CatalogBuilder'), '--', ...sdkArguments, '--docs', DOCS_DIRECTORY, '--releases-index', releasesIndexPath, '--packages', join(REPO_ROOT, 'catalog', 'packages.json'), '--cache', CACHE_DIRECTORY, '--out', OUTPUT_DIRECTORY]);
+run('dotnet', [
+	'run',
+	'--project',
+	join(REPO_ROOT, 'tools', 'CatalogBuilder'),
+	'--',
+	...sdkArguments,
+	'--docs',
+	DOCS_DIRECTORY,
+	'--releases-index',
+	releasesIndexPath,
+	'--packages',
+	join(REPO_ROOT, 'catalog', 'packages.json'),
+	'--cache',
+	CACHE_DIRECTORY,
+	'--out',
+	OUTPUT_DIRECTORY
+]);
 
 async function fetchText(url: string): Promise<string> {
 	const response = await fetch(url);

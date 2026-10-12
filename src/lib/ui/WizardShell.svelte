@@ -4,7 +4,7 @@
 	import type { Catalog } from '../catalog/catalog.ts';
 	import { setWizardState, WizardState } from '../config/wizardState.svelte.ts';
 	import GeneratedFiles from '../export/GeneratedFiles.svelte';
-	import { REVIEW_STEP_PATH, WIZARD_STEPS } from './wizardSteps.ts';
+	import { WIZARD_STEPS } from './wizardSteps.ts';
 
 	type Props = { catalog: Catalog; children: Snippet };
 
@@ -15,8 +15,7 @@
 	const stepIndex = $derived(WIZARD_STEPS.findIndex(step => step.path === page.url.pathname));
 	const previousStep = $derived(stepIndex > 0 ? WIZARD_STEPS[stepIndex - 1] : undefined);
 	const nextStep = $derived(stepIndex < WIZARD_STEPS.length - 1 ? WIZARD_STEPS[stepIndex + 1] : undefined);
-	// The review step shows the full file itself.
-	const isPreviewShown = $derived(page.url.pathname !== REVIEW_STEP_PATH);
+	const isPreviewShown = $derived(!WIZARD_STEPS[stepIndex]?.isWide);
 </script>
 
 <div class="wizard" class:without-preview={!isPreviewShown}>

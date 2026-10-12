@@ -123,10 +123,21 @@ export const NAMING_TEMPLATES: readonly NamingRule[] = [
 	{
 		symbols: 'private_fields_underscored',
 		applicableKinds: ['field'],
-		applicableAccessibilities: ['private'],
+		applicableAccessibilities: ['private', 'internal'],
 		requiredModifiers: [],
 		capitalization: 'camel_case',
 		requiredPrefix: '_',
+		requiredSuffix: '',
+		wordSeparator: '',
+		severity: 'warning'
+	},
+	{
+		symbols: 'static_fields',
+		applicableKinds: ['field'],
+		applicableAccessibilities: ['private', 'internal'],
+		requiredModifiers: ['static'],
+		capitalization: 'camel_case',
+		requiredPrefix: 's_',
 		requiredSuffix: '',
 		wordSeparator: '',
 		severity: 'warning'
@@ -143,6 +154,13 @@ export const NAMING_TEMPLATES: readonly NamingRule[] = [
 		severity: 'warning'
 	}
 ];
+
+/**
+ * The .NET runtime team's conventions, which Microsoft's C# identifier-name guidance adopts: `_camelCase` private and
+ * internal instance fields, `s_camelCase` static ones, and PascalCase constants. `t_` thread-static fields are left out
+ * because .editorconfig can't target the `[ThreadStatic]` attribute.
+ */
+export const MICROSOFT_NAMING_SYMBOLS: readonly string[] = ['interfaces', 'type_parameters', 'types', 'members', 'constants', 'private_fields_underscored', 'static_fields', 'parameters_and_locals'];
 
 /** A readable style name from its properties, such as `pascal_case` or `prefix_i_pascal_case`. */
 export function toStyleName(rule: NamingRule): string {

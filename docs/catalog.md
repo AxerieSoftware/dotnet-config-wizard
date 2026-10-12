@@ -10,12 +10,21 @@ The catalog covers the latest SDK of every .NET channel from 10.0 on that isn't 
 
 | Output | Source |
 | --- | --- |
-| `sdk-<band>.json` `rules` | Every C# `DiagnosticAnalyzer` in the SDK's code-style and NetAnalyzers assemblies, read through `SupportedDiagnostics`. |
+| `sdk-<band>.json` `rules` | Every C# `DiagnosticAnalyzer` in the SDK's code-style and NetAnalyzers assemblies and in the band's `Microsoft.NET.ILLink.Tasks` package (IL2xxx/IL3xxx), read through `SupportedDiagnostics`, plus every compiler warning (CSxxxx). |
 | `sdk-<band>.json` `analysisLevels` | The SDK's `analysislevel_<level>_<mode>.globalconfig` files: level, then mode, then rule ID to severity. |
+| `package-<id>.json` | The rules of each analyzer package listed in `catalog/packages.json`, at its latest stable version. |
+| `packages.json` | Each package's version, newest release (prereleases included), publish date and deprecation, for the maintenance gate. |
 | `bands.json` | `releases-index.json` support details for each band the run read. |
 | `style-options.json` | The property tables in dotnet/docs `docs/fundamentals/code-analysis/style-rules`, including `includes/`, which rule pages pull in with `[!INCLUDE]`. |
 
-Analyzers are loaded with the Roslyn build that ships in the same SDK, through reflection, so each band is read exactly as `dotnet build` runs it.
+Analyzers are loaded with the Roslyn build that ships in the same SDK, through reflection, so each band is read exactly as `dotnet build` runs it. Packages don't vary by SDK, so they're read once against the newest supported release's Roslyn.
+
+- **Code fixes.** A rule has one when some `CodeFixProvider` in the same assemblies lists it in `FixableDiagnosticIds`.
+- **Rule parameters.** Sonar-style `[RuleParameter]` attributes on analyzer properties become parameters, written to `SonarLint.xml`.
+- **Sonar descriptions** aren't copied, because Sonar's license doesn't allow republishing them; rules link to rules.sonarsource.com instead.
+- **Compiler warnings** come from Roslyn's internal `ErrorCode` enum (`WRN_*`), with titles from its resources and levels from `ErrorFacts.GetWarningLevel`. Levels 1 to 4 are always on; 5 and up are warning waves. Docs links come from the `f1_keywords` of the dotnet/docs compiler-message pages.
+- **Type-load failures** in packages are usually Roslyn helper types embedded for another Roslyn version. They're notes unless the type looks like an analyzer or code fix, which fails the run.
+- **Package folder layouts** vary: `analyzers/` (Sonar), `analyzers/dotnet/` (PublicApi), `analyzers/dotnet/cs/`, and Roslyn-versioned `analyzers/dotnet/roslynX.Y/cs/` (Roslynator, Meziantou), where the newest version the host Roslyn can load wins.
 
 ## SDK layout
 
@@ -41,6 +50,10 @@ dotnet/docs documents 14 IDE rules that the SDK's code-style assemblies don't re
 - Gaps in the docs, such as C# 10 for IDE0161, live in `src/lib/catalog/versionOverlay.ts`.
 - The wizard supports .NET 10 and later only, as SDK and as target framework; there's no .NET Framework or .NET Standard. Every rule's API needs are met from net10.0, so only the C# version gates rules.
 - Without LangVersion, the compiler uses the target framework's default C# version (C# 14 for net10.0, C# 15 for net11.0); with several frameworks, the oldest default decides.
+
+## AnalysisLevel files
+
+Each `analysislevel_<level>_<mode>.globalconfig` lists only the CA rules that mode changes: `recommended` and `all` raise rules to warning, `none` turns rules off, and `default` only turns off rules released after its level. A rule a mode doesn't list keeps its analyzer's own default, so the catalog keeps every entry, including `none`.
 
 ## Docs table conventions
 

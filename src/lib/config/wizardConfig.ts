@@ -1,3 +1,4 @@
+import type { BannedApi } from '../analyzers/bannedApis.ts';
 import { CAPITALIZATIONS, type Capitalization, type NamingRule } from '../naming/namingRule.ts';
 
 export const SEVERITIES = ['none', 'silent', 'suggestion', 'warning', 'error'] as const;
@@ -20,6 +21,12 @@ export type ScopeConfig = {
 	/** MSBuild property name to value. */
 	build?: Record<string, string>;
 	naming?: NamingRule[];
+	/** Analyzer package IDs this scope's projects reference; a nested scope's list replaces its parent's. */
+	packages?: string[];
+	/** Rule ID to parameter values for analyzers that read them from an additional file, such as Sonar's `SonarLint.xml`. */
+	ruleParameters?: Record<string, Record<string, string>>;
+	/** Entries for this scope's `BannedSymbols.txt`, added to the ones it inherits. */
+	bannedApis?: BannedApi[];
 };
 
 export type WizardConfig = {
@@ -57,6 +64,11 @@ function findScopeProblem(scope: unknown): string | undefined {
 	if (scope.severities !== undefined && !(isRecord(scope.severities) && Object.values(scope.severities).every(severity => SEVERITIES.includes(severity as Severity))))
 		return `severities must map rule IDs to one of ${SEVERITIES.join(', ')}.`;
 	if (scope.naming !== undefined && !(Array.isArray(scope.naming) && scope.naming.every(isNamingRule))) return 'naming must be an array of naming rules.';
+	if (scope.packages !== undefined && !isStringArray(scope.packages)) return 'packages must be an array of package IDs.';
+	if (scope.ruleParameters !== undefined && !(isRecord(scope.ruleParameters) && Object.values(scope.ruleParameters).every(isStringRecord)))
+		return 'ruleParameters must map rule IDs to string key/value objects.';
+	if (scope.bannedApis !== undefined && !(Array.isArray(scope.bannedApis) && scope.bannedApis.every(api => isRecord(api) && typeof api.symbol === 'string' && typeof api.message === 'string')))
+		return 'bannedApis must be an array of { symbol, message } objects.';
 
 	return undefined;
 }

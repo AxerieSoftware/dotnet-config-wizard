@@ -3,16 +3,17 @@ import type { ResolvedScope } from './scopes.ts';
 import { compareCSharpVersions, getDefaultCSharpVersion } from './targetFrameworks.ts';
 
 /** What a scope's code is built with, which decides the rules and options that apply to it. */
-export type GateContext = { csharpVersion: string; tfms: string[] };
+export type GateContext = { csharpVersion: string; tfms: string[]; packages: string[] };
 
 export function toGateContext(scope: ResolvedScope, catalog: Catalog): GateContext {
 	const tfms = scope.tfms.length > 0 ? scope.tfms : [`net${catalog.band.channel}`];
-	return { csharpVersion: toCSharpVersion(tfms), tfms };
+	return { csharpVersion: toCSharpVersion(tfms), tfms, packages: scope.packages };
 }
 
 /** Why a rule doesn't apply to a scope, or undefined when it does. */
 export function getRuleBlocker(rule: CatalogRule, context: GateContext): string | undefined {
 	if (rule.minimumCSharpVersion && compareCSharpVersions(context.csharpVersion, rule.minimumCSharpVersion) < 0) return `Needs C# ${rule.minimumCSharpVersion}`;
+	if (rule.packageId && !context.packages.includes(rule.packageId)) return `Needs the ${rule.sourceTitle} package`;
 	return undefined;
 }
 
