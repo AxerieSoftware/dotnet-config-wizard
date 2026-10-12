@@ -5,6 +5,9 @@ import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { loadCatalog } from '../catalog/loadCatalog.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
+import { importFile } from '../import/importFile.ts';
+import type { ImportNote } from '../import/importResult.ts';
+import { mergeImport } from '../import/mergeImport.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
 import type { InitialState } from './initialState.ts';
@@ -27,6 +30,9 @@ export class WizardState {
 	public presetId = $state<PresetId>('microsoft-defaults');
 	/** A message about how the settings were restored, such as from a link made with an older preset. */
 	public notice = $state<string | undefined>(undefined);
+	public importNotes = $state<(ImportNote & { fileName: string })[]>([]);
+	/** The catalog version an imported `.editorconfig` was made with, when it's older than this catalog. */
+	public importedCatalogVersion = $state<string | undefined>(undefined);
 	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
 	public readonly savedState = $derived.by(() => toSavedState(this.config, this.presetId, this.catalog));
 	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
@@ -67,6 +73,24 @@ export class WizardState {
 		this.presetId = presetId;
 		this.config = toPresetConfig(presetId, this.catalog);
 		this.activeScopePath = '';
+	}
+
+	/** Imports existing files into the active scope, reporting anything changed or dropped. */
+	public importFiles(files: readonly { name: string; text: string }[]): void {
+		const notes: (ImportNote & { fileName: string })[] = [];
+		for (const file of files) {
+			const result = importFile(file.name, file.text, this.catalog);
+			if (!result) {
+				notes.push({ fileName: file.name, severity: 'warning', message: 'Not a file the wizard imports. Use .editorconfig, .globalconfig, .props, .csproj or .ruleset.' });
+				continue;
+			}
+
+			mergeImport(this.activeScope, result.settings);
+			notes.push(...result.notes.map(note => ({ ...note, fileName: file.name })));
+			if (result.catalogVersion && result.catalogVersion < this.catalog.version) this.importedCatalogVersion = result.catalogVersion;
+		}
+
+		this.importNotes = notes;
 	}
 
 	public addScope(scope: ScopeConfig): void {

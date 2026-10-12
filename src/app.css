@@ -532,3 +532,15 @@ input:disabled {
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+
+textarea {
+	font: inherit;
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	width: 100%;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 0.5rem;
+}

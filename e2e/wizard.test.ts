@@ -239,3 +239,25 @@ test('a share link reopens the same settings in a new browser', async ({ page, b
 	await expect(otherPage.getByTestId('file-BannedSymbols.txt')).toContainText('T:System.Console;');
 	expect(new URL(otherPage.url()).hash).toBe('');
 });
+
+test('a pasted .editorconfig imports its settings and reports what it dropped', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('textbox', { name: 'Pasted file contents' }).fill('[*.cs]\ndotnet_diagnostic.CA1822.severity = error # keep static\ndotnet_diagnostic.SA1101.severity = none');
+	await page.getByRole('button', { name: 'Import pasted file' }).click();
+
+	await expect(page.getByRole('list', { name: 'Import notes' })).toContainText('StyleCop.Analyzers is no longer maintained');
+	await expect(page.getByRole('list', { name: 'Import notes' })).toContainText('Dropped 1 trailing comments');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_diagnostic.CA1822.severity = error');
+});
+
+test('importing a config from an older catalog offers the rules added since', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('textbox', { name: 'Pasted file contents' }).fill('# Settings for .NET SDK 10.0.4xx, catalog 2000-01-01\nroot = true');
+	await page.getByRole('button', { name: 'Import pasted file' }).click();
+	await page.getByRole('button', { name: 'Adopt CA1873' }).click();
+
+	await expect(page.getByRole('heading', { name: "What's new since your config" })).toBeVisible();
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_diagnostic.CA1873.severity = warning');
+});

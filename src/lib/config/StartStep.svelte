@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { BANDS } from '../catalog/loadCatalog.ts';
+	import ImportCard from '../import/ImportCard.svelte';
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 	import { PRESET_IDS, PRESETS } from './presets.ts';
@@ -75,6 +76,8 @@
 		{/each}
 	</div>
 </section>
+
+<ImportCard />
 
 <section class="card">
 	<h2>.NET SDK</h2>
