@@ -15,7 +15,8 @@ internal static partial class DocsOptionReader
 
 	public static StyleOptionCatalog Read(string styleRulesDirectory)
 	{
-		var documents = Directory.GetFiles(styleRulesDirectory, "*.md")
+		// Some options are documented in includes/ and pulled into rule pages with [!INCLUDE].
+		var documents = Directory.GetFiles(styleRulesDirectory, "*.md", SearchOption.AllDirectories)
 			.Order(StringComparer.Ordinal)
 			.Select(path => ReadDocument(Path.GetFileName(path), File.ReadAllLines(path)))
 			.ToList();
@@ -36,7 +37,7 @@ internal static partial class DocsOptionReader
 		var tables = ReadTables(lines);
 		var rules = tables
 			.Where(table => table.Has("Rule ID"))
-			.SelectMany(ToRuleDocs)
+			.SelectMany(table => ToRuleDocs(table, fileName))
 			.ToList();
 
 		var fileLanguages = rules.Count > 0 ? rules[0].Languages : [];
@@ -58,11 +59,14 @@ internal static partial class DocsOptionReader
 			ruleIds = [FormattingRuleId];
 
 		var group = mappedRules.FirstOrDefault()?.Subcategory ?? option.Group;
-		return option with { RuleIds = ruleIds, Group = group };
+
+		// Options documented in includes/ have no languages of their own, so they take their rules' languages.
+		var languages = option.Languages.Count > 0 ? option.Languages : mappedRules.SelectMany(rule => rule.Languages).Distinct().ToList();
+		return option with { RuleIds = ruleIds, Group = group, Languages = languages };
 	}
 
 	/// <summary>One table can document several IDs, such as <c>IDE0390, IDE0391</c>. Tables that describe the table format itself have none.</summary>
-	private static IEnumerable<RuleDoc> ToRuleDocs(MarkdownTable table) => RuleIdPattern()
+	private static IEnumerable<RuleDoc> ToRuleDocs(MarkdownTable table, string fileName) => RuleIdPattern()
 		.Matches(table.Value("Rule ID"))
 		.Select(match => new RuleDoc(
 			match.Value,
@@ -70,7 +74,8 @@ internal static partial class DocsOptionReader
 			table.Value("Category"),
 			table.Has("Subcategory") ? table.Value("Subcategory") : null,
 			ToLanguages(table.Value("Applicable languages")),
-			table.Values("Options").SelectMany(Codes).ToList()));
+			table.Values("Options").SelectMany(Codes).ToList(),
+			fileName));
 
 	private static OptionEntry ToOptionEntry(MarkdownTable table, IReadOnlyList<string> lines, string fileName, IReadOnlyList<string> fileLanguages)
 	{
@@ -84,12 +89,18 @@ internal static partial class DocsOptionReader
 			table.Section ?? FallbackGroup,
 			table.Has("Applicable languages") ? ToLanguages(table.Value("Applicable languages")) : fileLanguages,
 			values,
-			valueRows.Any(row => Codes(row.Value).Count > 1),
+			valueRows.Any(IsValueList),
 			ToDefaultValue(table),
 			[],
 			FindCSharpExample(lines, table.EndLine),
 			fileName);
 	}
+
+	/// <summary>
+	/// A row like <c>`methods`, `properties`</c> lists values that combine. A row like <c>`true` &amp;#124; `when_types_exactly_match`</c>
+	/// lists aliases for one value, so it doesn't.
+	/// </summary>
+	private static bool IsValueList(TableRow row) => Codes(row.Value).Count > 1 && row.Value.Contains(',', StringComparison.Ordinal);
 
 	private static string? ToDefaultValue(MarkdownTable table)
 	{

@@ -10,6 +10,9 @@ Before calling a change done, review the diff against this guide and clean it up
 - `npm run e2e` passes, with new behavior covered by an end-to-end test.
 - `dotnet test --solution dotnet-config-wizard.slnx` passes when anything under `tools/` changed.
 - `npm run catalog` runs cleanly when CatalogBuilder or the catalog format changed, and the regenerated `catalog/generated` is committed.
+- `node scripts/validateOutput.ts` passes when a generator or the catalog changed.
+- `node scripts/renderConfig.ts config/dogfood.json --check` passes. Change this repo's `.editorconfig` by editing `config/dogfood.json` and rerendering, never by hand.
+- Code in `src/lib` that scripts import stays plain TypeScript Node can run: `.ts` import extensions, and no parameter properties or enums.
 
 ## Code
 
@@ -24,6 +27,8 @@ Follow [docs/code-style.md](docs/code-style.md). In short:
 - **Greenfield.** No compatibility shims or leftovers from earlier iterations, except share-link migrations, which exist so old links keep their meaning.
 
 ## Generated output
+
+- Option groups and their titles live in `src/lib/catalog/optionGroups.ts`. A unit test fails when dotnet/docs adds a group that isn't listed.
 
 - `.editorconfig` comments always sit on their own line above the setting. EditorConfig has no inline comments.
 - Generated files carry no site attribution.

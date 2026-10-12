@@ -12,7 +12,7 @@ public sealed class DocsOptionReaderTests
 	{
 		var ruleIds = Catalog.Rules.Select(rule => rule.Id).ToList();
 
-		CollectionAssert.AreEquivalent(new[] { "IDE0003", "IDE0390", "IDE0391" }, ruleIds);
+		CollectionAssert.AreEquivalent(new[] { "IDE0003", "IDE0300", "IDE0390", "IDE0391" }, ruleIds);
 	}
 
 	[TestMethod]
@@ -56,6 +56,31 @@ public sealed class DocsOptionReaderTests
 
 		Assert.IsTrue(option.AllowsMultipleValues);
 		CollectionAssert.AreEqual(new[] { "all", "none", "methods", "properties", "types" }, option.Values.Select(value => value.Value).ToList());
+	}
+
+	[TestMethod]
+	public void Read_ValueRowWithAliases_DoesNotAllowMultipleValues()
+	{
+		var option = Catalog.Options.Single(option => option.Name == "dotnet_style_prefer_collection_expression");
+
+		Assert.IsFalse(option.AllowsMultipleValues);
+		CollectionAssert.AreEqual(new[] { "true", "when_types_exactly_match", "when_types_loosely_match", "false", "never" }, option.Values.Select(value => value.Value).ToList());
+	}
+
+	[TestMethod]
+	public void Read_OptionInIncludesFolder_IsRead()
+	{
+		var option = Catalog.Options.Single(option => option.Name == "dotnet_style_prefer_collection_expression");
+
+		Assert.AreEqual("when_types_loosely_match", option.DefaultValue);
+	}
+
+	[TestMethod]
+	public void Read_OptionWithoutLanguages_TakesLanguagesOfItsRules()
+	{
+		var option = Catalog.Options.Single(option => option.Name == "dotnet_style_prefer_collection_expression");
+
+		CollectionAssert.AreEqual(new[] { "csharp" }, option.Languages.ToList());
 	}
 
 	[TestMethod]

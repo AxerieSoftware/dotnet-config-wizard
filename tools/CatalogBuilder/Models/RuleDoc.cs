@@ -7,4 +7,5 @@ internal sealed record RuleDoc(
 	string Category,
 	string? Subcategory,
 	IReadOnlyList<string> Languages,
-	IReadOnlyList<string> OptionNames);
+	IReadOnlyList<string> OptionNames,
+	string DocFile);

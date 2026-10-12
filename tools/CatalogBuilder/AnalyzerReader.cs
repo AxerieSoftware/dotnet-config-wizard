@@ -19,7 +19,7 @@ internal static partial class AnalyzerReader
 	private const string CSharpLanguageName = "C#";
 	private const string NotConfigurableTag = "NotConfigurable";
 
-	public static AnalyzerReadResult Read(IReadOnlyList<string> assemblyPaths, IReadOnlyList<string> probeDirectories)
+	public static AnalyzerReadResult Read(string source, IReadOnlyList<string> assemblyPaths, IReadOnlyList<string> probeDirectories)
 	{
 		var loadContext = new AnalyzerLoadContext(probeDirectories);
 		var rulesById = new Dictionary<string, RuleEntry>(StringComparer.Ordinal);
@@ -35,7 +35,7 @@ internal static partial class AnalyzerReader
 
 				foreach (var descriptor in (IEnumerable)GetProperty(analyzer, "SupportedDiagnostics"))
 				{
-					var rule = ToRuleEntry(descriptor);
+					var rule = ToRuleEntry(source, descriptor);
 					if (IsConfigurable(rule))
 						rulesById.TryAdd(rule.Id, rule);
 				}
@@ -106,13 +106,14 @@ internal static partial class AnalyzerReader
 		}
 	}
 
-	private static RuleEntry ToRuleEntry(object descriptor)
+	private static RuleEntry ToRuleEntry(string source, object descriptor)
 	{
 		var helpLink = (string?)GetProperty(descriptor, "HelpLinkUri");
 		var description = GetProperty(descriptor, "Description").ToString();
 
 		return new RuleEntry(
 			(string)GetProperty(descriptor, "Id"),
+			source,
 			GetProperty(descriptor, "Title").ToString()!,
 			(string)GetProperty(descriptor, "Category"),
 			ToEditorConfigSeverity(GetProperty(descriptor, "DefaultSeverity").ToString()!),

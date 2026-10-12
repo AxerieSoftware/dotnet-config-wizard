@@ -16,8 +16,11 @@ jobs:
   checks:
     uses: ./.github/workflows/ci.yml
 
+  validate-output:
+    uses: ./.github/workflows/validate-output.yml
+
   build:
-    needs: checks
+    needs: [checks, validate-output]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo

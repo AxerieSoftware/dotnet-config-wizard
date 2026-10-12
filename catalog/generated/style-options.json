@@ -2783,6 +2783,50 @@
 			"docFile": "ide0032.md"
 		},
 		{
+			"name": "dotnet_style_prefer_collection_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use collection expressions only when types match exactly, for example, `List<int> list = new List<int>() { 1, 2 };`."
+				},
+				{
+					"value": "when_types_exactly_match",
+					"description": "Prefer to use collection expressions only when types match exactly, for example, `List<int> list = new List<int>() { 1, 2 };`."
+				},
+				{
+					"value": "when_types_loosely_match",
+					"description": "Prefer to use collection expressions even when types match loosely, for example, `IEnumerable<int> list = new List<int>() { 1, 2 };`. The targeted type must match the type on the right-hand side or be one of the following types: <xref:System.Collections.Generic.IEnumerable`1>, <xref:System.Collections.Generic.ICollection`1>, <xref:System.Collections.Generic.IList`1>, <xref:System.Collections.Generic.IReadOnlyCollection`1>, <xref:System.Collections.Generic.IReadOnlyList`1>."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				},
+				{
+					"value": "never",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "when_types_loosely_match",
+			"ruleIds": [
+				"IDE0028",
+				"IDE0300",
+				"IDE0301",
+				"IDE0302",
+				"IDE0303",
+				"IDE0304",
+				"IDE0305",
+				"IDE0306"
+			],
+			"example": null,
+			"docFile": "dotnet-style-prefer-collection-expression.md"
+		},
+		{
 			"name": "dotnet_style_prefer_compound_assignment",
 			"group": "Language rules (expression-level preferences)",
 			"languages": [
@@ -3345,7 +3389,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0001.md"
 		},
 		{
 			"id": "IDE0001",
@@ -3353,7 +3398,8 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0001.md"
 		},
 		{
 			"id": "IDE0002",
@@ -3364,7 +3410,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0002.md"
 		},
 		{
 			"id": "IDE0003",
@@ -3380,7 +3427,8 @@
 				"dotnet_style_qualification_for_property",
 				"dotnet_style_qualification_for_method",
 				"dotnet_style_qualification_for_event"
-			]
+			],
+			"docFile": "ide0003-ide0009.md"
 		},
 		{
 			"id": "IDE0009",
@@ -3396,7 +3444,8 @@
 				"dotnet_style_qualification_for_property",
 				"dotnet_style_qualification_for_method",
 				"dotnet_style_qualification_for_event"
-			]
+			],
+			"docFile": "ide0003-ide0009.md"
 		},
 		{
 			"id": "IDE0004",
@@ -3407,7 +3456,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0004.md"
 		},
 		{
 			"id": "IDE0005",
@@ -3418,7 +3468,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0005.md"
 		},
 		{
 			"id": "IDE0005",
@@ -3426,7 +3477,8 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0005.md"
 		},
 		{
 			"id": "IDE0007",
@@ -3440,7 +3492,8 @@
 				"csharp_style_var_for_built_in_types",
 				"csharp_style_var_when_type_is_apparent",
 				"csharp_style_var_elsewhere"
-			]
+			],
+			"docFile": "ide0007-ide0008.md"
 		},
 		{
 			"id": "IDE0008",
@@ -3454,7 +3507,8 @@
 				"csharp_style_var_for_built_in_types",
 				"csharp_style_var_when_type_is_apparent",
 				"csharp_style_var_elsewhere"
-			]
+			],
+			"docFile": "ide0007-ide0008.md"
 		},
 		{
 			"id": "IDE0010",
@@ -3465,7 +3519,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0010.md"
 		},
 		{
 			"id": "IDE0011",
@@ -3477,7 +3532,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_braces"
-			]
+			],
+			"docFile": "ide0011.md"
 		},
 		{
 			"id": "IDE0016",
@@ -3489,7 +3545,8 @@
 			],
 			"optionNames": [
 				"csharp_style_throw_expression"
-			]
+			],
+			"docFile": "ide0016.md"
 		},
 		{
 			"id": "IDE0017",
@@ -3502,7 +3559,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_object_initializer"
-			]
+			],
+			"docFile": "ide0017.md"
 		},
 		{
 			"id": "IDE0018",
@@ -3514,7 +3572,8 @@
 			],
 			"optionNames": [
 				"csharp_style_inlined_variable_declaration"
-			]
+			],
+			"docFile": "ide0018.md"
 		},
 		{
 			"id": "IDE0019",
@@ -3526,7 +3585,8 @@
 			],
 			"optionNames": [
 				"csharp_style_pattern_matching_over_as_with_null_check"
-			]
+			],
+			"docFile": "ide0019.md"
 		},
 		{
 			"id": "IDE0020",
@@ -3538,7 +3598,8 @@
 			],
 			"optionNames": [
 				"csharp_style_pattern_matching_over_is_with_cast_check"
-			]
+			],
+			"docFile": "ide0020-ide0038.md"
 		},
 		{
 			"id": "IDE0038",
@@ -3550,7 +3611,8 @@
 			],
 			"optionNames": [
 				"csharp_style_pattern_matching_over_is_with_cast_check"
-			]
+			],
+			"docFile": "ide0020-ide0038.md"
 		},
 		{
 			"id": "IDE0021",
@@ -3562,7 +3624,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_constructors"
-			]
+			],
+			"docFile": "ide0021.md"
 		},
 		{
 			"id": "IDE0022",
@@ -3574,7 +3637,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_methods"
-			]
+			],
+			"docFile": "ide0022.md"
 		},
 		{
 			"id": "IDE0023",
@@ -3586,7 +3650,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_operators"
-			]
+			],
+			"docFile": "ide0023-ide0024.md"
 		},
 		{
 			"id": "IDE0024",
@@ -3598,7 +3663,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_operators"
-			]
+			],
+			"docFile": "ide0023-ide0024.md"
 		},
 		{
 			"id": "IDE0025",
@@ -3610,7 +3676,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_properties"
-			]
+			],
+			"docFile": "ide0025.md"
 		},
 		{
 			"id": "IDE0026",
@@ -3622,7 +3689,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_indexers"
-			]
+			],
+			"docFile": "ide0026.md"
 		},
 		{
 			"id": "IDE0027",
@@ -3634,7 +3702,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_accessors"
-			]
+			],
+			"docFile": "ide0027.md"
 		},
 		{
 			"id": "IDE0028",
@@ -3648,7 +3717,8 @@
 			"optionNames": [
 				"dotnet_style_collection_initializer",
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0028.md"
 		},
 		{
 			"id": "IDE0029",
@@ -3661,7 +3731,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
-			]
+			],
+			"docFile": "ide0029-ide0030-ide0270.md"
 		},
 		{
 			"id": "IDE0030",
@@ -3674,7 +3745,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
-			]
+			],
+			"docFile": "ide0029-ide0030-ide0270.md"
 		},
 		{
 			"id": "IDE0270",
@@ -3687,7 +3759,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_coalesce_expression"
-			]
+			],
+			"docFile": "ide0029-ide0030-ide0270.md"
 		},
 		{
 			"id": "IDE0031",
@@ -3700,7 +3773,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_null_propagation"
-			]
+			],
+			"docFile": "ide0031.md"
 		},
 		{
 			"id": "IDE0032",
@@ -3713,7 +3787,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_auto_properties"
-			]
+			],
+			"docFile": "ide0032.md"
 		},
 		{
 			"id": "IDE0033",
@@ -3726,7 +3801,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_explicit_tuple_names"
-			]
+			],
+			"docFile": "ide0033.md"
 		},
 		{
 			"id": "IDE0034",
@@ -3738,7 +3814,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_simple_default_expression"
-			]
+			],
+			"docFile": "ide0034.md"
 		},
 		{
 			"id": "IDE0035",
@@ -3749,7 +3826,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0035.md"
 		},
 		{
 			"id": "IDE0036",
@@ -3763,7 +3841,8 @@
 			"optionNames": [
 				"csharp_preferred_modifier_order",
 				"visual_basic_preferred_modifier_order"
-			]
+			],
+			"docFile": "ide0036.md"
 		},
 		{
 			"id": "IDE0037",
@@ -3777,7 +3856,8 @@
 			"optionNames": [
 				"dotnet_style_prefer_inferred_tuple_names",
 				"dotnet_style_prefer_inferred_anonymous_type_member_names"
-			]
+			],
+			"docFile": "ide0037.md"
 		},
 		{
 			"id": "IDE0039",
@@ -3789,7 +3869,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_local_over_anonymous_function"
-			]
+			],
+			"docFile": "ide0039.md"
 		},
 		{
 			"id": "IDE0040",
@@ -3802,7 +3883,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_require_accessibility_modifiers"
-			]
+			],
+			"docFile": "ide0040.md"
 		},
 		{
 			"id": "IDE0041",
@@ -3815,7 +3897,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_is_null_check_over_reference_equality_method"
-			]
+			],
+			"docFile": "ide0041.md"
 		},
 		{
 			"id": "IDE0042",
@@ -3827,7 +3910,8 @@
 			],
 			"optionNames": [
 				"csharp_style_deconstructed_variable_declaration"
-			]
+			],
+			"docFile": "ide0042.md"
 		},
 		{
 			"id": "IDE0043",
@@ -3838,7 +3922,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0043.md"
 		},
 		{
 			"id": "IDE0044",
@@ -3851,7 +3936,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_readonly_field"
-			]
+			],
+			"docFile": "ide0044.md"
 		},
 		{
 			"id": "IDE0045",
@@ -3864,7 +3950,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_conditional_expression_over_assignment"
-			]
+			],
+			"docFile": "ide0045.md"
 		},
 		{
 			"id": "IDE0046",
@@ -3877,7 +3964,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_conditional_expression_over_return"
-			]
+			],
+			"docFile": "ide0046.md"
 		},
 		{
 			"id": "IDE0047",
@@ -3893,7 +3981,8 @@
 				"dotnet_style_parentheses_in_relational_binary_operators",
 				"dotnet_style_parentheses_in_other_binary_operators",
 				"dotnet_style_parentheses_in_other_operators"
-			]
+			],
+			"docFile": "ide0047-ide0048.md"
 		},
 		{
 			"id": "IDE0048",
@@ -3909,7 +3998,8 @@
 				"dotnet_style_parentheses_in_relational_binary_operators",
 				"dotnet_style_parentheses_in_other_binary_operators",
 				"dotnet_style_parentheses_in_other_operators"
-			]
+			],
+			"docFile": "ide0047-ide0048.md"
 		},
 		{
 			"id": "IDE0049",
@@ -3923,7 +4013,8 @@
 			"optionNames": [
 				"dotnet_style_predefined_type_for_locals_parameters_members",
 				"dotnet_style_predefined_type_for_member_access"
-			]
+			],
+			"docFile": "ide0049.md"
 		},
 		{
 			"id": "IDE0050",
@@ -3934,7 +4025,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0050.md"
 		},
 		{
 			"id": "IDE0051",
@@ -3945,7 +4037,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0051.md"
 		},
 		{
 			"id": "IDE0052",
@@ -3956,7 +4049,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0052.md"
 		},
 		{
 			"id": "IDE0053",
@@ -3968,7 +4062,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_lambdas"
-			]
+			],
+			"docFile": "ide0053.md"
 		},
 		{
 			"id": "IDE0054",
@@ -3981,7 +4076,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_compound_assignment"
-			]
+			],
+			"docFile": "ide0054-ide0074.md"
 		},
 		{
 			"id": "IDE0074",
@@ -3994,7 +4090,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_compound_assignment"
-			]
+			],
+			"docFile": "ide0054-ide0074.md"
 		},
 		{
 			"id": "IDE0055",
@@ -4005,7 +4102,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0055.md"
 		},
 		{
 			"id": "IDE0056",
@@ -4017,7 +4115,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_index_operator"
-			]
+			],
+			"docFile": "ide0056.md"
 		},
 		{
 			"id": "IDE0057",
@@ -4029,7 +4128,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_range_operator"
-			]
+			],
+			"docFile": "ide0057.md"
 		},
 		{
 			"id": "IDE0058",
@@ -4043,7 +4143,8 @@
 			"optionNames": [
 				"csharp_style_unused_value_expression_statement_preference",
 				"visual_basic_style_unused_value_expression_statement_preference"
-			]
+			],
+			"docFile": "ide0058.md"
 		},
 		{
 			"id": "IDE0059",
@@ -4057,7 +4158,8 @@
 			"optionNames": [
 				"csharp_style_unused_value_assignment_preference",
 				"visual_basic_style_unused_value_assignment_preference"
-			]
+			],
+			"docFile": "ide0059.md"
 		},
 		{
 			"id": "IDE0059",
@@ -4065,7 +4167,8 @@
 			"category": "Style",
 			"subcategory": null,
 			"languages": [],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0059.md"
 		},
 		{
 			"id": "IDE0060",
@@ -4078,7 +4181,8 @@
 			],
 			"optionNames": [
 				"dotnet_code_quality_unused_parameters"
-			]
+			],
+			"docFile": "ide0060.md"
 		},
 		{
 			"id": "IDE0061",
@@ -4090,7 +4194,8 @@
 			],
 			"optionNames": [
 				"csharp_style_expression_bodied_local_functions"
-			]
+			],
+			"docFile": "ide0061.md"
 		},
 		{
 			"id": "IDE0062",
@@ -4102,7 +4207,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_static_local_function"
-			]
+			],
+			"docFile": "ide0062.md"
 		},
 		{
 			"id": "IDE0063",
@@ -4114,7 +4220,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_simple_using_statement"
-			]
+			],
+			"docFile": "ide0063.md"
 		},
 		{
 			"id": "IDE0064",
@@ -4124,7 +4231,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0064.md"
 		},
 		{
 			"id": "IDE0065",
@@ -4136,7 +4244,8 @@
 			],
 			"optionNames": [
 				"csharp_using_directive_placement"
-			]
+			],
+			"docFile": "ide0065.md"
 		},
 		{
 			"id": "IDE0066",
@@ -4148,7 +4257,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_switch_expression"
-			]
+			],
+			"docFile": "ide0066.md"
 		},
 		{
 			"id": "IDE0070",
@@ -4161,7 +4271,8 @@
 			],
 			"optionNames": [
 				"dotnet_prefer_system_hash_code"
-			]
+			],
+			"docFile": "ide0070.md"
 		},
 		{
 			"id": "IDE0071",
@@ -4174,7 +4285,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_simplified_interpolation"
-			]
+			],
+			"docFile": "ide0071.md"
 		},
 		{
 			"id": "IDE0072",
@@ -4184,7 +4296,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0072.md"
 		},
 		{
 			"id": "IDE0073",
@@ -4197,7 +4310,8 @@
 			],
 			"optionNames": [
 				"file_header_template"
-			]
+			],
+			"docFile": "ide0073.md"
 		},
 		{
 			"id": "IDE0075",
@@ -4210,7 +4324,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_simplified_boolean_expressions"
-			]
+			],
+			"docFile": "ide0075.md"
 		},
 		{
 			"id": "IDE0076",
@@ -4221,7 +4336,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0076.md"
 		},
 		{
 			"id": "IDE0077",
@@ -4232,7 +4348,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0077.md"
 		},
 		{
 			"id": "IDE0078",
@@ -4244,7 +4361,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_pattern_matching"
-			]
+			],
+			"docFile": "ide0078-ide0260.md"
 		},
 		{
 			"id": "IDE0260",
@@ -4256,7 +4374,8 @@
 			],
 			"optionNames": [
 				"csharp_style_pattern_matching_over_as_with_null_check"
-			]
+			],
+			"docFile": "ide0078-ide0260.md"
 		},
 		{
 			"id": "IDE0079",
@@ -4269,7 +4388,8 @@
 			],
 			"optionNames": [
 				"dotnet_remove_unnecessary_suppression_exclusions"
-			]
+			],
+			"docFile": "ide0079.md"
 		},
 		{
 			"id": "IDE0080",
@@ -4279,7 +4399,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0080.md"
 		},
 		{
 			"id": "IDE0081",
@@ -4289,7 +4410,8 @@
 			"languages": [
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0081.md"
 		},
 		{
 			"id": "IDE0082",
@@ -4300,7 +4422,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0082.md"
 		},
 		{
 			"id": "IDE0083",
@@ -4312,7 +4435,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_not_pattern"
-			]
+			],
+			"docFile": "ide0083.md"
 		},
 		{
 			"id": "IDE0084",
@@ -4324,7 +4448,8 @@
 			],
 			"optionNames": [
 				"visual_basic_style_prefer_isnot_expression"
-			]
+			],
+			"docFile": "ide0084.md"
 		},
 		{
 			"id": "IDE0090",
@@ -4336,7 +4461,8 @@
 			],
 			"optionNames": [
 				"csharp_style_implicit_object_creation_when_type_is_apparent"
-			]
+			],
+			"docFile": "ide0090.md"
 		},
 		{
 			"id": "IDE0100",
@@ -4347,7 +4473,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0100.md"
 		},
 		{
 			"id": "IDE0110",
@@ -4357,7 +4484,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0110.md"
 		},
 		{
 			"id": "IDE0120",
@@ -4368,7 +4496,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0120.md"
 		},
 		{
 			"id": "IDE0121",
@@ -4379,7 +4508,8 @@
 				"csharp",
 				"visualbasic"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0121.md"
 		},
 		{
 			"id": "IDE0130",
@@ -4392,7 +4522,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_namespace_match_folder"
-			]
+			],
+			"docFile": "ide0130.md"
 		},
 		{
 			"id": "IDE0140",
@@ -4404,7 +4535,8 @@
 			],
 			"optionNames": [
 				"visual_basic_style_prefer_simplified_object_creation"
-			]
+			],
+			"docFile": "ide0140.md"
 		},
 		{
 			"id": "IDE0150",
@@ -4416,7 +4548,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_null_check_over_type_check"
-			]
+			],
+			"docFile": "ide0150.md"
 		},
 		{
 			"id": "IDE0160",
@@ -4428,7 +4561,8 @@
 			],
 			"optionNames": [
 				"csharp_style_namespace_declarations"
-			]
+			],
+			"docFile": "ide0160-ide0161.md"
 		},
 		{
 			"id": "IDE0161",
@@ -4440,7 +4574,8 @@
 			],
 			"optionNames": [
 				"csharp_style_namespace_declarations"
-			]
+			],
+			"docFile": "ide0160-ide0161.md"
 		},
 		{
 			"id": "IDE0170",
@@ -4452,7 +4587,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_extended_property_pattern"
-			]
+			],
+			"docFile": "ide0170.md"
 		},
 		{
 			"id": "IDE0180",
@@ -4464,7 +4600,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_tuple_swap"
-			]
+			],
+			"docFile": "ide0180.md"
 		},
 		{
 			"id": "IDE0200",
@@ -4476,7 +4613,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_method_group_conversion"
-			]
+			],
+			"docFile": "ide0200.md"
 		},
 		{
 			"id": "IDE0210",
@@ -4488,7 +4626,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_top_level_statements"
-			]
+			],
+			"docFile": "ide0210.md"
 		},
 		{
 			"id": "IDE0211",
@@ -4500,7 +4639,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_top_level_statements"
-			]
+			],
+			"docFile": "ide0211.md"
 		},
 		{
 			"id": "IDE0220",
@@ -4512,7 +4652,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_foreach_explicit_cast_in_source"
-			]
+			],
+			"docFile": "ide0220.md"
 		},
 		{
 			"id": "IDE0221",
@@ -4524,7 +4665,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_non_hidden_explicit_cast_in_source"
-			]
+			],
+			"docFile": "ide0221.md"
 		},
 		{
 			"id": "IDE0230",
@@ -4536,7 +4678,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_utf8_string_literals"
-			]
+			],
+			"docFile": "ide0230.md"
 		},
 		{
 			"id": "IDE0240",
@@ -4546,7 +4689,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0240.md"
 		},
 		{
 			"id": "IDE0241",
@@ -4556,7 +4700,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0241.md"
 		},
 		{
 			"id": "IDE0250",
@@ -4568,7 +4713,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_readonly_struct"
-			]
+			],
+			"docFile": "ide0250.md"
 		},
 		{
 			"id": "IDE0251",
@@ -4580,7 +4726,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_readonly_struct_member"
-			]
+			],
+			"docFile": "ide0251.md"
 		},
 		{
 			"id": "IDE0280",
@@ -4590,7 +4737,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0280.md"
 		},
 		{
 			"id": "IDE0290",
@@ -4602,7 +4750,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_primary_constructors"
-			]
+			],
+			"docFile": "ide0290.md"
 		},
 		{
 			"id": "IDE0300",
@@ -4614,7 +4763,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0300.md"
 		},
 		{
 			"id": "IDE0301",
@@ -4626,7 +4776,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0301.md"
 		},
 		{
 			"id": "IDE0302",
@@ -4638,7 +4789,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0302.md"
 		},
 		{
 			"id": "IDE0303",
@@ -4650,7 +4802,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0303.md"
 		},
 		{
 			"id": "IDE0304",
@@ -4662,7 +4815,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0304.md"
 		},
 		{
 			"id": "IDE0305",
@@ -4674,7 +4828,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0305.md"
 		},
 		{
 			"id": "IDE0306",
@@ -4686,7 +4841,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_prefer_collection_expression"
-			]
+			],
+			"docFile": "ide0306.md"
 		},
 		{
 			"id": "IDE0320",
@@ -4698,7 +4854,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_static_anonymous_function"
-			]
+			],
+			"docFile": "ide0320.md"
 		},
 		{
 			"id": "IDE0330",
@@ -4710,7 +4867,8 @@
 			],
 			"optionNames": [
 				"csharp_prefer_system_threading_lock"
-			]
+			],
+			"docFile": "ide0330.md"
 		},
 		{
 			"id": "IDE0340",
@@ -4722,7 +4880,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_unbound_generic_type_in_nameof"
-			]
+			],
+			"docFile": "ide0340.md"
 		},
 		{
 			"id": "IDE0350",
@@ -4734,7 +4893,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_implicitly_typed_lambda_expression"
-			]
+			],
+			"docFile": "ide0350.md"
 		},
 		{
 			"id": "IDE0360",
@@ -4746,7 +4906,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_simple_property_accessors"
-			]
+			],
+			"docFile": "ide0360.md"
 		},
 		{
 			"id": "IDE0370",
@@ -4756,7 +4917,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0370.md"
 		},
 		{
 			"id": "IDE0380",
@@ -4766,7 +4928,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0380.md"
 		},
 		{
 			"id": "IDE0390",
@@ -4776,7 +4939,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0390-ide0391.md"
 		},
 		{
 			"id": "IDE0391",
@@ -4786,7 +4950,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide0390-ide0391.md"
 		},
 		{
 			"id": "IDE0410",
@@ -4798,7 +4963,8 @@
 			],
 			"optionNames": [
 				"csharp_style_prefer_labeled_jump_statements"
-			]
+			],
+			"docFile": "ide0410.md"
 		},
 		{
 			"id": "IDE1005",
@@ -4810,7 +4976,8 @@
 			],
 			"optionNames": [
 				"csharp_style_conditional_delegate_call"
-			]
+			],
+			"docFile": "ide1005.md"
 		},
 		{
 			"id": "IDE1007",
@@ -4820,7 +4987,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide1007.md"
 		},
 		{
 			"id": "IDE2000",
@@ -4833,7 +5001,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_allow_multiple_blank_lines_experimental"
-			]
+			],
+			"docFile": "ide2000.md"
 		},
 		{
 			"id": "IDE2001",
@@ -4845,7 +5014,8 @@
 			],
 			"optionNames": [
 				"csharp_style_allow_embedded_statements_on_same_line_experimental"
-			]
+			],
+			"docFile": "ide2001.md"
 		},
 		{
 			"id": "IDE2002",
@@ -4857,7 +5027,8 @@
 			],
 			"optionNames": [
 				"csharp_style_allow_blank_lines_between_consecutive_braces_experimental"
-			]
+			],
+			"docFile": "ide2002.md"
 		},
 		{
 			"id": "IDE2003",
@@ -4870,7 +5041,8 @@
 			],
 			"optionNames": [
 				"dotnet_style_allow_statement_immediately_after_block_experimental"
-			]
+			],
+			"docFile": "ide2003.md"
 		},
 		{
 			"id": "IDE2004",
@@ -4882,7 +5054,8 @@
 			],
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental"
-			]
+			],
+			"docFile": "ide2004.md"
 		},
 		{
 			"id": "IDE2005",
@@ -4894,7 +5067,8 @@
 			],
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental"
-			]
+			],
+			"docFile": "ide2005.md"
 		},
 		{
 			"id": "IDE2006",
@@ -4906,7 +5080,8 @@
 			],
 			"optionNames": [
 				"csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental"
-			]
+			],
+			"docFile": "ide2006.md"
 		},
 		{
 			"id": "IDE3000",
@@ -4916,7 +5091,8 @@
 			"languages": [
 				"csharp"
 			],
-			"optionNames": []
+			"optionNames": [],
+			"docFile": "ide3000.md"
 		}
 	]
 }

@@ -23,7 +23,8 @@
 	"html": {
 		"experimentalFullSupportEnabled": true,
 		"formatter": {
-			"enabled": true
+			"enabled": true,
+			"indentScriptAndStyle": true
 		}
 	},
 	"linter": {
@@ -47,6 +48,9 @@
 				"noFloatingPromises": "error",
 				"noMisusedPromises": "error",
 				"useExhaustiveSwitchCases": "error"
+			},
+			"a11y": {
+				"noLabelWithoutControl": "off"
 			}
 		}
 	},

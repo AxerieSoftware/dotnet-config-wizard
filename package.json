@@ -23,6 +23,7 @@
 		"@sveltejs/adapter-static": "^4.0.0",
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"@types/node": "26.6.5",
 		"knip": "6.41.0",
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.6.0",
@@ -36,5 +37,8 @@
 	"description": "Wizard for .editorconfig, Directory.Build.props and analyzer configuration in .NET repos.",
 	"engines": {
 		"node": ">=26"
+	},
+	"dependencies": {
+		"fflate": "0.8.3"
 	}
 }

@@ -30,6 +30,9 @@ jobs:
       - name: Typecheck, lint, find unused code and run unit tests
         run: npm run check
 
+      - name: Check this repo's .editorconfig matches config/dogfood.json
+        run: node scripts/renderConfig.ts config/dogfood.json --check
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
