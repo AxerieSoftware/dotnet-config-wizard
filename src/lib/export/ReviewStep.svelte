@@ -4,14 +4,17 @@
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ValidationList from '../validation/ValidationList.svelte';
 	import GeneratedFiles from './GeneratedFiles.svelte';
+	import { toNextSteps, toNextStepsMarkdown } from './nextSteps.ts';
 	import { toZip } from './zipFiles.ts';
 
 	const COMMENT_STYLE_LABELS: Record<CommentStyle, string> = { none: 'No comments', idAndTitle: 'Rule ID and title', titleAndLink: 'Rule ID, title and docs link' };
 	const COPIED_MESSAGE_MS = 2000;
 	const ZIP_FILE_NAME = 'dotnet-config.zip';
+	const NEXT_STEPS_FILE_NAME = 'DOTNET-CONFIG.md';
 
 	const wizard = getWizardState();
 	let isCopied = $state(false);
+	const nextSteps = $derived(toNextSteps(wizard.config, wizard.output.files));
 	let shareUrl = $state<string | undefined>(undefined);
 
 	async function copy(): Promise<void> {
@@ -27,7 +30,7 @@
 
 	function download(): void {
 		// A zip keeps dotfile names intact; browsers rename a downloaded ".editorconfig".
-		const url = URL.createObjectURL(new Blob([toZip(wizard.output.files)], { type: 'application/zip' }));
+		const url = URL.createObjectURL(new Blob([toZip([...wizard.output.files, { path: NEXT_STEPS_FILE_NAME, content: toNextStepsMarkdown(nextSteps) }])], { type: 'application/zip' }));
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = ZIP_FILE_NAME;
@@ -48,6 +51,16 @@
 </label>
 
 <ValidationList issues={wizard.issues} />
+
+<section class="card" aria-labelledby="next-steps-heading">
+	<h2 id="next-steps-heading">Next steps</h2>
+	<ol>
+		{#each nextSteps as step (step)}
+			<li>{step.replaceAll('`', '')}</li>
+		{/each}
+	</ol>
+	<p class="note">The zip includes these as {NEXT_STEPS_FILE_NAME}.</p>
+</section>
 
 <div class="actions">
 	<button type="button" onclick={copy}>{isCopied ? 'Copied' : 'Copy root .editorconfig'}</button>

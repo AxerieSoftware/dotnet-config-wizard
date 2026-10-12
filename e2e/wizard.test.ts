@@ -29,7 +29,7 @@ test('code-style choices carry through to the downloaded zip', async ({ page }) 
 	const files = unzipSync(await readFile(await download.path()));
 
 	expect(download.suggestedFilename()).toBe('dotnet-config.zip');
-	expect(Object.keys(files)).toEqual(['.editorconfig', '.gitattributes']);
+	expect(Object.keys(files)).toEqual(['.editorconfig', '.gitattributes', 'DOTNET-CONFIG.md']);
 	expect(strFromU8(files['.editorconfig'])).toBe(await reviewFile.textContent());
 });
 
@@ -133,7 +133,8 @@ test('central package management, nuget.config and global.json all download in t
 	await page.getByRole('button', { name: 'Download zip' }).click();
 	const files = unzipSync(await readFile(await (await downloadPromise).path()));
 
-	expect(Object.keys(files).sort()).toEqual(['.editorconfig', '.gitattributes', 'Directory.Packages.props', 'global.json', 'nuget.config']);
+	expect(Object.keys(files).sort()).toEqual(['.editorconfig', '.gitattributes', 'DOTNET-CONFIG.md', 'Directory.Packages.props', 'global.json', 'nuget.config']);
+	expect(strFromU8(files['DOTNET-CONFIG.md'])).toContain('move each `Version` from your projects');
 	expect(strFromU8(files['Directory.Packages.props'])).toContain('<GlobalPackageReference Include="Meziantou.Analyzer"');
 	expect(JSON.parse(strFromU8(files['global.json'])).sdk.rollForward).toBe('latestFeature');
 });
