@@ -15,7 +15,7 @@ export class WizardState {
 	public config: WizardConfig;
 	public commentStyle = $state<CommentStyle>('idAndTitle');
 	public readonly output = $derived.by(() => toEditorConfigFiles(this.config, this.catalog, { commentStyle: this.commentStyle }));
-	public readonly rootContext = $derived.by(() => toGateContext(this.config, resolveScope(this.config, this.rootScope), this.catalog));
+	public readonly rootContext = $derived.by(() => toGateContext(resolveScope(this.config, this.rootScope), this.catalog));
 
 	public constructor(catalog: Catalog) {
 		this.catalog = $state.raw(catalog);
@@ -29,10 +29,6 @@ export class WizardState {
 	public async selectBand(bandName: string): Promise<void> {
 		this.catalog = await loadCatalog(bandName);
 		this.config.versions.sdkBand = bandName;
-	}
-
-	public setLangVersion(langVersion: string | undefined): void {
-		this.config.versions.langVersion = langVersion ?? null;
 	}
 
 	public setRootTargetFrameworks(tfms: string[]): void {
@@ -76,7 +72,7 @@ export const [getWizardState, setWizardState] = createContext<WizardState>();
 
 function createStarterConfig(band: BandEntry): WizardConfig {
 	return {
-		versions: { sdkBand: band.band, langVersion: null },
+		versions: { sdkBand: band.band },
 		scopes: [
 			{
 				path: '',

@@ -44,7 +44,7 @@ test('a rule that needs a newer C# than the target framework is hidden until ask
 	await page.getByRole('combobox', { name: 'SDK band' }).selectOption('11.0.1xx');
 	await page.getByRole('checkbox', { name: 'net11.0' }).uncheck();
 	await page.getByRole('checkbox', { name: 'net10.0' }).check();
-	await expect(page.getByTestId('effective-csharp')).toHaveText('Code compiles as C# 14.0.');
+	await expect(page.getByTestId('effective-csharp')).toContainText('Code compiles as C# 14.0');
 	await page.getByRole('link', { name: 'Code style' }).first().click();
 
 	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toHaveCount(0);

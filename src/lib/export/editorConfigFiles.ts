@@ -30,7 +30,7 @@ export function toEditorConfigFiles(config: WizardConfig, catalog: Catalog, outp
 
 function toEditorConfigFile(config: WizardConfig, scope: ScopeConfig, catalog: Catalog, outputOptions: EditorConfigOutputOptions): { file?: GeneratedFile; skippedKeys: SkippedKey[] } {
 	const isRoot = scope.path === '';
-	const context = toGateContext(config, resolveScope(config, scope), catalog);
+	const context = toGateContext(resolveScope(config, scope), catalog);
 	const codeStyle = toCodeStyleBlocks(scope.options ?? {}, catalog, context);
 	const severities = toSeverityBlocks(scope.severities ?? {}, catalog, context, outputOptions.commentStyle);
 

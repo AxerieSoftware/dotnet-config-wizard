@@ -24,7 +24,7 @@ export function getTargetFrameworksForChannel(channel: string): string[] {
 	return Array.from({ length: channelMajor - MINIMUM_NET_MAJOR + 1 }, (_, index) => `net${channelMajor - index}.0`);
 }
 
-/** The C# version the compiler uses for a target framework when LangVersion isn't set. */
+/** The C# version the compiler uses for a target framework. */
 export function getDefaultCSharpVersion(tfm: string): string {
 	const major = toNetMajor(tfm) ?? MINIMUM_NET_MAJOR;
 	return `${major + CSHARP_MAJOR_OFFSET}.0`;

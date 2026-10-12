@@ -23,8 +23,8 @@ export type ScopeConfig = {
 };
 
 export type WizardConfig = {
-	/** `langVersion` is null for the target framework's default, `latest`, or a version such as `12.0`. */
-	versions: { sdkBand: string; langVersion: string | null };
+	/** The C# version always comes from each scope's target frameworks; the wizard never sets LangVersion. */
+	versions: { sdkBand: string };
 	scopes: ScopeConfig[];
 };
 
@@ -34,7 +34,6 @@ export type ParseResult = { status: 'valid'; config: WizardConfig } | { status: 
 export function parseWizardConfig(value: unknown): ParseResult {
 	if (!isRecord(value)) return invalid('The config must be a JSON object.');
 	if (!isRecord(value.versions) || typeof value.versions.sdkBand !== 'string') return invalid('versions.sdkBand must be a string.');
-	if (value.versions.langVersion !== null && typeof value.versions.langVersion !== 'string') return invalid('versions.langVersion must be a string or null.');
 	if (!Array.isArray(value.scopes) || value.scopes.length === 0) return invalid('scopes must be a non-empty array.');
 
 	for (const [index, scope] of value.scopes.entries()) {

@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { BANDS } from '../catalog/loadCatalog.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
-	import { compareCSharpVersions, getDefaultCSharpVersion, getTargetFrameworksForChannel, isSupportedTargetFramework } from './targetFrameworks.ts';
+	import { getTargetFrameworksForChannel, isSupportedTargetFramework } from './targetFrameworks.ts';
 	import { PROJECT_KINDS, type ProjectKind } from './wizardConfig.ts';
 	import { getWizardState } from './wizardState.svelte.ts';
 
-	const LANG_VERSIONS = ['14.0', '15.0'];
-
 	const wizard = getWizardState();
-	const newestCSharpVersion = $derived(getDefaultCSharpVersion(`net${wizard.catalog.band.channel}`));
-	const langVersionChoices = $derived(['latest', ...LANG_VERSIONS.filter(version => compareCSharpVersions(version, newestCSharpVersion) <= 0)]);
 	const offeredTfms = $derived(getTargetFrameworksForChannel(wizard.catalog.band.channel));
 	const tfms = $derived(wizard.rootScope.tfms ?? []);
 	const otherTfms = $derived(tfms.filter(tfm => !offeredTfms.includes(tfm)));
@@ -61,21 +57,6 @@
 </section>
 
 <section class="card">
-	<h2>Language version</h2>
-	<label class="field">
-		<span>LangVersion</span>
-		<ValueSelect
-			label="LangVersion"
-			value={wizard.config.versions.langVersion ?? undefined}
-			values={langVersionChoices}
-			unsetLabel="Default for the target frameworks"
-			onchange={value => wizard.setLangVersion(value)}
-		/>
-	</label>
-	<p class="note" data-testid="effective-csharp">Code compiles as C# {wizard.rootContext.csharpVersion}.</p>
-</section>
-
-<section class="card">
 	<h2>Target frameworks</h2>
 	<div class="checkbox-grid">
 		{#each offeredTfms as tfm (tfm)}
@@ -86,6 +67,10 @@
 		<span>Platform-specific target frameworks, separated by semicolons</span>
 		<input aria-label="Platform-specific target frameworks" value={otherTfms.join(';')} placeholder="net10.0-windows;net10.0-android" onchange={event => setOtherTfms(event.currentTarget.value)}>
 	</label>
+	<p class="note" data-testid="effective-csharp">
+		Code compiles as C# {wizard.rootContext.csharpVersion}, the default for the oldest target framework. The wizard never sets LangVersion: Microsoft doesn't support a C# version newer than the target
+		framework's.
+	</p>
 	{#if unsupportedTfms.length > 0}
 		<p class="warning" role="alert">SDK {wizard.catalog.band.band} can't target {unsupportedTfms.join(', ')}. The wizard supports .NET 10 and later only, with no .NET Framework or .NET Standard.</p>
 	{/if}

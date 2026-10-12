@@ -28,7 +28,7 @@ export function toExhaustiveConfig(catalog: Catalog): WizardConfig {
 	);
 
 	return {
-		versions: { sdkBand: catalog.band.band, langVersion: null },
+		versions: { sdkBand: catalog.band.band },
 		scopes: [
 			{
 				path: '',

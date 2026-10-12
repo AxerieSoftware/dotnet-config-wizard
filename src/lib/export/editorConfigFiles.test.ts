@@ -10,7 +10,7 @@ const BAND = '10.0.4xx';
 const catalog = readCatalog(BAND);
 
 function toConfig(...scopes: ScopeConfig[]): WizardConfig {
-	return { versions: { sdkBand: BAND, langVersion: null }, scopes };
+	return { versions: { sdkBand: BAND }, scopes };
 }
 
 function toRootOutput(scope: Omit<ScopeConfig, 'path'>, commentStyle: 'none' | 'idAndTitle' = 'idAndTitle') {
@@ -86,8 +86,8 @@ describe('toEditorConfigFiles', () => {
 describe('version gating', () => {
 	const previewCatalog = readCatalog('11.0.1xx');
 
-	function toPreviewConfig(langVersion: string | null, ...scopes: ScopeConfig[]): WizardConfig {
-		return { versions: { sdkBand: '11.0.1xx', langVersion }, scopes };
+	function toPreviewConfig(...scopes: ScopeConfig[]): WizardConfig {
+		return { versions: { sdkBand: '11.0.1xx' }, scopes };
 	}
 
 	it('leaves out a rule the language version is too old for', () => {
@@ -96,20 +96,20 @@ describe('version gating', () => {
 		expect(output.skippedKeys).toEqual([{ key: 'IDE0410', reason: 'Needs C# 15.0' }]);
 	});
 
-	it('keeps a rule when LangVersion latest raises C# above the target framework default', () => {
-		const config = toPreviewConfig('latest', { path: '', tfms: ['net10.0'], severities: { IDE0410: 'warning' } });
+	it('keeps a rule once every target framework defaults to a new enough C#', () => {
+		const config = toPreviewConfig({ path: '', tfms: ['net11.0'], severities: { IDE0410: 'warning' } });
 
 		expect(toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' }).skippedKeys).toEqual([]);
 	});
 
 	it('uses the oldest target framework when a scope multi-targets', () => {
-		const config = toPreviewConfig(null, { path: '', tfms: ['net11.0', 'net10.0'], severities: { IDE0410: 'warning' } });
+		const config = toPreviewConfig({ path: '', tfms: ['net11.0', 'net10.0'], severities: { IDE0410: 'warning' } });
 
 		expect(toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' }).skippedKeys.map(skipped => skipped.key)).toEqual(['IDE0410']);
 	});
 
 	it('checks a scope against its own target frameworks, not the root ones', () => {
-		const config = toPreviewConfig(null, { path: '', tfms: ['net11.0'], severities: { IDE0410: 'warning' } }, { path: 'src/Lts', tfms: ['net10.0'], severities: { IDE0410: 'error' } });
+		const config = toPreviewConfig({ path: '', tfms: ['net11.0'], severities: { IDE0410: 'warning' } }, { path: 'src/Lts', tfms: ['net10.0'], severities: { IDE0410: 'error' } });
 
 		const output = toEditorConfigFiles(config, previewCatalog, { commentStyle: 'idAndTitle' });
 

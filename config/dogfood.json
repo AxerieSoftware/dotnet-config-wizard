@@ -1,7 +1,6 @@
 {
 	"versions": {
-		"sdkBand": "10.0.4xx",
-		"langVersion": null
+		"sdkBand": "10.0.4xx"
 	},
 	"scopes": [
 		{

@@ -3,7 +3,7 @@ import { getParentScope, resolveScope } from './scopes.ts';
 import type { WizardConfig } from './wizardConfig.ts';
 
 const config: WizardConfig = {
-	versions: { sdkBand: '10.0.4xx', langVersion: null },
+	versions: { sdkBand: '10.0.4xx' },
 	scopes: [
 		{ path: '', projectKind: 'library', tfms: ['net10.0'], formatting: { '[*]': { indent_style: 'tab', end_of_line: 'lf' } }, severities: { CA1707: 'warning', CA2007: 'warning' } },
 		{ path: 'tests', projectKind: 'test', formatting: { '[*]': { indent_style: 'space' } }, severities: { CA1707: 'none' } },
