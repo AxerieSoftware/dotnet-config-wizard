@@ -196,7 +196,7 @@ test('applying the Recommended preset fills in every file it needs', async ({ pa
 });
 
 test('a risky combination shows as a check on the review step and a count in the nav', async ({ page }) => {
-	await page.goto('/wizard/build');
+	await page.goto('/wizard/packages');
 	await page.getByRole('combobox', { name: 'RestoreLockedMode', exact: true }).selectOption('true');
 
 	await expect(page.getByRole('link', { name: /Review and export\s*1 problems/ })).toBeVisible();
