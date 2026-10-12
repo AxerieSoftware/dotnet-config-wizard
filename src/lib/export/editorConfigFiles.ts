@@ -12,6 +12,9 @@ import type { GeneratedFile, GeneratedOutput, SkippedKey } from './generatedFile
 
 const FILE_NAME = '.editorconfig';
 
+/** Read back by the importer to list rules added since a config was made. */
+export const HEADER_PATTERN = /^# Settings for \.NET SDK (?<band>\S+), catalog (?<catalogVersion>\d{4}-\d{2}-\d{2})$/m;
+
 export type EditorConfigOutputOptions = { commentStyle: CommentStyle };
 
 /**
@@ -66,7 +69,11 @@ function toEditorConfigFile(
 
 	const file = {
 		path: isRoot ? FILE_NAME : `${scope.path}/${FILE_NAME}`,
-		content: renderEditorConfig({ headerComment: isRoot ? `Settings for .NET SDK ${catalog.band.band}` : undefined, isRoot, sections })
+		content: renderEditorConfig({ headerComment: isRoot ? toHeaderComment(catalog) : undefined, isRoot, sections })
 	};
 	return { file, skippedKeys, globalConfigBlocks };
+}
+
+function toHeaderComment(catalog: Catalog): string {
+	return `Settings for .NET SDK ${catalog.band.band}, catalog ${catalog.version}`;
 }

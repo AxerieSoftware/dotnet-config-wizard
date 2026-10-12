@@ -1,5 +1,6 @@
 import bands from '../../../catalog/generated/bands.json';
 import packages from '../../../catalog/generated/packages.json';
+import ruleHistory from '../../../catalog/generated/rule-history.json';
 import styleOptionCatalog from '../../../catalog/generated/style-options.json';
 import { type Catalog, createCatalog } from './catalog.ts';
 import type { BandEntry, PackageCatalogFile, PackageEntry, SdkCatalogFile, StyleOptionCatalogFile } from './catalogFiles.ts';
@@ -23,5 +24,12 @@ export async function loadCatalog(bandName: string): Promise<Catalog> {
 	if (!band || !loadSdkCatalog) throw new Error(`The catalog has no SDK band '${bandName}'.`);
 
 	const [sdkCatalog, ...packageCatalogs] = await Promise.all([loadSdkCatalog(), ...Object.values(PACKAGE_CATALOGS).map(loadPackageCatalog => loadPackageCatalog())]);
-	return createCatalog(band, sdkCatalog as SdkCatalogFile, styleOptionCatalog as StyleOptionCatalogFile, PACKAGES as PackageEntry[], packageCatalogs as PackageCatalogFile[]);
+	return createCatalog(
+		band,
+		sdkCatalog as SdkCatalogFile,
+		styleOptionCatalog as StyleOptionCatalogFile,
+		PACKAGES as PackageEntry[],
+		packageCatalogs as PackageCatalogFile[],
+		ruleHistory as Record<string, string>
+	);
 }

@@ -200,7 +200,42 @@ test('a risky combination shows as a check on the review step and a count in the
 	await page.getByRole('combobox', { name: 'RestoreLockedMode', exact: true }).selectOption('true');
 
 	await expect(page.getByRole('link', { name: /Review and export\s*1 problems/ })).toBeVisible();
-	await page.getByRole('link', { name: /Review and export/ }).first().click();
+	await page
+		.getByRole('link', { name: /Review and export/ })
+		.first()
+		.click();
 
 	await expect(page.locator('.issue-error')).toContainText('RestoreLockedMode needs RestorePackagesWithLockFile');
+});
+
+test('settings survive a reload', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Strict/ }).click();
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('category-Performance.severity = error');
+
+	await page.reload();
+
+	await expect(page.getByRole('button', { name: /^Strict/ })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('category-Performance.severity = error');
+});
+
+test('a share link reopens the same settings in a new browser', async ({ page, browser, context }) => {
+	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Library author/ }).click();
+	await page.getByRole('link', { name: 'Formatting' }).first().click();
+	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
+	await page
+		.getByRole('link', { name: /Review and export/ })
+		.first()
+		.click();
+	await page.getByRole('button', { name: 'Copy share link' }).click();
+	const shareUrl = await page.getByRole('textbox', { name: 'Share link' }).inputValue();
+
+	const otherPage = await (await browser.newContext()).newPage();
+	await otherPage.goto(shareUrl);
+
+	await expect(otherPage.getByTestId('file-.editorconfig')).toContainText('indent_style = tab');
+	await expect(otherPage.getByTestId('file-BannedSymbols.txt')).toContainText('T:System.Console;');
+	expect(new URL(otherPage.url()).hash).toBe('');
 });

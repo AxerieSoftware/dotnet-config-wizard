@@ -7,8 +7,10 @@ import { loadCatalog } from '../catalog/loadCatalog.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
+import type { InitialState } from './initialState.ts';
 import { type PresetId, toPresetConfig } from './presets.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
+import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
 import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
@@ -23,7 +25,10 @@ export class WizardState {
 	public activeScopePath = $state('');
 	/** The preset the config started from, which share links store their changes against. */
 	public presetId = $state<PresetId>('microsoft-defaults');
+	/** A message about how the settings were restored, such as from a link made with an older preset. */
+	public notice = $state<string | undefined>(undefined);
 	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly savedState = $derived.by(() => toSavedState(this.config, this.presetId, this.catalog));
 	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
@@ -33,9 +38,11 @@ export class WizardState {
 	});
 	public readonly activeContext = $derived.by(() => toGateContext(this.resolvedActiveScope, this.catalog));
 
-	public constructor(catalog: Catalog) {
-		this.catalog = $state.raw(catalog);
-		this.config = $state(toPresetConfig(this.presetId, catalog));
+	public constructor(initialState: InitialState) {
+		this.catalog = $state.raw(initialState.catalog);
+		this.presetId = initialState.restored?.presetId ?? this.presetId;
+		this.config = $state(initialState.restored?.config ?? toPresetConfig(this.presetId, initialState.catalog));
+		this.notice = initialState.notice;
 	}
 
 	public get rootScope(): ScopeConfig {

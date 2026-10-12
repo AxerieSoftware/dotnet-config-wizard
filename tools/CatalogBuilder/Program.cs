@@ -26,6 +26,7 @@ var nuGetClient = new NuGetClient(httpClient, Path.Combine(cacheDirectory, "nuge
 var channels = ReleasesIndexReader.Read(await File.ReadAllTextAsync(releasesIndexPath));
 var compilerHelpLinks = CompilerDocsIndex.Read(docsDirectory);
 var failures = new List<string>();
+var catalogedRuleIds = new HashSet<string>(StringComparer.Ordinal);
 var notes = new List<string>();
 var bands = new List<BandEntry>();
 Directory.CreateDirectory(outputDirectory);
@@ -51,6 +52,7 @@ foreach (var layout in layouts)
 	failures.AddRange(results.SelectMany(result => result.Failures).Select(failure => $"SDK {layout.SdkVersion}: {failure}"));
 	notes.AddRange(results.SelectMany(result => result.Notes).Select(note => $"SDK {layout.SdkVersion}: {note}"));
 
+	catalogedRuleIds.UnionWith(rules.Select(rule => rule.Id));
 	var analysisLevels = AnalysisLevelReader.Read(layout.AnalysisLevelConfigDirectory);
 	await WriteJsonAsync(Path.Combine(outputDirectory, $"sdk-{layout.Band}.json"), new SdkCatalog(layout.SdkVersion, layout.Band, rules, analysisLevels));
 	bands.Add(new BandEntry(layout.Band, layout.SdkVersion, channel.Channel, channel.SupportPhase, channel.ReleaseType, channel.EndOfLifeDate, ReleasesIndexReader.IsPreview(channel)));
@@ -77,6 +79,7 @@ foreach (var trackedPackage in trackedPackages)
 	failures.AddRange(result.Failures.Select(failure => $"{trackedPackage.Id} {stableVersion}: {failure}"));
 	notes.AddRange(result.Notes.Select(note => $"{trackedPackage.Id} {stableVersion}: {note}"));
 
+	catalogedRuleIds.UnionWith(result.Rules.Select(rule => rule.Id));
 	await WriteJsonAsync(Path.Combine(outputDirectory, $"package-{trackedPackage.Id.ToLowerInvariant()}.json"), new PackageCatalog(trackedPackage.Id, stableVersion, result.Rules));
 
 	var isStale = latestInfo.Published < DateTimeOffset.UtcNow.AddMonths(-StaleAfterMonths);
@@ -93,6 +96,10 @@ var styleOptionCatalog = DocsOptionReader.Read(styleRulesDirectory);
 await WriteJsonAsync(Path.Combine(outputDirectory, "style-options.json"), styleOptionCatalog);
 await WriteJsonAsync(Path.Combine(outputDirectory, "bands.json"), bands.OrderByDescending(band => Version.Parse(band.Channel)).ToList());
 await WriteJsonAsync(Path.Combine(outputDirectory, "packages.json"), packageEntries);
+
+var historyPath = Path.Combine(outputDirectory, "rule-history.json");
+var existingHistory = File.Exists(historyPath) ? await File.ReadAllTextAsync(historyPath) : null;
+await WriteJsonAsync(historyPath, RuleHistory.Update(existingHistory, catalogedRuleIds, DateOnly.FromDateTime(DateTime.UtcNow)));
 Console.WriteLine($"Wrote {styleOptionCatalog.Options.Count} style options, {bands.Count} bands and {packageEntries.Count} packages.");
 
 foreach (var note in notes)

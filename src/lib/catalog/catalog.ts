@@ -36,6 +36,10 @@ export type CatalogOption = StyleOptionEntry & { groupTitle: string; groupOrder:
 
 export type Catalog = {
 	band: BandEntry;
+	/** The date the newest rule first appeared; configs record it so a later catalog can list what's new since. */
+	version: string;
+	/** Rule ID to the date it first appeared in the catalog. */
+	history: ReadonlyMap<string, string>;
 	rules: ReadonlyMap<string, CatalogRule>;
 	options: ReadonlyMap<string, CatalogOption>;
 	packages: ReadonlyMap<string, PackageEntry>;
@@ -44,7 +48,14 @@ export type Catalog = {
 };
 
 /** Combines one SDK band's rules, the analyzer packages and the dotnet/docs style options into the lookup the generators use. */
-export function createCatalog(band: BandEntry, sdkCatalog: SdkCatalogFile, styleOptionCatalog: StyleOptionCatalogFile, packages: PackageEntry[], packageCatalogs: PackageCatalogFile[]): Catalog {
+export function createCatalog(
+	band: BandEntry,
+	sdkCatalog: SdkCatalogFile,
+	styleOptionCatalog: StyleOptionCatalogFile,
+	packages: PackageEntry[],
+	packageCatalogs: PackageCatalogFile[],
+	ruleHistory: Record<string, string>
+): Catalog {
 	const ruleDocs = new Map(styleOptionCatalog.rules.map(ruleDoc => [ruleDoc.id, ruleDoc]));
 	const rules = new Map<string, CatalogRule>();
 
@@ -90,7 +101,8 @@ export function createCatalog(band: BandEntry, sdkCatalog: SdkCatalogFile, style
 		options.set(option.name, { ...option, groupTitle, groupOrder: groupOrder === -1 ? OPTION_GROUPS.length : groupOrder });
 	}
 
-	return { band, rules, options, packages: packagesById, analysisLevels: sdkCatalog.analysisLevels };
+	const version = Object.values(ruleHistory).reduce((newest, date) => (date > newest ? date : newest), '');
+	return { band, version, history: new Map(Object.entries(ruleHistory)), rules, options, packages: packagesById, analysisLevels: sdkCatalog.analysisLevels };
 }
 
 function toCatalogRule(rule: SdkRuleEntry, sourceTitle: string, packageId: string | null, minimumCSharpVersion: string | null): CatalogRule {

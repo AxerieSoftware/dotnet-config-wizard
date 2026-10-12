@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
+	import { toShareUrl } from '../config/initialState.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ValidationList from '../validation/ValidationList.svelte';
 	import GeneratedFiles from './GeneratedFiles.svelte';
@@ -11,11 +12,17 @@
 
 	const wizard = getWizardState();
 	let isCopied = $state(false);
+	let shareUrl = $state<string | undefined>(undefined);
 
 	async function copy(): Promise<void> {
 		await navigator.clipboard.writeText(wizard.output.files[0].content);
 		isCopied = true;
 		setTimeout(() => (isCopied = false), COPIED_MESSAGE_MS);
+	}
+
+	async function share(): Promise<void> {
+		shareUrl = toShareUrl(location, wizard.savedState);
+		await navigator.clipboard.writeText(shareUrl);
 	}
 
 	function download(): void {
@@ -45,6 +52,13 @@
 <div class="actions">
 	<button type="button" onclick={copy}>{isCopied ? 'Copied' : 'Copy root .editorconfig'}</button>
 	<button type="button" onclick={download}>Download zip</button>
+	<button type="button" class="secondary" onclick={share}>Copy share link</button>
 </div>
+{#if shareUrl}
+	<label class="field">
+		<span>Share link, copied to the clipboard. It holds only what differs from the {wizard.presetId} preset.</span>
+		<input aria-label="Share link" readonly value={shareUrl}>
+	</label>
+{/if}
 
 <GeneratedFiles files={wizard.output.files} />

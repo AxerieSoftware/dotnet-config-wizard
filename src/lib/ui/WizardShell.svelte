@@ -1,18 +1,22 @@
 <script lang="ts">
 	import { type Snippet, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import type { Catalog } from '../catalog/catalog.ts';
+	import type { InitialState } from '../config/initialState.ts';
+	import { getBrowserStorage, saveState } from '../config/initialState.ts';
 	import { setWizardState, WizardState } from '../config/wizardState.svelte.ts';
 	import GeneratedFiles from '../export/GeneratedFiles.svelte';
 	import ScopeSwitcher from './ScopeSwitcher.svelte';
 	import { REVIEW_STEP_PATH, WIZARD_STEPS } from './wizardSteps.ts';
 
-	type Props = { catalog: Catalog; children: Snippet };
+	type Props = { initialState: InitialState; children: Snippet };
 
-	let { catalog, children }: Props = $props();
+	let { initialState, children }: Props = $props();
 
-	// The catalog never changes after the layout loads it, so the state is created once.
-	const wizard = setWizardState(new WizardState(untrack(() => catalog)));
+	// The layout loads the initial state once, so the wizard state is created once.
+	const wizard = setWizardState(new WizardState(untrack(() => initialState)));
+
+	const storage = getBrowserStorage();
+	$effect(() => saveState(storage, wizard.savedState));
 	const stepIndex = $derived(WIZARD_STEPS.findIndex(step => step.path === page.url.pathname));
 	const previousStep = $derived(stepIndex > 0 ? WIZARD_STEPS[stepIndex - 1] : undefined);
 	const nextStep = $derived(stepIndex < WIZARD_STEPS.length - 1 ? WIZARD_STEPS[stepIndex + 1] : undefined);
@@ -37,6 +41,12 @@
 	</nav>
 
 	<main>
+		{#if wizard.notice}
+			<p class="warning" role="status">
+				{wizard.notice}
+				<button type="button" class="secondary" onclick={() => (wizard.notice = undefined)}>Dismiss</button>
+			</p>
+		{/if}
 		<ScopeSwitcher />
 		{@render children()}
 		<div class="step-links">

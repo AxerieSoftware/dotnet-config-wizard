@@ -26,6 +26,12 @@ Follow [docs/code-style.md](docs/code-style.md). In short:
 - **US English** in UI copy, comments and docs.
 - **Greenfield.** No compatibility shims or leftovers from earlier iterations, except share-link migrations, which exist so old links keep their meaning.
 
+## Presets and saved state
+
+- Share links and autosaved state hold only what differs from the preset, so changing a preset changes what old links mean. Bump `PRESET_VERSION` in `src/lib/config/presets.ts` whenever a preset's output changes; links from an older version open with a notice.
+- Bump `SCHEMA_VERSION` in `src/lib/config/shareLink.ts` when the config shape changes in a way old saved state can't be read as, and add the migration in the same change.
+- `catalog/generated/rule-history.json` only grows: CatalogBuilder adds new rule IDs with the run date and never rewrites old dates. Don't edit it by hand.
+
 ## Generated output
 
 - Option groups and their titles live in `src/lib/catalog/optionGroups.ts`. A unit test fails when dotnet/docs adds a group that isn't listed.

@@ -18,7 +18,14 @@ export function readCatalog(bandName: string): Catalog {
 	const packageCatalogs = readdirSync(GENERATED_DIRECTORY)
 		.filter(fileName => fileName.startsWith('package-'))
 		.map(fileName => readJson<PackageCatalogFile>(fileName));
-	return createCatalog(band, readJson<SdkCatalogFile>(`sdk-${bandName}.json`), readJson<StyleOptionCatalogFile>('style-options.json'), readJson<PackageEntry[]>('packages.json'), packageCatalogs);
+	return createCatalog(
+		band,
+		readJson<SdkCatalogFile>(`sdk-${bandName}.json`),
+		readJson<StyleOptionCatalogFile>('style-options.json'),
+		readJson<PackageEntry[]>('packages.json'),
+		packageCatalogs,
+		readJson<Record<string, string>>('rule-history.json')
+	);
 }
 
 function readJson<TValue>(fileName: string): TValue {
