@@ -29,7 +29,7 @@ test('code-style choices carry through to the downloaded zip', async ({ page }) 
 	const files = unzipSync(await readFile(await download.path()));
 
 	expect(download.suggestedFilename()).toBe('dotnet-config.zip');
-	expect(Object.keys(files)).toEqual(['.editorconfig']);
+	expect(Object.keys(files)).toEqual(['.editorconfig', '.gitattributes']);
 	expect(strFromU8(files['.editorconfig'])).toBe(await reviewFile.textContent());
 });
 
@@ -106,4 +106,34 @@ test('banned APIs are exported as BannedSymbols.txt', async ({ page }) => {
 	await page.getByRole('link', { name: 'Review and export' }).first().click();
 
 	await expect(page.getByTestId('file-BannedSymbols.txt')).toContainText('P:System.DateTime.UtcNow;Use TimeProvider.GetUtcNow() so time can be faked in tests.');
+});
+
+test('a CI-only build property lands in the CI builds group of Directory.Build.props', async ({ page }) => {
+	await page.goto('/wizard/build');
+
+	await page.getByRole('combobox', { name: 'TreatWarningsAsErrors', exact: true }).selectOption('true');
+	await page.locator('.option-row', { hasText: 'TreatWarningsAsErrors' }).first().getByRole('checkbox', { name: 'CI builds only' }).check();
+
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText(
+		`<PropertyGroup Label="CI builds only" Condition="'$(ContinuousIntegrationBuild)' == 'true'"> <!-- Turns every compiler and analyzer warning into an error. --> <TreatWarningsAsErrors>true</TreatWarningsAsErrors>`
+	);
+});
+
+test('central package management, nuget.config and global.json all download in the zip', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	await page.getByRole('link', { name: 'Packages', exact: true }).click();
+	await page.getByRole('combobox', { name: 'ManagePackageVersionsCentrally', exact: true }).selectOption('true');
+	await page.getByRole('checkbox', { name: 'Generate nuget.config' }).check();
+	await page.getByRole('link', { name: 'SDK', exact: true }).click();
+	await page.getByRole('checkbox', { name: 'Generate global.json' }).check();
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+
+	const downloadPromise = page.waitForEvent('download');
+	await page.getByRole('button', { name: 'Download zip' }).click();
+	const files = unzipSync(await readFile(await (await downloadPromise).path()));
+
+	expect(Object.keys(files).sort()).toEqual(['.editorconfig', '.gitattributes', 'Directory.Packages.props', 'global.json', 'nuget.config']);
+	expect(strFromU8(files['Directory.Packages.props'])).toContain('<GlobalPackageReference Include="Meziantou.Analyzer"');
+	expect(JSON.parse(strFromU8(files['global.json'])).sdk.rollForward).toBe('latestFeature');
 });

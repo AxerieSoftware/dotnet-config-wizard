@@ -1,0 +1,130 @@
+import { describe, expect, it } from 'vitest';
+import { readCatalog } from '../../../scripts/readCatalog.ts';
+import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
+import { toGeneratedOutput } from '../export/generatedOutput.ts';
+import { toGitAttributes } from '../formatting/gitattributes.ts';
+import { toNuGetConfig } from '../packages/nugetConfig.ts';
+import { toGlobalJson } from '../sdk/globalJson.ts';
+import { toBuildFiles } from './buildPropsFiles.ts';
+
+const catalog = readCatalog('10.0.4xx');
+
+function toConfig(...scopes: ScopeConfig[]): WizardConfig {
+	return { versions: { sdkBand: '10.0.4xx' }, scopes };
+}
+
+function fileContent(config: WizardConfig, path: string): string | undefined {
+	return toBuildFiles(config, catalog, 'none').files.find(file => file.path === path)?.content;
+}
+
+describe('Directory.Build.props', () => {
+	it('groups properties under labeled property groups', () => {
+		const content = fileContent(toConfig({ path: '', build: { Nullable: 'enable', Deterministic: 'true' } }), 'Directory.Build.props');
+
+		expect(content).toContain('<PropertyGroup Label="Language">\n\t\t<Nullable>enable</Nullable>\n\t</PropertyGroup>');
+		expect(content).toContain('<PropertyGroup Label="Reproducible builds">\n\t\t<Deterministic>true</Deterministic>');
+	});
+
+	it('appends list properties to what they inherit', () => {
+		const content = fileContent(toConfig({ path: '', build: { WarningsAsErrors: 'nullable' } }), 'Directory.Build.props');
+
+		expect(content).toContain('<WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>');
+	});
+
+	it('limits CI-only properties to builds where CI or TF_BUILD is set', () => {
+		const content = fileContent(toConfig({ path: '', ciBuild: { TreatWarningsAsErrors: 'true' } }), 'Directory.Build.props');
+
+		expect(content).toContain(`<PropertyGroup Label="Continuous integration" Condition="'$(CI)' == 'true' or '$(TF_BUILD)' == 'true'">`);
+		expect(content).toContain(`<PropertyGroup Label="CI builds only" Condition="'$(ContinuousIntegrationBuild)' == 'true'">\n\t\t<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`);
+	});
+
+	it('writes a nested file that imports its parent and holds only its own properties', () => {
+		const content = fileContent(toConfig({ path: '', build: { Nullable: 'enable' } }, { path: 'tests', build: { IsPackable: 'false' } }), 'tests/Directory.Build.props');
+
+		expect(content).toContain(`<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />`);
+		expect(content).toContain('<IsPackable>false</IsPackable>');
+		expect(content).not.toContain('Nullable');
+	});
+
+	it('writes no file for a scope that sets nothing', () => {
+		expect(fileContent(toConfig({ path: '' }), 'Directory.Build.props')).toBeUndefined();
+	});
+
+	it('reports properties the wizard does not know instead of writing them', () => {
+		const output = toBuildFiles(toConfig({ path: '', build: { LangVersion: 'latest' } }), catalog, 'none');
+
+		expect(output.skippedKeys).toEqual([{ scopePath: '', key: 'LangVersion', reason: 'Not an MSBuild property the wizard knows' }]);
+	});
+});
+
+describe('analyzer packages', () => {
+	it('uses GlobalPackageReference under central package management', () => {
+		const content = fileContent(toConfig({ path: '', build: { ManagePackageVersionsCentrally: 'true' }, packages: ['Meziantou.Analyzer'] }), 'Directory.Packages.props');
+
+		expect(content).toContain(`<GlobalPackageReference Include="Meziantou.Analyzer" Version="${catalog.packages.get('Meziantou.Analyzer')?.version}" />`);
+	});
+
+	it('uses a private PackageReference without central package management', () => {
+		const content = fileContent(toConfig({ path: '', packages: ['Meziantou.Analyzer'] }), 'Directory.Build.props');
+
+		expect(content).toContain(`<PackageReference Include="Meziantou.Analyzer" Version="${catalog.packages.get('Meziantou.Analyzer')?.version}" PrivateAssets="all" />`);
+	});
+
+	it('removes and adds packages in a nested scope relative to its parent', () => {
+		const config = toConfig(
+			{ path: '', build: { ManagePackageVersionsCentrally: 'true' }, packages: ['Meziantou.Analyzer', 'SonarAnalyzer.CSharp'] },
+			{ path: 'tests', packages: ['Meziantou.Analyzer', 'Roslynator.Analyzers'] }
+		);
+
+		const content = fileContent(config, 'tests/Directory.Packages.props');
+
+		expect(content).toContain('<GlobalPackageReference Remove="SonarAnalyzer.CSharp" />');
+		expect(content).toContain('<GlobalPackageReference Include="Roslynator.Analyzers"');
+		expect(content).not.toContain('Include="Meziantou.Analyzer"');
+	});
+});
+
+describe('repo-level files', () => {
+	it('matches .gitattributes line endings to the formatting sections', () => {
+		const gitAttributes = toGitAttributes({ path: '', formatting: { '[*]': { end_of_line: 'lf' }, '[*.{cmd,bat}]': { end_of_line: 'crlf' }, '[*.md]': { end_of_line: 'lf' } } });
+
+		expect(gitAttributes).toBe('* text=auto eol=lf\n*.cmd text eol=crlf\n*.bat text eol=crlf\n');
+	});
+
+	it('writes no .gitattributes when no line ending is set', () => {
+		expect(toGitAttributes({ path: '', formatting: { '[*]': { indent_style: 'tab' } } })).toBeUndefined();
+	});
+
+	it('allows prereleases in global.json only for a preview band', () => {
+		const globalJsonConfig = { rollForward: 'latestFeature' as const, isTestingPlatformRunner: false, msbuildSdks: {} };
+
+		expect(JSON.parse(toGlobalJson(globalJsonConfig, readCatalog('11.0.1xx').band)).sdk.allowPrerelease).toBe(true);
+		expect(JSON.parse(toGlobalJson(globalJsonConfig, catalog.band)).sdk).toEqual({ version: catalog.band.sdkVersion, rollForward: 'latestFeature', allowPrerelease: false });
+	});
+
+	it('clears inherited NuGet sources and maps each package pattern to one source', () => {
+		const nugetConfig = toNuGetConfig({
+			sources: [
+				{ key: 'nuget.org', url: 'https://api.nuget.org/v3/index.json', patterns: ['*'] },
+				{ key: 'contoso', url: 'https://pkgs.contoso.com/index.json', patterns: ['Contoso.*'] }
+			],
+			auditSourceUrl: 'https://api.nuget.org/v3/index.json'
+		});
+
+		expect(nugetConfig).toContain('<packageSources>\n\t\t<clear />');
+		expect(nugetConfig).toContain('<packageSource key="contoso">\n\t\t\t<package pattern="Contoso.*" />');
+		expect(nugetConfig).toContain('<auditSources>\n\t\t<clear />\n\t\t<add key="audit" value="https://api.nuget.org/v3/index.json" />');
+	});
+
+	it('moves root severities to Analyzers.globalconfig and wires it into the props', () => {
+		const config: WizardConfig = { ...toConfig({ path: '', severities: { CA1822: 'warning' } }), severityFile: 'globalconfig' };
+
+		const output = toGeneratedOutput(config, catalog, { commentStyle: 'none' });
+
+		expect(output.files.find(file => file.path === 'Analyzers.globalconfig')?.content).toBe(
+			'is_global = true\nglobal_level = 100\n\n## .NET analyzers: Performance\ndotnet_diagnostic.CA1822.severity = warning\n'
+		);
+		expect(output.files.find(file => file.path === '.editorconfig')?.content).not.toContain('CA1822');
+		expect(output.files.find(file => file.path === 'Directory.Build.props')?.content).toContain('<GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)Analyzers.globalconfig" />');
+	});
+});

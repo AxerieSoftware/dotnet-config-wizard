@@ -5,5 +5,8 @@ export const WIZARD_STEPS: readonly { path: string; title: string; isWide?: bool
 	{ path: '/wizard/code-style', title: 'Code style' },
 	{ path: '/wizard/naming', title: 'Naming' },
 	{ path: '/wizard/analyzers', title: 'Analyzers', isWide: true },
+	{ path: '/wizard/build', title: 'Build' },
+	{ path: '/wizard/packages', title: 'Packages' },
+	{ path: '/wizard/sdk', title: 'SDK' },
 	{ path: '/wizard/review', title: 'Review and export', isWide: true }
 ];

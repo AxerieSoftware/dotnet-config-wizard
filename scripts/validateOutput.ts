@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { parseWizardConfig, type WizardConfig } from '../src/lib/config/wizardConfig.ts';
@@ -18,7 +18,8 @@ const BUILD_LOG = 'build.log';
 const CONFIG_BREAKAGE = /\b(?:warning|error) (?<code>AD0001|CS8032|MSB\d{4}|NU1\d{3}|NETSDK\d{4})\b.*$/gm;
 const COMPILER_RUN = /\bcsc(?:\.dll)? \/noconfig\b/g;
 const TARGET_FRAMEWORK = '<TargetFramework>net10.0</TargetFramework>';
-const PROJECT_END = '</Project>';
+// The xunit sample's own package. Under central package management its version moves to Directory.Packages.props, as it would in a real repo.
+const SAMPLE_PACKAGE = { id: 'xunit.v3', version: '4.0.2' };
 const DOTNET = join(DOTNET_DIRECTORY, 'dotnet');
 
 // Banned APIs are validated one documentation ID at a time, so the exhaustive config's message for each is its own ID.
@@ -33,11 +34,13 @@ await ensureSdksInstalled(bands.map(band => band.sdkVersion));
 let failureCount = 0;
 for (const band of bands) {
 	const catalog = readCatalog(band.band);
-	const cases: ValidationCase[] = [{ name: `exhaustive ${band.band}`, config: toBannedApisLabeledBySymbol(toExhaustiveConfig(catalog)), checksBannedApis: true }];
-	if (dogfoodResult.config.versions.sdkBand === band.band) cases.push({ name: `dogfood ${band.band}`, config: dogfoodResult.config, checksBannedApis: false });
+	const cases: ValidationCase[] = [{ name: `exhaustive ${band.band}`, config: withGlobalJson(toBannedApisLabeledBySymbol(toExhaustiveConfig(catalog))), checksBannedApis: true }];
+	if (!band.isPreview)
+		cases.push({ name: `exhaustive with Analyzers.globalconfig ${band.band}`, config: withGlobalJson({ ...toExhaustiveConfig(catalog), severityFile: 'globalconfig' }), checksBannedApis: false });
+	if (dogfoodResult.config.versions.sdkBand === band.band) cases.push({ name: `dogfood ${band.band}`, config: withGlobalJson(dogfoodResult.config), checksBannedApis: false });
 
 	for (const validationCase of cases) {
-		const problems = validate(validationCase, band.sdkVersion, band.channel);
+		const problems = validate(validationCase, band.channel);
 		failureCount += problems.length;
 		console.log(problems.length === 0 ? `✓ ${validationCase.name}` : `✗ ${validationCase.name}\n${problems.map(problem => `  ${problem}`).join('\n')}`);
 	}
@@ -45,31 +48,28 @@ for (const band of bands) {
 
 process.exit(failureCount === 0 ? 0 : 1);
 
-function validate(validationCase: ValidationCase, sdkVersion: string, channel: string): string[] {
+function validate(validationCase: ValidationCase, channel: string): string[] {
 	const catalog = readCatalog(validationCase.config.versions.sdkBand);
 	const workingDirectory = mkdtempSync(join(tmpdir(), 'validate-'));
 	cpSync(join(REPO_ROOT, 'validation'), workingDirectory, { recursive: true });
 
-	// Restore ignores a TargetFramework passed on the command line, so the band's framework goes into the props file.
-	// Until the props generator exists, packages and analyzer files are wired in here.
+	// Each band builds for its own framework. Restore ignores a TargetFramework passed on the command line, so it's
+	// written into the sample projects instead.
+	const isCentrallyManaged = validationCase.config.scopes[0].build?.ManagePackageVersionsCentrally === 'true';
+	for (const projectPath of findProjects(workingDirectory)) {
+		const project = readFileSync(projectPath, 'utf8').replace(TARGET_FRAMEWORK, `<TargetFramework>net${channel}</TargetFramework>`);
+		writeFileSync(projectPath, isCentrallyManaged ? project.replace(` Version="${SAMPLE_PACKAGE.version}"`, '') : project);
+	}
+
 	const rootScope = validationCase.config.scopes[0];
 	const packageIds = rootScope.packages ?? [];
-	const propsPath = join(workingDirectory, 'Directory.Build.props');
-	const props = readFileSync(propsPath, 'utf8')
-		.replace(TARGET_FRAMEWORK, `<TargetFramework>net${channel}</TargetFramework>`)
-		.replace(PROJECT_END, `${toAnalyzerItems(packageIds, catalog)}${PROJECT_END}`);
-	writeFileSync(propsPath, props);
-
-	const globalJson = JSON.parse(readFileSync(join(REPO_ROOT, 'global.json'), 'utf8'));
-	globalJson.sdk = { version: sdkVersion, rollForward: 'disable', allowPrerelease: true };
-	writeFileSync(join(workingDirectory, 'global.json'), JSON.stringify(globalJson, undefined, '\t'));
 
 	const output = toGeneratedOutput(validationCase.config, catalog, { commentStyle: 'titleAndLink' });
 	const problems = output.skippedKeys.map(skipped => `${skipped.scopePath || '(root)'}: ${skipped.key} was left out (${skipped.reason}).`);
 	for (const file of output.files) {
 		const path = join(workingDirectory, file.path);
 		mkdirSync(dirname(path), { recursive: true });
-		writeFileSync(path, file.content);
+		writeFileSync(path, file.path === 'Directory.Packages.props' ? withSamplePackageVersion(file.content) : file.content);
 		if (file.path.endsWith('.editorconfig')) problems.push(...checkEditorConfigKeys(file.content, catalog).map(problem => `${file.path}:${problem.lineNumber}: ${problem.message}`));
 	}
 
@@ -101,12 +101,23 @@ function validate(validationCase: ValidationCase, sdkVersion: string, channel: s
 	return problems;
 }
 
-function toAnalyzerItems(packageIds: string[], catalog: ReturnType<typeof readCatalog>): string {
-	const packageReferences = packageIds.map(packageId => `\t\t<PackageReference Include="${packageId}" Version="${catalog.packages.get(packageId)?.version}" PrivateAssets="all" />\n`).join('');
-	const additionalFiles = ['BannedSymbols.txt', 'SonarLint.xml']
-		.map(fileName => `\t\t<AdditionalFiles Include="$(MSBuildThisFileDirectory)${fileName}" Condition="Exists('$(MSBuildThisFileDirectory)${fileName}')" />\n`)
-		.join('');
-	return `\t<ItemGroup>\n${packageReferences}${additionalFiles}\t</ItemGroup>\n`;
+/** Pins the band's SDK through the generated global.json, keeping the repo's MSBuild SDK versions such as MSTest.Sdk. */
+function withGlobalJson(config: WizardConfig): WizardConfig {
+	const repoGlobalJson = JSON.parse(readFileSync(join(REPO_ROOT, 'global.json'), 'utf8')) as { 'msbuild-sdks'?: Record<string, string> };
+	return { ...config, globalJson: { rollForward: 'latestFeature', isTestingPlatformRunner: true, msbuildSdks: repoGlobalJson['msbuild-sdks'] ?? {} } };
+}
+
+function withSamplePackageVersion(packagesProps: string): string {
+	return packagesProps.replace(
+		'</Project>',
+		`\t<ItemGroup Label="Sample packages">\n\t\t<PackageVersion Include="${SAMPLE_PACKAGE.id}" Version="${SAMPLE_PACKAGE.version}" />\n\t</ItemGroup>\n</Project>`
+	);
+}
+
+function findProjects(directory: string): string[] {
+	return readdirSync(directory, { recursive: true, encoding: 'utf8' })
+		.filter(path => path.endsWith('.csproj'))
+		.map(path => join(directory, path));
 }
 
 function toBannedApisLabeledBySymbol(config: WizardConfig): WizardConfig {

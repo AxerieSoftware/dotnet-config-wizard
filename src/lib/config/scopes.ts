@@ -11,6 +11,7 @@ export type ResolvedScope = {
 	options: Record<string, string>;
 	severities: Record<string, Severity>;
 	build: Record<string, string>;
+	ciBuild: Record<string, string>;
 	naming: NamingRule[];
 	packages: string[];
 	ruleParameters: Record<string, Record<string, string>>;
@@ -38,6 +39,7 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		options: { ...inherited?.options, ...scope.options },
 		severities: { ...inherited?.severities, ...scope.severities },
 		build: { ...inherited?.build, ...scope.build },
+		ciBuild: { ...inherited?.ciBuild, ...scope.ciBuild },
 		naming: mergeNaming(inherited?.naming ?? [], scope.naming ?? []),
 		packages: scope.packages ?? inherited?.packages ?? [],
 		ruleParameters: mergeNested(inherited?.ruleParameters ?? {}, scope.ruleParameters ?? {}),

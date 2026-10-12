@@ -28,6 +28,6 @@ describe('analyzer files', () => {
 		});
 
 		expect(withoutPackages.files.map(file => file.path)).toEqual(['.editorconfig']);
-		expect(withPackages.files.map(file => file.path)).toEqual(['.editorconfig', 'BannedSymbols.txt', 'SonarLint.xml']);
+		expect(withPackages.files.map(file => file.path)).toEqual(['.editorconfig', 'Directory.Build.props', 'BannedSymbols.txt', 'SonarLint.xml']);
 	});
 });

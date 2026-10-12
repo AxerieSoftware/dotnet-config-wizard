@@ -58,7 +58,8 @@
 				"IDE0055": "warning",
 				"IDE0161": "warning",
 				"IDE0300": "warning",
-				"IDE1006": "warning"
+				"IDE1006": "warning",
+				"CS1591": "none"
 			},
 			"build": {
 				"Nullable": "enable",
@@ -68,7 +69,9 @@
 				"GenerateDocumentationFile": "true",
 				"Deterministic": "true",
 				"UseArtifactsOutput": "true",
-				"InvariantGlobalization": "true"
+				"InvariantGlobalization": "true",
+				"ManagePackageVersionsCentrally": "true",
+				"CentralPackageTransitivePinningEnabled": "true"
 			},
 			"naming": [
 				{
@@ -221,7 +224,10 @@
 					"wordSeparator": "",
 					"severity": "warning"
 				}
-			]
+			],
+			"ciBuild": {
+				"TreatWarningsAsErrors": "true"
+			}
 		},
 		{
 			"path": "tools/CatalogBuilder.Tests",

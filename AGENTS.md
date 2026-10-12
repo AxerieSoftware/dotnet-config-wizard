@@ -11,7 +11,7 @@ Before calling a change done, review the diff against this guide and clean it up
 - `dotnet test --solution dotnet-config-wizard.slnx` passes when anything under `tools/` changed.
 - `npm run catalog` runs cleanly when CatalogBuilder or the catalog format changed, and the regenerated `catalog/generated` is committed.
 - `node scripts/validateOutput.ts` passes when a generator or the catalog changed.
-- `node scripts/renderConfig.ts config/dogfood.json --check` passes. Change this repo's `.editorconfig` by editing `config/dogfood.json` and rerendering, never by hand.
+- `node scripts/renderConfig.ts config/dogfood.json --check` passes. Change this repo's `.editorconfig`, `Directory.Build.props`, `Directory.Packages.props` or `.gitattributes` by editing `config/dogfood.json` and rerendering, never by hand.
 - Code in `src/lib` that scripts import stays plain TypeScript Node can run: `.ts` import extensions, and no parameter properties or enums.
 
 ## Code
@@ -32,7 +32,8 @@ Follow [docs/code-style.md](docs/code-style.md). In short:
 
 - `.editorconfig` comments always sit on their own line above the setting. EditorConfig has no inline comments.
 - Generated files carry no site attribution.
-- Never emit a key the selected SDK band, LangVersion or TFM doesn't support.
+- Never emit a key the selected SDK band or the target frameworks' C# version doesn't support.
+- MSBuild properties come from `src/lib/build/buildProperties.ts`. Shared props never set `TargetFramework`, `LangVersion`, `WarningLevel` or `NoWarn`.
 
 ## Tests
 

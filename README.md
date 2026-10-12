@@ -11,7 +11,7 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 | `npm run e2e` | Build the site and run the Playwright tests. |
 | `npm run build` | Build the static site into `build/`. |
 | `npm run catalog` | Regenerate `catalog/generated` from the latest SDK of every supported .NET 10+ channel and dotnet/docs. SDKs install into `.cache/dotnet`. |
-| `node scripts/renderConfig.ts config/dogfood.json` | Regenerate this repo's `.editorconfig` from its wizard config. Add `--check` to compare instead of write. |
+| `node scripts/renderConfig.ts config/dogfood.json` | Regenerate this repo's `.editorconfig`, `Directory.Build.props`, `Directory.Packages.props` and `.gitattributes` from its wizard config. Add `--check` to compare instead of write. |
 | `node scripts/validateOutput.ts` | Build the sample projects in `validation/` with generated config on every cataloged SDK, failing on config breakage. |
 | `dotnet test --solution dotnet-config-wizard.slnx` | Test CatalogBuilder. |
 
@@ -20,7 +20,7 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 - `src/` — the SvelteKit app, organized by wizard feature under `src/lib/`.
 - `catalog/generated/` — rule and option data written by CatalogBuilder. Don't edit by hand.
 - `tools/CatalogBuilder/` — .NET tool that reads analyzers from an installed SDK and options from dotnet/docs.
-- `config/dogfood.json` — the wizard config this repo's own `.editorconfig` is generated from.
+- `config/dogfood.json` — the wizard config this repo's own `.editorconfig`, props and `.gitattributes` are generated from. `global.json` stays hand-written so it can pin the SDK installed here.
 - `validation/` — sample projects that CI builds with generated config.
 - `scripts/` — Node scripts that render configs and validate output, sharing the generators in `src/lib`.
 - `e2e/` — Playwright tests.

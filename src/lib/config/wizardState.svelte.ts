@@ -9,7 +9,7 @@ import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
 import { type ResolvedScope, resolveScope } from './scopes.ts';
 import { toGateContext } from './versionGates.ts';
-import type { ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
+import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
 /** The config being edited and the files it renders to. Values set to undefined go back to the tool's default. */
 export class WizardState {
@@ -64,6 +64,35 @@ export class WizardState {
 	public setBuildProperty(name: string, value: string | undefined): void {
 		this.rootScope.build ??= {};
 		setOrDelete(this.rootScope.build, name, value);
+	}
+
+	/** Moves a property between every build and CI builds only, keeping its value. */
+	public setCiOnly(name: string, isCiOnly: boolean): void {
+		const value = this.rootScope.build?.[name] ?? this.rootScope.ciBuild?.[name];
+		if (value === undefined) return;
+
+		this.rootScope.build ??= {};
+		this.rootScope.ciBuild ??= {};
+		setOrDelete(this.rootScope.build, name, isCiOnly ? undefined : value);
+		setOrDelete(this.rootScope.ciBuild, name, isCiOnly ? value : undefined);
+	}
+
+	/** Sets a property's value wherever it lives now, so a CI-only property stays CI-only. */
+	public setPropertyValue(name: string, value: string | undefined): void {
+		if (this.rootScope.ciBuild?.[name] !== undefined) setOrDelete(this.rootScope.ciBuild, name, value);
+		else this.setBuildProperty(name, value);
+	}
+
+	public setNuGetConfig(nuget: NuGetConfig | undefined): void {
+		setOrDelete(this.config, 'nuget', nuget);
+	}
+
+	public setGlobalJson(globalJson: GlobalJsonConfig | undefined): void {
+		setOrDelete(this.config, 'globalJson', globalJson);
+	}
+
+	public setSeverityFile(severityFile: 'editorconfig' | 'globalconfig'): void {
+		setOrDelete(this.config, 'severityFile', severityFile === 'globalconfig' ? severityFile : undefined);
 	}
 
 	public setAnalysisMode(mode: AnalysisMode): void {

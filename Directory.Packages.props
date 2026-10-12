@@ -1,0 +1,8 @@
+<Project>
+	<PropertyGroup Label="Central package management">
+		<!-- Package versions live in Directory.Packages.props instead of each project. -->
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<!-- Central versions also pin transitive packages. -->
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+	</PropertyGroup>
+</Project>

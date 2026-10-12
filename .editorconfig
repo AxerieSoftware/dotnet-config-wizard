@@ -120,6 +120,10 @@ dotnet_naming_style.pascal_case_suffix_async.required_suffix = Async
 dotnet_naming_style.camel_case.capitalization = camel_case
 
 ### Diagnostic severities ###
+## C# compiler: Documentation
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+
 ## Code style: Style
 # IDE0003: Name can be simplified (editor only)
 dotnet_diagnostic.IDE0003.severity = warning

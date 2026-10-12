@@ -20,6 +20,8 @@ export type ScopeConfig = {
 	severities?: Record<string, Severity>;
 	/** MSBuild property name to value. */
 	build?: Record<string, string>;
+	/** MSBuild properties that only apply to CI builds, such as TreatWarningsAsErrors. */
+	ciBuild?: Record<string, string>;
 	naming?: NamingRule[];
 	/** Analyzer package IDs this scope's projects reference; a nested scope's list replaces its parent's. */
 	packages?: string[];
@@ -29,10 +31,24 @@ export type ScopeConfig = {
 	bannedApis?: BannedApi[];
 };
 
+export type NuGetSource = { key: string; url: string; patterns: string[] };
+
+/** A `nuget.config` that clears inherited sources and maps every package to one source. */
+export type NuGetConfig = { sources: NuGetSource[]; auditSourceUrl: string };
+
+export const ROLL_FORWARD_POLICIES = ['latestFeature', 'latestPatch', 'latestMajor', 'disable'] as const;
+
+/** A `global.json`; the SDK version always comes from the selected band. */
+export type GlobalJsonConfig = { rollForward: (typeof ROLL_FORWARD_POLICIES)[number]; isTestingPlatformRunner: boolean; msbuildSdks: Record<string, string> };
+
 export type WizardConfig = {
 	/** The C# version always comes from each scope's target frameworks; the wizard never sets LangVersion. */
 	versions: { sdkBand: string };
 	scopes: ScopeConfig[];
+	nuget?: NuGetConfig;
+	globalJson?: GlobalJsonConfig;
+	/** Where the root scope's rule severities go: `.editorconfig` by default, or a global AnalyzerConfig file. */
+	severityFile?: 'editorconfig' | 'globalconfig';
 };
 
 export type ParseResult = { status: 'valid'; config: WizardConfig } | { status: 'invalid'; reason: string };
@@ -49,6 +65,9 @@ export function parseWizardConfig(value: unknown): ParseResult {
 	}
 
 	if (value.scopes[0].path !== '') return invalid('The first scope must be the root scope, with an empty path.');
+	if (value.nuget !== undefined && !isNuGetConfig(value.nuget)) return invalid('nuget must have sources and an auditSourceUrl.');
+	if (value.globalJson !== undefined && !isGlobalJsonConfig(value.globalJson)) return invalid('globalJson must have rollForward, isTestingPlatformRunner and msbuildSdks.');
+	if (value.severityFile !== undefined && value.severityFile !== 'editorconfig' && value.severityFile !== 'globalconfig') return invalid('severityFile must be editorconfig or globalconfig.');
 
 	return { status: 'valid', config: value as WizardConfig };
 }
@@ -61,6 +80,7 @@ function findScopeProblem(scope: unknown): string | undefined {
 	if (scope.formatting !== undefined && !(isRecord(scope.formatting) && Object.values(scope.formatting).every(isStringRecord))) return 'formatting must map globs to string key/value objects.';
 	if (scope.options !== undefined && !isStringRecord(scope.options)) return 'options must map names to strings.';
 	if (scope.build !== undefined && !isStringRecord(scope.build)) return 'build must map property names to strings.';
+	if (scope.ciBuild !== undefined && !isStringRecord(scope.ciBuild)) return 'ciBuild must map property names to strings.';
 	if (scope.severities !== undefined && !(isRecord(scope.severities) && Object.values(scope.severities).every(severity => SEVERITIES.includes(severity as Severity))))
 		return `severities must map rule IDs to one of ${SEVERITIES.join(', ')}.`;
 	if (scope.naming !== undefined && !(Array.isArray(scope.naming) && scope.naming.every(isNamingRule))) return 'naming must be an array of naming rules.';
@@ -86,6 +106,21 @@ function isNamingRule(value: unknown): value is NamingRule {
 		typeof value.requiredSuffix === 'string' &&
 		typeof value.wordSeparator === 'string' &&
 		SEVERITIES.includes(value.severity as Severity)
+	);
+}
+
+function isNuGetConfig(value: unknown): value is NuGetConfig {
+	return (
+		isRecord(value) &&
+		typeof value.auditSourceUrl === 'string' &&
+		Array.isArray(value.sources) &&
+		value.sources.every(source => isRecord(source) && typeof source.key === 'string' && typeof source.url === 'string' && isStringArray(source.patterns))
+	);
+}
+
+function isGlobalJsonConfig(value: unknown): value is GlobalJsonConfig {
+	return (
+		isRecord(value) && ROLL_FORWARD_POLICIES.includes(value.rollForward as GlobalJsonConfig['rollForward']) && typeof value.isTestingPlatformRunner === 'boolean' && isStringRecord(value.msbuildSdks)
 	);
 }
 

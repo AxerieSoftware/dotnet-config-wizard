@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { parseWizardConfig } from '../src/lib/config/wizardConfig.ts';
-import { toEditorConfigFiles } from '../src/lib/export/editorConfigFiles.ts';
+import { toGeneratedOutput } from '../src/lib/export/generatedOutput.ts';
 import { readCatalog } from './readCatalog.ts';
 
 // Renders a wizard config's files. With --check it compares them to the files on disk instead of writing,
@@ -20,7 +20,7 @@ if (parseResult.status === 'invalid') {
 }
 
 const config = parseResult.config;
-const { files, skippedKeys } = toEditorConfigFiles(config, readCatalog(config.versions.sdkBand), { commentStyle: 'idAndTitle' });
+const { files, skippedKeys } = toGeneratedOutput(config, readCatalog(config.versions.sdkBand), { commentStyle: 'idAndTitle' });
 if (skippedKeys.length > 0) {
 	console.error(`These keys were left out:\n${skippedKeys.map(skipped => `${skipped.scopePath || '(root)'}: ${skipped.key} (${skipped.reason})`).join('\n')}`);
 	process.exit(1);

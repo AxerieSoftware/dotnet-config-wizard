@@ -7,7 +7,21 @@ import { getEffectiveSeverity } from './effectiveSeverity.ts';
 const catalog = readCatalog('10.0.4xx');
 
 function toScope(overrides: Partial<ResolvedScope>): ResolvedScope {
-	return { path: '', projectKind: undefined, tfms: ['net10.0'], formatting: {}, options: {}, severities: {}, build: {}, naming: [], packages: [], ruleParameters: {}, bannedApis: [], ...overrides };
+	return {
+		path: '',
+		projectKind: undefined,
+		tfms: ['net10.0'],
+		formatting: {},
+		options: {},
+		severities: {},
+		build: {},
+		ciBuild: {},
+		naming: [],
+		packages: [],
+		ruleParameters: {},
+		bannedApis: [],
+		...overrides
+	};
 }
 
 function severityOf(ruleId: string, scope: ResolvedScope) {

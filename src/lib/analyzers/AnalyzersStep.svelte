@@ -114,6 +114,13 @@
 			Enforce code style on build
 		</label>
 	</div>
+	<label class="field">
+		<span>Write rule severities to</span>
+		<select aria-label="Severity file" value={wizard.config.severityFile ?? 'editorconfig'} onchange={event => wizard.setSeverityFile(event.currentTarget.value as 'editorconfig' | 'globalconfig')}>
+			<option value="editorconfig">.editorconfig, by folder</option>
+			<option value="globalconfig">Analyzers.globalconfig, by project</option>
+		</select>
+	</label>
 	<p class="note">
 		The mode is written as <code>AnalysisLevel=latest-&lt;mode&gt;</code> so new rules arrive with SDK updates. Without enforcing code style on build, IDE rules only show in the editor.
 	</p>
