@@ -60,9 +60,7 @@ describe('importEditorConfig', () => {
 
 		expect(result.settings.options).toEqual({ dotnet_style_readonly_field: 'true', csharp_style_namespace_declarations: 'file_scoped' });
 		expect(result.settings.severities).toEqual({ IDE0044: 'warning' });
-		expect(result.notes.map(note => note.message)).toEqual([
-			'csharp_style_namespace_declarations had a legacy :warning suffix, but it feeds 2 rules, so set their severities on the Code style step.'
-		]);
+		expect(result.notes.map(note => note.message)).toEqual(['csharp_style_namespace_declarations had a legacy :warning suffix, but it feeds 2 rules, so set their severities on the Code style step.']);
 	});
 
 	it('drops trailing comments and unmaintained analyzer rules with notes', () => {
