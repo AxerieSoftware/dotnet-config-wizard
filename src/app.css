@@ -81,10 +81,25 @@ button,
 	background: var(--surface);
 }
 
+.site-header {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex-wrap: wrap;
+}
+
 .site-header a {
 	color: var(--text);
-	font-weight: 700;
 	text-decoration: none;
+}
+
+.site-header .site-title {
+	font-weight: 700;
+}
+
+.site-header nav {
+	display: flex;
+	gap: 1rem;
 }
 
 .home {
@@ -543,4 +558,37 @@ textarea {
 	border: 1px solid var(--border);
 	border-radius: 6px;
 	padding: 0.5rem;
+}
+
+.reference {
+	max-width: 56rem;
+	margin: 1.5rem auto;
+	padding: 0 1rem;
+}
+
+.reference-list {
+	margin: 0;
+	padding-left: 1.2rem;
+	columns: 2 20rem;
+}
+
+.reference-list li {
+	break-inside: avoid;
+	margin-bottom: 0.25rem;
+	font-size: 0.9rem;
+}
+
+.facts {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0.35rem 1rem;
+	margin: 1rem 0;
+}
+
+.facts dt {
+	color: var(--text-muted);
+}
+
+.facts dd {
+	margin: 0;
 }

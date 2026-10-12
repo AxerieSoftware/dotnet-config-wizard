@@ -63,12 +63,13 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/lib/analyzers/RuleBrowser.svelte"],
+			"includes": ["src/lib/analyzers/RuleBrowser.svelte", "src/lib/export/GeneratedFiles.svelte"],
 			"linter": {
 				"rules": {
 					"a11y": {
 						"useSemanticElements": "off",
-						"useFocusableInteractive": "off"
+						"useFocusableInteractive": "off",
+						"noNoninteractiveTabindex": "off"
 					}
 				}
 			}

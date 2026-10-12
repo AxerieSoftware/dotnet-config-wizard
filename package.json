@@ -18,6 +18,7 @@
 		"catalog": "node scripts/buildCatalog.ts"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "4.13.0",
 		"@biomejs/biome": "2.5.15",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-static": "^4.0.0",

@@ -11,7 +11,12 @@
 </svelte:head>
 
 <header class="site-header">
-	<a href="/">.NET Config Wizard</a>
+	<a class="site-title" href="/">.NET Config Wizard</a>
+	<nav aria-label="Site">
+		<a href="/wizard/start">Wizard</a>
+		<a href="/rules">Rules</a>
+		<a href="/options">Options</a>
+	</nav>
 </header>
 
 {@render children()}
