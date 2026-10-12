@@ -10,6 +10,7 @@ const DOCS_DIRECTORY = join(CACHE_DIRECTORY, 'dotnet-docs');
 const OUTPUT_DIRECTORY = join(REPO_ROOT, 'catalog', 'generated');
 const RELEASES_INDEX_URL = 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json';
 const UNSUPPORTED_PHASE = 'eol';
+const DOCS_FOLDERS = ['docs/fundamentals/code-analysis/style-rules', 'docs/csharp/language-reference/compiler-messages', 'docs/csharp/misc'];
 // The wizard targets SDK 10 and later only.
 const MINIMUM_CHANNEL_MAJOR = 10;
 
@@ -31,14 +32,14 @@ if (existsSync(join(DOCS_DIRECTORY, '.git'))) {
 	run('git', ['-C', DOCS_DIRECTORY, 'pull', '--quiet', '--depth', '1']);
 } else {
 	run('git', ['clone', '--quiet', '--depth', '1', '--filter=blob:none', '--sparse', 'https://github.com/dotnet/docs.git', DOCS_DIRECTORY]);
-	run('git', ['-C', DOCS_DIRECTORY, 'sparse-checkout', 'set', 'docs/fundamentals/code-analysis/style-rules']);
 }
+run('git', ['-C', DOCS_DIRECTORY, 'sparse-checkout', 'set', ...DOCS_FOLDERS]);
 
-// Bands that drop out of support would otherwise linger as stale files.
-for (const fileName of readdirSync(OUTPUT_DIRECTORY).filter(name => name.startsWith('sdk-'))) rmSync(join(OUTPUT_DIRECTORY, fileName));
+// Bands and packages that drop out of the catalog would otherwise linger as stale files.
+for (const fileName of readdirSync(OUTPUT_DIRECTORY).filter(name => name.startsWith('sdk-') || name.startsWith('package-'))) rmSync(join(OUTPUT_DIRECTORY, fileName));
 
 const sdkArguments = sdkVersions.flatMap(sdkVersion => ['--sdk', join(DOTNET_DIRECTORY, 'sdk', sdkVersion)]);
-run('dotnet', ['run', '--project', join(REPO_ROOT, 'tools', 'CatalogBuilder'), '--', ...sdkArguments, '--docs', DOCS_DIRECTORY, '--releases-index', releasesIndexPath, '--out', OUTPUT_DIRECTORY]);
+run('dotnet', ['run', '--project', join(REPO_ROOT, 'tools', 'CatalogBuilder'), '--', ...sdkArguments, '--docs', DOCS_DIRECTORY, '--releases-index', releasesIndexPath, '--packages', join(REPO_ROOT, 'catalog', 'packages.json'), '--cache', CACHE_DIRECTORY, '--out', OUTPUT_DIRECTORY]);
 
 async function fetchText(url: string): Promise<string> {
 	const response = await fetch(url);

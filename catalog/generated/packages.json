@@ -1,0 +1,62 @@
+[
+	{
+		"id": "SonarAnalyzer.CSharp",
+		"title": "SonarAnalyzer",
+		"version": "10.35.0.4138",
+		"latestVersion": "10.35.0.4138",
+		"latestPublished": "2026-09-28",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 456
+	},
+	{
+		"id": "Roslynator.Analyzers",
+		"title": "Roslynator",
+		"version": "5.0.1",
+		"latestVersion": "5.0.1",
+		"latestPublished": "2026-10-04",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 197
+	},
+	{
+		"id": "Roslynator.Formatting.Analyzers",
+		"title": "Roslynator formatting",
+		"version": "5.0.1",
+		"latestVersion": "5.0.1",
+		"latestPublished": "2026-10-04",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 51
+	},
+	{
+		"id": "Meziantou.Analyzer",
+		"title": "Meziantou.Analyzer",
+		"version": "3.0.299",
+		"latestVersion": "3.0.299",
+		"latestPublished": "2026-10-11",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 239
+	},
+	{
+		"id": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+		"title": "Banned API analyzers",
+		"version": "5.6.0",
+		"latestVersion": "5.6.0",
+		"latestPublished": "2026-07-02",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 3
+	},
+	{
+		"id": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+		"title": "Public API analyzers",
+		"version": "5.6.0",
+		"latestVersion": "5.11.0-1.26425.128",
+		"latestPublished": "2026-09-08",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 23
+	}
+]

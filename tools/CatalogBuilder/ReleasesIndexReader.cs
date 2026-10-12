@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace CatalogBuilder;
 
-internal sealed record ChannelInfo(string Channel, string SupportPhase, string ReleaseType, string? EndOfLifeDate);
+internal sealed record ChannelInfo(string Channel, string SupportPhase, string ReleaseType, string? EndOfLifeDate, string LatestRuntime);
 
 /// <summary>Reads support details per channel, such as <c>10.0</c>, from the .NET <c>releases-index.json</c>.</summary>
 internal static class ReleasesIndexReader
@@ -21,7 +21,8 @@ internal static class ReleasesIndexReader
 				channel,
 				release.GetProperty("support-phase").GetString()!,
 				release.GetProperty("release-type").GetString()!,
-				release.TryGetProperty("eol-date", out var endOfLife) && endOfLife.ValueKind == JsonValueKind.String ? endOfLife.GetString() : null);
+				release.TryGetProperty("eol-date", out var endOfLife) && endOfLife.ValueKind == JsonValueKind.String ? endOfLife.GetString() : null,
+				release.GetProperty("latest-runtime").GetString()!);
 		}
 
 		return channels;

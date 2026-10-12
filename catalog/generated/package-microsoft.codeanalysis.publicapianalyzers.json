@@ -1,0 +1,383 @@
+{
+	"id": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+	"version": "5.6.0",
+	"rules": [
+		{
+			"id": "RS0016",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Add public types and members to the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0017",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Remove deleted types and members from the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0022",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Constructor make noninheritable base class inheritable",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0024",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "The contents of the public API files are invalid",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0025",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Do not duplicate symbols in public API files",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0026",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Do not add multiple public overloads with optional parameters",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0027",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "API with optional parameter(s) should have the most parameters amongst its public overloads",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0036",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Annotate nullability of public types and members in the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0037",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Enable tracking of nullability of reference types in the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0041",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Public members should not use oblivious types",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All public members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0048",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Missing shipped or unshipped public API file",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0050",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "API is marked as removed but it exists in source code",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0051",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Add internal types and members to the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0052",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Remove deleted types and members from the declared internal API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0053",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "The contents of the internal API files are invalid",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0054",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Do not duplicate symbols in internal API files",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0055",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Annotate nullability of internal types and members in the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0056",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Enable tracking of nullability of reference types in the declared API",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0057",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Internal members should not use oblivious types",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": "All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0058",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Missing shipped or unshipped internal API file",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0059",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Do not add multiple public overloads with optional parameters",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0060",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "API with optional parameter(s) should have the most parameters amongst its public overloads",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0061",
+			"source": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+			"title": "Constructor make noninheritable base class inheritable",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+			"description": null,
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		}
+	]
+}

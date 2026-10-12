@@ -1,0 +1,8 @@
+[
+	{ "id": "SonarAnalyzer.CSharp", "title": "SonarAnalyzer", "republishDescriptions": false },
+	{ "id": "Roslynator.Analyzers", "title": "Roslynator", "republishDescriptions": true },
+	{ "id": "Roslynator.Formatting.Analyzers", "title": "Roslynator formatting", "republishDescriptions": true },
+	{ "id": "Meziantou.Analyzer", "title": "Meziantou.Analyzer", "republishDescriptions": true },
+	{ "id": "Microsoft.CodeAnalysis.BannedApiAnalyzers", "title": "Banned API analyzers", "republishDescriptions": true },
+	{ "id": "Microsoft.CodeAnalysis.PublicApiAnalyzers", "title": "Public API analyzers", "republishDescriptions": true }
+]

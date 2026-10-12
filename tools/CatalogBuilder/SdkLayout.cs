@@ -18,7 +18,7 @@ internal sealed partial record SdkLayout(
 	/// <summary>The release channel, such as <c>10.0</c>, that <c>releases-index.json</c> keys support details by.</summary>
 	public string Channel => string.Join('.', this.Band.Split('.').Take(2));
 
-	public IReadOnlyList<string> CodeStyleAssemblies => Directory.GetFiles(this.CodeStyleDirectory, "*.CodeStyle.dll");
+	public IReadOnlyList<string> CodeStyleAssemblies => Directory.GetFiles(this.CodeStyleDirectory, "*.CodeStyle*.dll");
 
 	public IReadOnlyList<string> NetAnalyzersAssemblies => Directory.GetFiles(this.NetAnalyzersDirectory, "*NetAnalyzers.dll")
 		.Where(path => !Path.GetFileName(path).Contains("VisualBasic", StringComparison.Ordinal))

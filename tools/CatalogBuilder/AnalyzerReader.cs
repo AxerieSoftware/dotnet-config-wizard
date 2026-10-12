@@ -6,49 +6,66 @@ using CatalogBuilder.Models;
 
 namespace CatalogBuilder;
 
-internal sealed record AnalyzerReadResult(IReadOnlyList<RuleEntry> Rules, IReadOnlyList<string> Failures);
+/// <summary>Rules read, failures that may have hidden rules, and notes about types that can't hold any.</summary>
+internal sealed record AnalyzerReadResult(IReadOnlyList<RuleEntry> Rules, IReadOnlyList<string> Failures, IReadOnlyList<string> Notes);
 
 /// <summary>
-/// Reads every C# diagnostic an analyzer assembly reports. Roslyn types are reached through reflection because each
-/// assembly is loaded against its own SDK's Roslyn, which this tool doesn't reference.
+/// Reads every C# diagnostic an analyzer assembly reports, which of them have a code fix, and any rule parameters. Roslyn
+/// types are reached through reflection because each assembly is loaded against an SDK's own Roslyn, which this tool
+/// doesn't reference.
 /// </summary>
 internal static partial class AnalyzerReader
 {
 	private const string DiagnosticAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer";
 	private const string DiagnosticAnalyzerAttributeName = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute";
+	private const string CodeFixProviderTypeName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+	private const string RuleParameterAttributeName = "RuleParameterAttribute";
 	private const string CSharpLanguageName = "C#";
 	private const string NotConfigurableTag = "NotConfigurable";
 
-	public static AnalyzerReadResult Read(string source, IReadOnlyList<string> assemblyPaths, IReadOnlyList<string> probeDirectories)
+	/// <summary>Reads the given assemblies. <c>includeDescriptions</c> is false for packages whose license doesn't allow republishing their rule text.</summary>
+	public static AnalyzerReadResult Read(string source, IReadOnlyList<string> assemblyPaths, IReadOnlyList<string> probeDirectories, bool includeDescriptions = true)
 	{
 		var loadContext = new AnalyzerLoadContext(probeDirectories);
-		var rulesById = new Dictionary<string, RuleEntry>(StringComparer.Ordinal);
 		var failures = new List<string>();
+		var notes = new List<string>();
+		var types = assemblyPaths
+			.Select(loadContext.LoadFromAssemblyPath)
+			.SelectMany(assembly => GetLoadableTypes(assembly, failures, notes))
+			.Where(type => !type.IsAbstract)
+			.ToList();
 
-		foreach (var assemblyPath in assemblyPaths)
+		var fixableIds = types
+			.Where(type => DerivesFrom(type, CodeFixProviderTypeName))
+			.SelectMany(type => GetFixableIds(type, failures))
+			.ToHashSet(StringComparer.Ordinal);
+
+		var rulesById = new Dictionary<string, RuleEntry>(StringComparer.Ordinal);
+		foreach (var analyzerType in types.Where(IsCSharpAnalyzer))
 		{
-			var assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
-			foreach (var analyzerType in GetLoadableTypes(assembly, failures).Where(IsCSharpAnalyzer))
-			{
-				if (!TryCreateAnalyzer(analyzerType, failures, out var analyzer))
-					continue;
+			if (!TryCreate(analyzerType, failures, out var analyzer))
+				continue;
 
-				foreach (var descriptor in (IEnumerable)GetProperty(analyzer, "SupportedDiagnostics"))
-				{
-					var rule = ToRuleEntry(source, descriptor);
-					if (IsConfigurable(rule))
-						rulesById.TryAdd(rule.Id, rule);
-				}
+			var parameters = GetRuleParameters(analyzerType);
+			foreach (var descriptor in (IEnumerable)GetProperty(analyzer, "SupportedDiagnostics"))
+			{
+				var rule = ToRuleEntry(source, descriptor, fixableIds, parameters, includeDescriptions);
+				if (IsConfigurable(rule))
+					rulesById.TryAdd(rule.Id, rule);
 			}
 		}
 
 		loadContext.Unload();
 
 		var rules = rulesById.Values.OrderBy(rule => rule.Id, StringComparer.Ordinal).ToList();
-		return new AnalyzerReadResult(rules, failures);
+		return new AnalyzerReadResult(rules, failures, notes);
 	}
 
-	private static IEnumerable<Type> GetLoadableTypes(Assembly assembly, List<string> failures)
+	/// <summary>
+	/// Packages often embed Roslyn helper types built against another Roslyn version. Those failing to load is a note;
+	/// a type that looks like an analyzer or code fix failing is a failure, since its rules would go missing.
+	/// </summary>
+	private static IEnumerable<Type> GetLoadableTypes(Assembly assembly, List<string> failures, List<string> notes)
 	{
 		try
 		{
@@ -56,14 +73,33 @@ internal static partial class AnalyzerReader
 		}
 		catch (ReflectionTypeLoadException exception)
 		{
-			failures.Add($"Some types in '{assembly.GetName().Name}' couldn't be loaded: {exception.LoaderExceptions.FirstOrDefault()?.Message}");
+			foreach (var loaderException in exception.LoaderExceptions.OfType<TypeLoadException>().DistinctBy(loaderException => loaderException.TypeName))
+			{
+				var message = $"Type '{loaderException.TypeName}' in '{assembly.GetName().Name}' couldn't be loaded: {loaderException.Message}";
+				if (AnalyzerTypeNamePattern().IsMatch(loaderException.TypeName))
+					failures.Add(message);
+				else
+					notes.Add(message);
+			}
+
+			if (!exception.LoaderExceptions.All(loaderException => loaderException is TypeLoadException))
+				failures.Add($"Some types in '{assembly.GetName().Name}' couldn't be loaded: {exception.LoaderExceptions.FirstOrDefault(loaderException => loaderException is not TypeLoadException)?.Message}");
+
 			return exception.Types.OfType<Type>();
 		}
 	}
 
+	private static IEnumerable<string> GetFixableIds(Type fixProviderType, List<string> failures)
+	{
+		if (!TryCreate(fixProviderType, failures, out var fixProvider))
+			return [];
+
+		return (IEnumerable<string>)GetProperty(fixProvider, "FixableDiagnosticIds");
+	}
+
 	private static bool IsCSharpAnalyzer(Type type)
 	{
-		if (type.IsAbstract || !DerivesFrom(type, DiagnosticAnalyzerTypeName))
+		if (!DerivesFrom(type, DiagnosticAnalyzerTypeName))
 			return false;
 
 		var attribute = type.CustomAttributes.FirstOrDefault(data => data.AttributeType.FullName == DiagnosticAnalyzerAttributeName);
@@ -77,8 +113,26 @@ internal static partial class AnalyzerReader
 		return firstLanguage == CSharpLanguageName || additionalLanguages.Contains(CSharpLanguageName);
 	}
 
-	/// <summary>Skips IDE-internal diagnostics such as <c>IDE0005_gen</c> that can't be set in .editorconfig.</summary>
-	private static bool IsConfigurable(RuleEntry rule) => RuleIdPattern().IsMatch(rule.Id) && !rule.Tags.Contains(NotConfigurableTag);
+	/// <summary>Reads Sonar-style <c>[RuleParameter(key, type, description, default)]</c> attributes on an analyzer's properties.</summary>
+	private static List<RuleParameter> GetRuleParameters(Type analyzerType)
+	{
+		return analyzerType
+			.GetProperties()
+			.SelectMany(property => property.CustomAttributes)
+			.Where(attribute => attribute.AttributeType.Name == RuleParameterAttributeName)
+			.Select(attribute => attribute.ConstructorArguments.Select(ToText).ToList())
+			.Select(arguments => new RuleParameter(arguments[0]!, arguments.Count > 2 ? arguments[2] ?? "" : "", arguments[1] ?? "", arguments.Count > 3 ? arguments[3] : null))
+			.ToList();
+	}
+
+	/// <summary>Turns an attribute argument into text, using an enum value's name rather than its number.</summary>
+	private static string? ToText(CustomAttributeTypedArgument argument)
+	{
+		if (argument.ArgumentType.IsEnum && argument.Value is not null)
+			return Enum.GetName(argument.ArgumentType, argument.Value);
+
+		return argument.Value?.ToString();
+	}
 
 	private static bool DerivesFrom(Type type, string baseTypeName)
 	{
@@ -91,28 +145,29 @@ internal static partial class AnalyzerReader
 		return false;
 	}
 
-	private static bool TryCreateAnalyzer(Type analyzerType, List<string> failures, [NotNullWhen(true)] out object? analyzer)
+	private static bool TryCreate(Type type, List<string> failures, [NotNullWhen(true)] out object? instance)
 	{
 		try
 		{
-			analyzer = Activator.CreateInstance(analyzerType);
-			return analyzer is not null;
+			instance = Activator.CreateInstance(type);
+			return instance is not null;
 		}
 		catch (Exception exception)
 		{
-			failures.Add($"Analyzer '{analyzerType.FullName}' couldn't be created: {exception.GetBaseException().Message}");
-			analyzer = null;
+			failures.Add($"'{type.FullName}' couldn't be created: {exception.GetBaseException().Message}");
+			instance = null;
 			return false;
 		}
 	}
 
-	private static RuleEntry ToRuleEntry(string source, object descriptor)
+	private static RuleEntry ToRuleEntry(string source, object descriptor, HashSet<string> fixableIds, List<RuleParameter> parameters, bool includeDescriptions)
 	{
+		var id = (string)GetProperty(descriptor, "Id");
 		var helpLink = (string?)GetProperty(descriptor, "HelpLinkUri");
-		var description = GetProperty(descriptor, "Description").ToString();
+		var description = includeDescriptions ? GetProperty(descriptor, "Description").ToString() : null;
 
 		return new RuleEntry(
-			(string)GetProperty(descriptor, "Id"),
+			id,
 			source,
 			GetProperty(descriptor, "Title").ToString()!,
 			(string)GetProperty(descriptor, "Category"),
@@ -120,8 +175,14 @@ internal static partial class AnalyzerReader
 			(bool)GetProperty(descriptor, "IsEnabledByDefault"),
 			string.IsNullOrEmpty(helpLink) ? null : helpLink,
 			string.IsNullOrEmpty(description) ? null : description,
-			((IEnumerable<string>)GetProperty(descriptor, "CustomTags")).ToList());
+			((IEnumerable<string>)GetProperty(descriptor, "CustomTags")).ToList(),
+			fixableIds.Contains(id),
+			null,
+			parameters);
 	}
+
+	/// <summary>Skips IDE-internal diagnostics such as <c>IDE0005_gen</c> that can't be set in .editorconfig.</summary>
+	private static bool IsConfigurable(RuleEntry rule) => RuleIdPattern().IsMatch(rule.Id) && !rule.Tags.Contains(NotConfigurableTag);
 
 	private static object GetProperty(object instance, string propertyName)
 	{
@@ -133,7 +194,10 @@ internal static partial class AnalyzerReader
 	[GeneratedRegex("^[A-Z]+[0-9]+$")]
 	private static partial Regex RuleIdPattern();
 
-	private static string ToEditorConfigSeverity(string diagnosticSeverity) => diagnosticSeverity switch
+	[GeneratedRegex("(Analyzer|CodeFixProvider|FixProvider)$")]
+	private static partial Regex AnalyzerTypeNamePattern();
+
+	internal static string ToEditorConfigSeverity(string diagnosticSeverity) => diagnosticSeverity switch
 	{
 		"Hidden" => "silent",
 		"Info" => "suggestion",

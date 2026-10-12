@@ -1,0 +1,55 @@
+{
+	"id": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+	"version": "5.6.0",
+	"rules": [
+		{
+			"id": "RS0030",
+			"source": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+			"title": "Do not use banned APIs",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+			"description": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0031",
+			"source": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+			"title": "The list of banned symbols contains a duplicate",
+			"category": "ApiDesign",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+			"description": "The list of banned symbols contains a duplicate.",
+			"tags": [
+				"CompilationEnd",
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "RS0035",
+			"source": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+			"title": "External access to internal symbols outside the restricted namespace(s) is prohibited",
+			"category": "ApiDesign",
+			"defaultSeverity": "error",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": "RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.",
+			"tags": [
+				"Telemetry"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		}
+	]
+}
