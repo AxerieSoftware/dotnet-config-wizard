@@ -18,6 +18,8 @@ export type ScopeConfig = {
 	options?: Record<string, string>;
 	/** Rule ID to severity, written as `dotnet_diagnostic.<ID>.severity`. */
 	severities?: Record<string, Severity>;
+	/** Rule category, such as `Security`, to the severity of every analyzer rule in it that doesn't set its own. */
+	categorySeverities?: Record<string, Severity>;
 	/** MSBuild property name to value. */
 	build?: Record<string, string>;
 	/** MSBuild properties that only apply to CI builds, such as TreatWarningsAsErrors. */
@@ -83,6 +85,8 @@ function findScopeProblem(scope: unknown): string | undefined {
 	if (scope.ciBuild !== undefined && !isStringRecord(scope.ciBuild)) return 'ciBuild must map property names to strings.';
 	if (scope.severities !== undefined && !(isRecord(scope.severities) && Object.values(scope.severities).every(severity => SEVERITIES.includes(severity as Severity))))
 		return `severities must map rule IDs to one of ${SEVERITIES.join(', ')}.`;
+	if (scope.categorySeverities !== undefined && !(isRecord(scope.categorySeverities) && Object.values(scope.categorySeverities).every(severity => SEVERITIES.includes(severity as Severity))))
+		return `categorySeverities must map categories to one of ${SEVERITIES.join(', ')}.`;
 	if (scope.naming !== undefined && !(Array.isArray(scope.naming) && scope.naming.every(isNamingRule))) return 'naming must be an array of naming rules.';
 	if (scope.packages !== undefined && !isStringArray(scope.packages)) return 'packages must be an array of package IDs.';
 	if (scope.ruleParameters !== undefined && !(isRecord(scope.ruleParameters) && Object.values(scope.ruleParameters).every(isStringRecord)))

@@ -3,10 +3,10 @@ import { type AnalysisMode, toAnalysisLevelValue } from '../analyzers/analysisLe
 import type { BannedApi } from '../analyzers/bannedApis.ts';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import type { BandEntry } from '../catalog/catalogFiles.ts';
 import { loadCatalog } from '../catalog/loadCatalog.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
+import { type PresetId, toPresetConfig } from './presets.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
 import { toGateContext } from './versionGates.ts';
 import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
@@ -20,6 +20,8 @@ export class WizardState {
 	public config: WizardConfig;
 	public commentStyle = $state<CommentStyle>('idAndTitle');
 	public activeScopePath = $state('');
+	/** The preset the config started from, which share links store their changes against. */
+	public presetId = $state<PresetId>('microsoft-defaults');
 	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
@@ -31,7 +33,7 @@ export class WizardState {
 
 	public constructor(catalog: Catalog) {
 		this.catalog = $state.raw(catalog);
-		this.config = $state(createStarterConfig(catalog.band));
+		this.config = $state(toPresetConfig(this.presetId, catalog));
 	}
 
 	public get rootScope(): ScopeConfig {
@@ -49,6 +51,13 @@ export class WizardState {
 	public async selectBand(bandName: string): Promise<void> {
 		this.catalog = await loadCatalog(bandName);
 		this.config.versions.sdkBand = bandName;
+	}
+
+	/** Replaces the whole config with a preset for the selected SDK band. */
+	public applyPreset(presetId: PresetId): void {
+		this.presetId = presetId;
+		this.config = toPresetConfig(presetId, this.catalog);
+		this.activeScopePath = '';
 	}
 
 	public addScope(scope: ScopeConfig): void {
@@ -178,22 +187,6 @@ export class WizardState {
 }
 
 export const [getWizardState, setWizardState] = createContext<WizardState>();
-
-function createStarterConfig(band: BandEntry): WizardConfig {
-	return {
-		versions: { sdkBand: band.band },
-		scopes: [
-			{
-				path: '',
-				tfms: [`net${band.channel}`],
-				formatting: {
-					'[*]': { charset: 'utf-8', end_of_line: 'lf', indent_style: 'space', indent_size: '4', insert_final_newline: 'true', trim_trailing_whitespace: 'true' },
-					'[*.{yml,yaml}]': { indent_size: '2' }
-				}
-			}
-		]
-	};
-}
 
 function setOrDelete<TRecord extends object, TKey extends keyof TRecord>(record: TRecord, key: TKey, value: TRecord[TKey] | undefined): void {
 	if (value === undefined) delete record[key];

@@ -182,3 +182,15 @@ test('a custom folder outside the repo is rejected', async ({ page }) => {
 
 	await expect(page.getByRole('alert')).toHaveText('The folder must be inside the repo.');
 });
+
+test('applying the Recommended preset fills in every file it needs', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('button', { name: /^Recommended/ }).click();
+
+	await expect(page.getByRole('button', { name: /^Recommended/ })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_analyzer_diagnostic.category-Security.severity = error');
+	await expect(page.getByTestId('file-Directory.Packages.props')).toContainText('<GlobalPackageReference Include="Meziantou.Analyzer"');
+	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('dotnet_diagnostic.CA1707.severity = none');
+	await expect(page.getByTestId('file-nuget.config')).toContainText('<clear />');
+});

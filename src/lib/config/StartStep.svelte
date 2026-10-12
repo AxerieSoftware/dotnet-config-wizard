@@ -2,6 +2,7 @@
 	import { BANDS } from '../catalog/loadCatalog.ts';
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
+	import { PRESET_IDS, PRESETS } from './presets.ts';
 	import { SCOPE_PRESETS, toScopePath } from './scopePresets.ts';
 	import { getTargetFrameworksForChannel, isSupportedTargetFramework } from './targetFrameworks.ts';
 	import { PROJECT_KINDS, type ProjectKind } from './wizardConfig.ts';
@@ -61,6 +62,19 @@
 
 <h1>Start</h1>
 <p class="lead">The SDK and target frameworks decide which rules and options exist and which apply to your code. Folders can each have their own settings, such as relaxed rules for tests.</p>
+
+<section class="card">
+	<h2>Start from a preset</h2>
+	<p class="note">A preset replaces every setting. Pick the SDK first, since presets only use rules it has.</p>
+	<div class="preset-grid">
+		{#each PRESET_IDS as presetId (presetId)}
+			<button type="button" class="preset" class:selected={wizard.presetId === presetId} aria-pressed={wizard.presetId === presetId} onclick={() => wizard.applyPreset(presetId)}>
+				<strong>{PRESETS[presetId].title}</strong>
+				<span>{PRESETS[presetId].description}</span>
+			</button>
+		{/each}
+	</div>
+</section>
 
 <section class="card">
 	<h2>.NET SDK</h2>

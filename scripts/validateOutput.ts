@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { PRESET_IDS, toPresetConfig } from '../src/lib/config/presets.ts';
 import { parseWizardConfig, type WizardConfig } from '../src/lib/config/wizardConfig.ts';
 import { checkEditorConfigKeys } from '../src/lib/export/checkEditorConfigKeys.ts';
 import { toExhaustiveConfig } from '../src/lib/export/exhaustiveConfig.ts';
@@ -35,8 +36,10 @@ let failureCount = 0;
 for (const band of bands) {
 	const catalog = readCatalog(band.band);
 	const cases: ValidationCase[] = [{ name: `exhaustive ${band.band}`, config: withGlobalJson(toBannedApisLabeledBySymbol(toExhaustiveConfig(catalog))), checksBannedApis: true }];
-	if (!band.isPreview)
+	if (!band.isPreview) {
+		cases.push(...PRESET_IDS.map(presetId => ({ name: `preset ${presetId} ${band.band}`, config: withGlobalJson(toPresetConfig(presetId, catalog)), checksBannedApis: false })));
 		cases.push({ name: `exhaustive with Analyzers.globalconfig ${band.band}`, config: withGlobalJson({ ...toExhaustiveConfig(catalog), severityFile: 'globalconfig' }), checksBannedApis: false });
+	}
 	if (dogfoodResult.config.versions.sdkBand === band.band) cases.push({ name: `dogfood ${band.band}`, config: withGlobalJson(dogfoodResult.config), checksBannedApis: false });
 
 	for (const validationCase of cases) {
@@ -126,5 +129,6 @@ function toBannedApisLabeledBySymbol(config: WizardConfig): WizardConfig {
 }
 
 function runDotnet(workingDirectory: string, args: string[]) {
-	return spawnSync(DOTNET, args, { cwd: workingDirectory, encoding: 'utf8', env: { ...process.env, DOTNET_ROOT: DOTNET_DIRECTORY, DOTNET_MULTILEVEL_LOOKUP: '0' } });
+	// CI and TF_BUILD are cleared so CI-only settings, such as locked restore of lock files a fresh sample doesn't have, stay off.
+	return spawnSync(DOTNET, args, { cwd: workingDirectory, encoding: 'utf8', env: { ...process.env, DOTNET_ROOT: DOTNET_DIRECTORY, DOTNET_MULTILEVEL_LOOKUP: '0', CI: '', TF_BUILD: '' } });
 }

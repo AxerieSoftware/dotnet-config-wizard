@@ -12,6 +12,16 @@ const SOURCE_ORDER = ['Microsoft.CodeAnalysis.CSharp', 'Microsoft.CodeAnalysis.C
 
 export type SeverityBlocks = { blocks: EditorConfigBlock[]; skippedKeys: SkippedKey[] };
 
+/** Writes category severities, which set every analyzer rule in a category that doesn't set its own severity. */
+export function toCategorySeverityBlock(categorySeverities: Record<string, Severity>): EditorConfigBlock {
+	return {
+		heading: 'Categories',
+		entries: Object.entries(categorySeverities)
+			.sort(([left], [right]) => left.localeCompare(right))
+			.map(([category, severity]) => ({ key: `dotnet_analyzer_diagnostic.category-${category}.severity`, value: severity }))
+	};
+}
+
 /** Groups severities by analyzer package, then category, each with an ID and title comment. */
 export function toSeverityBlocks(severities: Record<string, Severity>, catalog: Catalog, context: GateContext, commentStyle: CommentStyle): SeverityBlocks {
 	const skippedKeys: SkippedKey[] = [];

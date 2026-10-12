@@ -10,6 +10,7 @@ export type ResolvedScope = {
 	formatting: Record<string, Record<string, string>>;
 	options: Record<string, string>;
 	severities: Record<string, Severity>;
+	categorySeverities: Record<string, Severity>;
 	build: Record<string, string>;
 	ciBuild: Record<string, string>;
 	naming: NamingRule[];
@@ -38,6 +39,7 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		formatting: mergeNested(inherited?.formatting ?? {}, scope.formatting ?? {}),
 		options: { ...inherited?.options, ...scope.options },
 		severities: { ...inherited?.severities, ...scope.severities },
+		categorySeverities: { ...inherited?.categorySeverities, ...scope.categorySeverities },
 		build: { ...inherited?.build, ...scope.build },
 		ciBuild: { ...inherited?.ciBuild, ...scope.ciBuild },
 		naming: mergeNaming(inherited?.naming ?? [], scope.naming ?? []),

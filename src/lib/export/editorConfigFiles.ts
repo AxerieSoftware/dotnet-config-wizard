@@ -1,4 +1,4 @@
-import { type CommentStyle, toSeverityBlocks } from '../analyzers/severityBlocks.ts';
+import { type CommentStyle, toCategorySeverityBlock, toSeverityBlocks } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { toCodeStyleBlocks } from '../codeStyle/codeStyleBlocks.ts';
 import { resolveScope } from '../config/scopes.ts';
@@ -43,9 +43,10 @@ function toEditorConfigFile(
 	const context = toGateContext(resolveScope(config, scope), catalog);
 	const codeStyle = toCodeStyleBlocks(scope.options ?? {}, catalog, context);
 	const severities = toSeverityBlocks(scope.severities ?? {}, catalog, context, outputOptions.commentStyle);
+	const severityBlocks = [toCategorySeverityBlock(scope.categorySeverities ?? {}), ...severities.blocks];
 	const isGlobalConfig = isRoot && config.severityFile === 'globalconfig';
-	const editorConfigSeverityBlocks = isGlobalConfig ? [] : severities.blocks;
-	const globalConfigBlocks = isGlobalConfig ? severities.blocks : [];
+	const editorConfigSeverityBlocks = isGlobalConfig ? [] : severityBlocks;
+	const globalConfigBlocks = isGlobalConfig ? severityBlocks.filter(block => block.entries.length > 0) : [];
 
 	const sections = [
 		...toFormattingSections(scope),

@@ -14,6 +14,7 @@ function toScope(overrides: Partial<ResolvedScope>): ResolvedScope {
 		formatting: {},
 		options: {},
 		severities: {},
+		categorySeverities: {},
 		build: {},
 		ciBuild: {},
 		naming: [],
@@ -48,6 +49,14 @@ describe('getEffectiveSeverity', () => {
 	it('turns warning-wave compiler warnings on only up to the analysis level', () => {
 		expect(severityOf('CS8981', toScope({}))).toBe('warning');
 		expect(severityOf('CS8981', toScope({ build: { AnalysisLevel: '6.0' } }))).toBe('none');
+	});
+
+	it('applies a category severity to analyzer rules but not to compiler warnings', () => {
+		const scope = toScope({ categorySeverities: { Performance: 'error', Compiler: 'none' } });
+
+		expect(severityOf('CA1822', scope)).toBe('error');
+		expect(severityOf('CS8981', scope)).toBe('warning');
+		expect(severityOf('CA1822', toScope({ categorySeverities: { Performance: 'error' }, severities: { CA1822: 'none' } }))).toBe('none');
 	});
 
 	it('reports nothing for a package rule when the scope does not reference the package', () => {
