@@ -1,0 +1,9 @@
+<Project Sdk="MSTest.Sdk">
+	<ItemGroup>
+		<ProjectReference Include="../CatalogBuilder/CatalogBuilder.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+</Project>

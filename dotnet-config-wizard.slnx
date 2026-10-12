@@ -1,0 +1,6 @@
+<Solution>
+	<Folder Name="/tools/">
+		<Project Path="tools/CatalogBuilder/CatalogBuilder.csproj" />
+		<Project Path="tools/CatalogBuilder.Tests/CatalogBuilder.Tests.csproj" />
+	</Folder>
+</Solution>

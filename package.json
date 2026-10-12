@@ -1,0 +1,40 @@
+{
+	"name": "dotnet-config-wizard",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "npm run typecheck && npm run lint && npm run knip && npm test",
+		"typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"lint": "biome check .",
+		"format": "biome check --write .",
+		"knip": "knip",
+		"test": "vitest run",
+		"e2e": "playwright test",
+		"catalog": "./scripts/build-catalog.sh"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.15",
+		"@playwright/test": "^1.60.0",
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"knip": "6.41.0",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.6.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.0",
+		"vitest": "^4.1.8"
+	},
+	"imports": {
+		"#lib/*": "./src/lib/*"
+	},
+	"description": "Wizard for .editorconfig, Directory.Build.props and analyzer configuration in .NET repos.",
+	"engines": {
+		"node": ">=26"
+	}
+}

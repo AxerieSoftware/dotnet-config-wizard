@@ -1,0 +1,4922 @@
+{
+	"options": [
+		{
+			"name": "csharp_indent_block_contents",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Indent block contents."
+				},
+				{
+					"value": "false",
+					"description": "Don't indent block contents."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_block_contents = true\nstatic void Hello()\n{\n    Console.WriteLine(\"Hello\");\n}\n\n// csharp_indent_block_contents = false\nstatic void Hello()\n{\nConsole.WriteLine(\"Hello\");\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_indent_braces",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Indent curly braces."
+				},
+				{
+					"value": "false",
+					"description": "Don't indent curly braces."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_braces = true\nstatic void Hello()\n    {\n    Console.WriteLine(\"Hello\");\n    }\n\n// csharp_indent_braces = false\nstatic void Hello()\n{\n    Console.WriteLine(\"Hello\");\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_indent_case_contents",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Indent `switch` case contents"
+				},
+				{
+					"value": "false",
+					"description": "Do not indent `switch` case contents"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_case_contents = true\nswitch(c) {\n    case Color.Red:\n        Console.WriteLine(\"The color is red\");\n        break;\n    case Color.Blue:\n        Console.WriteLine(\"The color is blue\");\n        break;\n    default:\n        Console.WriteLine(\"The color is unknown.\");\n        break;\n}\n\n// csharp_indent_case_contents = false\nswitch(c) {\n    case Color.Red:\n    Console.WriteLine(\"The color is red\");\n    break;\n    case Color.Blue:\n    Console.WriteLine(\"The color is blue\");\n    break;\n    default:\n    Console.WriteLine(\"The color is unknown.\");\n    break;\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_indent_case_contents_when_block",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "When it's a block, indent the statement list and curly braces for a case in a switch statement."
+				},
+				{
+					"value": "false",
+					"description": "When it's a block, don't indent the statement list and curly braces for a case in a switch statement."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_case_contents_when_block = true\ncase 0:\n    {\n        Console.WriteLine(\"Hello\");\n        break;\n    }\n\n// csharp_indent_case_contents_when_block = false\ncase 0:\n{\n    Console.WriteLine(\"Hello\");\n    break;\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_indent_labels",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "flush_left",
+					"description": "Labels are placed at the leftmost column"
+				},
+				{
+					"value": "one_less_than_current",
+					"description": "Labels are placed at one less indent to the current context"
+				},
+				{
+					"value": "no_change",
+					"description": "Labels are placed at the same indent as the current context"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "one_less_than_current",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_labels= flush_left\nclass C\n{\n    private string MyMethod(...)\n    {\n        if (...) {\n            goto error;\n        }\nerror:\n        throw new Exception(...);\n    }\n}\n\n// csharp_indent_labels = one_less_than_current\nclass C\n{\n    private string MyMethod(...)\n    {\n        if (...) {\n            goto error;\n        }\n    error:\n        throw new Exception(...);\n    }\n}\n\n// csharp_indent_labels= no_change\nclass C\n{\n    private string MyMethod(...)\n    {\n        if (...) {\n            goto error;\n        }\n        error:\n        throw new Exception(...);\n    }\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_indent_switch_labels",
+			"group": "Indentation options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Indent `switch` labels"
+				},
+				{
+					"value": "false",
+					"description": "Do not indent `switch` labels"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_indent_switch_labels = true\nswitch(c) {\n    case Color.Red:\n        Console.WriteLine(\"The color is red\");\n        break;\n    case Color.Blue:\n        Console.WriteLine(\"The color is blue\");\n        break;\n    default:\n        Console.WriteLine(\"The color is unknown.\");\n        break;\n}\n\n// csharp_indent_switch_labels = false\nswitch(c) {\ncase Color.Red:\n    Console.WriteLine(\"The color is red\");\n    break;\ncase Color.Blue:\n    Console.WriteLine(\"The color is blue\");\n    break;\ndefault:\n    Console.WriteLine(\"The color is unknown.\");\n    break;\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_catch",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place `catch` statements on a new line."
+				},
+				{
+					"value": "false",
+					"description": "Place `catch` statements on the same line."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_catch = true\ntry {\n    ...\n}\ncatch (Exception e) {\n    ...\n}\n\n// csharp_new_line_before_catch = false\ntry {\n    ...\n} catch (Exception e) {\n    ...\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_else",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place `else` statements on a new line."
+				},
+				{
+					"value": "false",
+					"description": "Place `else` statements on the same line."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_else = true\nif (...) {\n    ...\n}\nelse {\n    ...\n}\n\n// csharp_new_line_before_else = false\nif (...) {\n    ...\n} else {\n    ...\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_finally",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Require `finally` statements to be on a new line after the closing brace."
+				},
+				{
+					"value": "false",
+					"description": "Require `finally` statements to be on the same line as the closing brace."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_finally = true\ntry {\n    ...\n}\ncatch (Exception e) {\n    ...\n}\nfinally {\n    ...\n}\n\n// csharp_new_line_before_finally = false\ntry {\n    ...\n} catch (Exception e) {\n    ...\n} finally {\n    ...\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_members_in_anonymous_types",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Require members of anonymous types to be on separate lines"
+				},
+				{
+					"value": "false",
+					"description": "Require members of anonymous types to be on the same line"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_members_in_anonymous_types = true\nvar z = new\n{\n    A = 3,\n    B = 4\n}\n\n// csharp_new_line_before_members_in_anonymous_types = false\nvar z = new\n{\n    A = 3, B = 4\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_members_in_object_initializers",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Require members of object initializers to be on separate lines"
+				},
+				{
+					"value": "false",
+					"description": "Require members of object initializers to be on the same line"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_members_in_object_initializers = true\nvar z = new B()\n{\n    A = 3,\n    B = 4\n}\n\n// csharp_new_line_before_members_in_object_initializers = false\nvar z = new B()\n{\n    A = 3, B = 4\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_before_open_brace",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "all",
+					"description": "Require braces to be on a new line for all expressions (\"Allman\" style)."
+				},
+				{
+					"value": "none",
+					"description": "Require braces to be on the same line for all expressions (\"K&R\")."
+				},
+				{
+					"value": "accessors",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "anonymous_methods",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "anonymous_types",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "control_blocks",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "events",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "indexers",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "lambdas",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "local_functions",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "methods",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "object_collection_array_initializers",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "properties",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				},
+				{
+					"value": "types",
+					"description": "Require braces to be on a new line for the specified code element (\"Allman\" style)."
+				}
+			],
+			"allowsMultipleValues": true,
+			"defaultValue": "all",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_before_open_brace = all\nvoid MyMethod()\n{\n    if (...)\n    {\n        ...\n    }\n}\n\n// csharp_new_line_before_open_brace = none\nvoid MyMethod() {\n    if (...) {\n        ...\n    }\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_new_line_between_query_expression_clauses",
+			"group": "New-line options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Require elements of query expression clauses to be on separate lines"
+				},
+				{
+					"value": "false",
+					"description": "Require elements of query expression clauses to be on the same line"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_new_line_between_query_expression_clauses = true\nvar q = from a in e\n        from b in e\n        select a * b;\n\n// csharp_new_line_between_query_expression_clauses = false\nvar q = from a in e from b in e\n        select a * b;",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_prefer_braces",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer curly braces even for one line of code"
+				},
+				{
+					"value": "false",
+					"description": "Prefer no curly braces if allowed"
+				},
+				{
+					"value": "when_multiline",
+					"description": "Prefer curly braces on multiple lines"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0011"
+			],
+			"example": "// csharp_prefer_braces = true\nif (test) { this.Display(); }\n\n// csharp_prefer_braces = false\nif (test) this.Display();\n\n// csharp_prefer_braces = when_multiline\nif (test) this.Display();\nelse { this.Display(); Console.WriteLine(\"Multiline\"); }",
+			"docFile": "ide0011.md"
+		},
+		{
+			"name": "csharp_prefer_simple_default_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `default` over `default(T)`"
+				},
+				{
+					"value": "false",
+					"description": "Prefer `default(T)` over `default`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0034"
+			],
+			"example": "// csharp_prefer_simple_default_expression = true\nvoid DoWork(CancellationToken cancellationToken = default) { ... }\n\n// csharp_prefer_simple_default_expression = false\nvoid DoWork(CancellationToken cancellationToken = default(CancellationToken)) { ... }",
+			"docFile": "ide0034.md"
+		},
+		{
+			"name": "csharp_prefer_simple_using_statement",
+			"group": "Language rules (code block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use a `using` declaration"
+				},
+				{
+					"value": "false",
+					"description": "Prefer to use a `using` statement with curly braces"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0063"
+			],
+			"example": "// csharp_prefer_simple_using_statement = true\nusing var a = b;\n\n// csharp_prefer_simple_using_statement = false\nusing (var a = b) { }",
+			"docFile": "ide0063.md"
+		},
+		{
+			"name": "csharp_prefer_static_anonymous_function",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer anonymous functions to be marked `static`"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0320"
+			],
+			"example": null,
+			"docFile": "ide0320.md"
+		},
+		{
+			"name": "csharp_prefer_static_local_function",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer local functions to be marked `static`"
+				},
+				{
+					"value": "false",
+					"description": "Prefer local functions *not* to be marked `static`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0062"
+			],
+			"example": "// csharp_prefer_static_local_function = true\nvoid M()\n{\n    Hello();\n    static void Hello()\n    {\n        Console.WriteLine(\"Hello\");\n    }\n}\n\n// csharp_prefer_static_local_function = false\nvoid M()\n{\n    Hello();\n    void Hello()\n    {\n        Console.WriteLine(\"Hello\");\n    }\n}",
+			"docFile": "ide0062.md"
+		},
+		{
+			"name": "csharp_prefer_system_threading_lock",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `System.Threading.Lock` locks"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0330"
+			],
+			"example": null,
+			"docFile": "ide0330.md"
+		},
+		{
+			"name": "csharp_preferred_modifier_order",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "public",
+					"description": ""
+				},
+				{
+					"value": "private",
+					"description": ""
+				},
+				{
+					"value": "protected",
+					"description": ""
+				}
+			],
+			"allowsMultipleValues": true,
+			"defaultValue": "public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async",
+			"ruleIds": [
+				"IDE0036"
+			],
+			"example": "// csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async\nclass MyClass\n{\n    private static readonly int _daysInYear = 365;\n}",
+			"docFile": "ide0036.md"
+		},
+		{
+			"name": "csharp_preserve_single_line_blocks",
+			"group": "Wrap options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Leave code block on single line"
+				},
+				{
+					"value": "false",
+					"description": "Leave code block on separate lines"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "//csharp_preserve_single_line_blocks = true\npublic int Foo { get; set; }\n\n//csharp_preserve_single_line_blocks = false\npublic int MyProperty\n{\n    get; set;\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_preserve_single_line_statements",
+			"group": "Wrap options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Leave statements and member declarations on the same line"
+				},
+				{
+					"value": "false",
+					"description": "Leave statements and member declarations on different lines"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "//csharp_preserve_single_line_statements = true\nint i = 0; string name = \"John\";\n\n//csharp_preserve_single_line_statements = false\nint i = 0;\nstring name = \"John\";",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_cast",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character between a cast and the value"
+				},
+				{
+					"value": "false",
+					"description": "Remove space between the cast and the value"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_cast = true\nint y = (int) x;\n\n// csharp_space_after_cast = false\nint y = (int)x;",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_colon_in_inheritance_clause",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character after the colon for bases or interfaces in a type declaration"
+				},
+				{
+					"value": "false",
+					"description": "Remove space after the colon for bases or interfaces in a type declaration"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_colon_in_inheritance_clause = true\ninterface I\n{\n\n}\n\nclass C : I\n{\n\n}\n\n// csharp_space_after_colon_in_inheritance_clause = false\ninterface I\n{\n\n}\n\nclass C :I\n{\n\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_comma",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space after a comma"
+				},
+				{
+					"value": "false",
+					"description": "Remove space after a comma"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_comma = true\nint[] x = new int[] { 1, 2, 3, 4, 5 };\n\n// csharp_space_after_comma = false\nint[] x = new int[] { 1,2,3,4,5 };",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_dot",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space after a dot"
+				},
+				{
+					"value": "false",
+					"description": "Remove space after a dot"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_dot = true\nthis. Goo();\n\n// csharp_space_after_dot = false\nthis.Goo();",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_keywords_in_control_flow_statements",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character after a keyword in a control flow statement such as a `for` loop"
+				},
+				{
+					"value": "false",
+					"description": "Remove space after a keyword in a control flow statement such as a `for` loop"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_keywords_in_control_flow_statements = true\nfor (int i;i<x;i++) { ... }\n\n// csharp_space_after_keywords_in_control_flow_statements = false\nfor(int i;i<x;i++) { ... }",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_after_semicolon_in_for_statement",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space after each semicolon in a `for` statement"
+				},
+				{
+					"value": "false",
+					"description": "Remove space after each semicolon in a `for` statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_after_semicolon_in_for_statement = true\nfor (int i = 0; i < x.Length; i++)\n\n// csharp_space_after_semicolon_in_for_statement = false\nfor (int i = 0;i < x.Length;i++)",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_around_binary_operators",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "before_and_after",
+					"description": "Insert space before and after the binary operator"
+				},
+				{
+					"value": "none",
+					"description": "Remove spaces before and after the binary operator"
+				},
+				{
+					"value": "ignore",
+					"description": "Ignore spaces around binary operators"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "before_and_after",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_around_binary_operators = before_and_after\nreturn x * (x - y);\n\n// csharp_space_around_binary_operators = none\nreturn x*(x-y);\n\n// csharp_space_around_binary_operators = ignore\nreturn x  *  (x-y);",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_around_declaration_statements",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "ignore",
+					"description": "Don't remove extra space characters in declaration statements"
+				},
+				{
+					"value": "false",
+					"description": "Remove extra space characters in declaration statements"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_around_declaration_statements = ignore\nint    x    =    0   ;\n\n// csharp_space_around_declaration_statements = false\nint x = 0;",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_before_colon_in_inheritance_clause",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character before the colon for bases or interfaces in a type declaration"
+				},
+				{
+					"value": "false",
+					"description": "Remove space before the colon for bases or interfaces in a type declaration"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_before_colon_in_inheritance_clause = true\ninterface I\n{\n\n}\n\nclass C : I\n{\n\n}\n\n// csharp_space_before_colon_in_inheritance_clause = false\ninterface I\n{\n\n}\n\nclass C: I\n{\n\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_before_comma",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space before a comma"
+				},
+				{
+					"value": "false",
+					"description": "Remove space before a comma"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_before_comma = true\nint[] x = new int[] { 1 , 2 , 3 , 4 , 5 };\n\n// csharp_space_before_comma = false\nint[] x = new int[] { 1, 2, 3, 4, 5 };",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_before_dot",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space before a dot"
+				},
+				{
+					"value": "false",
+					"description": "Remove space before a dot"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_before_dot = true\nthis .Goo();\n\n// csharp_space_before_dot = false\nthis.Goo();",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_before_open_square_brackets",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space before opening square brackets `[`"
+				},
+				{
+					"value": "false",
+					"description": "Remove space before opening square brackets `[`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_before_open_square_brackets = true\nint [] numbers = new int [] { 1, 2, 3, 4, 5 };\n\n// csharp_space_before_open_square_brackets = false\nint[] numbers = new int[] { 1, 2, 3, 4, 5 };",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_before_semicolon_in_for_statement",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space before each semicolon in a `for` statement"
+				},
+				{
+					"value": "false",
+					"description": "Remove space before each semicolon in a `for` statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_before_semicolon_in_for_statement = true\nfor (int i = 0 ; i < x.Length ; i++)\n\n// csharp_space_before_semicolon_in_for_statement = false\nfor (int i = 0; i < x.Length; i++)",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_empty_square_brackets",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space between empty square brackets `[ ]`"
+				},
+				{
+					"value": "false",
+					"description": "Remove space between empty square brackets `[]`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_empty_square_brackets = true\nint[ ] numbers = new int[ ] { 1, 2, 3, 4, 5 };\n\n// csharp_space_between_empty_square_brackets = false\nint[] numbers = new int[] { 1, 2, 3, 4, 5 };",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_call_empty_parameter_list_parentheses",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space within empty argument list parentheses"
+				},
+				{
+					"value": "false",
+					"description": "Remove space within empty argument list parentheses"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_call_empty_parameter_list_parentheses = true\nvoid Goo()\n{\n    Goo(1);\n}\n\nvoid Goo(int x)\n{\n    Goo( );\n}\n\n// csharp_space_between_method_call_empty_parameter_list_parentheses = false\nvoid Goo()\n{\n    Goo(1);\n}\n\nvoid Goo(int x)\n{\n    Goo();\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_call_name_and_opening_parenthesis",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space between method call name and opening parenthesis"
+				},
+				{
+					"value": "false",
+					"description": "Remove space between method call name and opening parenthesis"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_call_name_and_opening_parenthesis = true\nvoid Goo()\n{\n    Goo (1);\n}\n\nvoid Goo(int x)\n{\n    Goo ();\n}\n\n// csharp_space_between_method_call_name_and_opening_parenthesis = false\nvoid Goo()\n{\n    Goo(1);\n}\n\nvoid Goo(int x)\n{\n    Goo();\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_call_parameter_list_parentheses",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character after the opening parenthesis and before the closing parenthesis of a method call"
+				},
+				{
+					"value": "false",
+					"description": "Remove space characters after the opening parenthesis and before the closing parenthesis of a method call"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_call_parameter_list_parentheses = true\nMyMethod( argument );\n\n// csharp_space_between_method_call_parameter_list_parentheses = false\nMyMethod(argument);",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_declaration_empty_parameter_list_parentheses",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space within empty parameter list parentheses for a method declaration"
+				},
+				{
+					"value": "false",
+					"description": "Remove space within empty parameter list parentheses for a method declaration"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_declaration_empty_parameter_list_parentheses = true\nvoid Goo( )\n{\n    Goo(1);\n}\n\nvoid Goo(int x)\n{\n    Goo();\n}\n\n// csharp_space_between_method_declaration_empty_parameter_list_parentheses = false\nvoid Goo()\n{\n    Goo(1);\n}\n\nvoid Goo(int x)\n{\n    Goo();\n}",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_declaration_name_and_open_parenthesis",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character between the method name and opening parenthesis in the method declaration"
+				},
+				{
+					"value": "false",
+					"description": "Remove space characters between the method name and opening parenthesis in the method declaration"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_declaration_name_and_open_parenthesis = true\nvoid M () { }\n\n// csharp_space_between_method_declaration_name_and_open_parenthesis = false\nvoid M() { }",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_method_declaration_parameter_list_parentheses",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a space character after the opening parenthesis and before the closing parenthesis of a method declaration parameter list"
+				},
+				{
+					"value": "false",
+					"description": "Remove space characters after the opening parenthesis and before the closing parenthesis of a method declaration parameter list"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_method_declaration_parameter_list_parentheses = true\nvoid Bark( int x ) { ... }\n\n// csharp_space_between_method_declaration_parameter_list_parentheses = false\nvoid Bark(int x) { ... }",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_parentheses",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "control_flow_statements",
+					"description": "Place space between parentheses of control flow statements"
+				},
+				{
+					"value": "expressions",
+					"description": "Place space between parentheses of expressions"
+				},
+				{
+					"value": "type_casts",
+					"description": "Place space between parentheses in type casts"
+				},
+				{
+					"value": "false",
+					"description": "Prefer no spaces between parentheses†"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_parentheses = control_flow_statements\nfor ( int i = 0; i < 10; i++ ) { }\n\n// csharp_space_between_parentheses = expressions\nvar z = ( x * y ) - ( ( y - x ) * 3 );\n\n// csharp_space_between_parentheses = type_casts\nint y = ( int )x;\n\n// csharp_space_between_parentheses = false\nfor (int i = 0; i < 10; i++) { }\nvar z = (x * y) - ((y - x) * 3);\nint y = (int)x;",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_space_between_square_brackets",
+			"group": "Spacing options",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Insert space characters in non-empty square brackets `[ 0 ]`"
+				},
+				{
+					"value": "false",
+					"description": "Remove space characters in non-empty square brackets `[0]`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// csharp_space_between_square_brackets = true\nint index = numbers[ 0 ];\n\n// csharp_space_between_square_brackets = false\nint index = numbers[0];",
+			"docFile": "csharp-formatting-options.md"
+		},
+		{
+			"name": "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow a blank line after the colon in a constructor initializer"
+				},
+				{
+					"value": "false",
+					"description": "Don't allow blank line after colon in constructor initializer"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2004"
+			],
+			"example": null,
+			"docFile": "ide2004.md"
+		},
+		{
+			"name": "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow a blank line after the token in an arrow expression clause"
+				},
+				{
+					"value": "false",
+					"description": "Require expression to immediately follow token in an arrow expression clause"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2006"
+			],
+			"example": null,
+			"docFile": "ide2006.md"
+		},
+		{
+			"name": "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow a blank line after the token in a conditional expression"
+				},
+				{
+					"value": "false",
+					"description": "Require statement to immediately follow token in a conditional expression"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2005"
+			],
+			"example": null,
+			"docFile": "ide2005.md"
+		},
+		{
+			"name": "csharp_style_allow_blank_lines_between_consecutive_braces_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow blank lines between consecutive braces"
+				},
+				{
+					"value": "false",
+					"description": "Don't allow blank lines between consecutive braces"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2002"
+			],
+			"example": null,
+			"docFile": "ide2002.md"
+		},
+		{
+			"name": "csharp_style_allow_embedded_statements_on_same_line_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow embedded statements on same line as control keyword"
+				},
+				{
+					"value": "false",
+					"description": "Require embedded statements to be on their own line"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2001"
+			],
+			"example": null,
+			"docFile": "ide2001.md"
+		},
+		{
+			"name": "csharp_style_conditional_delegate_call",
+			"group": "Language rules (null-checking preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use the conditional coalescing operator (`?.`) when invoking a lambda expression"
+				},
+				{
+					"value": "false",
+					"description": "Prefer to perform a null check before invoking a lambda expression"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE1005"
+			],
+			"example": "// csharp_style_conditional_delegate_call = true\nfunc?.Invoke(args);\n\n// csharp_style_conditional_delegate_call = false\nif (func != null) { func(args); }",
+			"docFile": "ide1005.md"
+		},
+		{
+			"name": "csharp_style_deconstructed_variable_declaration",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer deconstructed variable declaration"
+				},
+				{
+					"value": "false",
+					"description": "Do not prefer deconstruction in variable declarations"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0042"
+			],
+			"example": "// csharp_style_deconstructed_variable_declaration = true\nvar (name, age) = GetPersonTuple();\nConsole.WriteLine($\"{name} {age}\");\n\n(int x, int y) = GetPointTuple();\nConsole.WriteLine($\"{x} {y}\");\n\n// csharp_style_deconstructed_variable_declaration = false\nvar person = GetPersonTuple();\nConsole.WriteLine($\"{person.name} {person.age}\");\n\n(int x, int y) point = GetPointTuple();\nConsole.WriteLine($\"{point.x} {point.y}\");",
+			"docFile": "ide0042.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_accessors",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for accessors"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for accessors when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for accessors"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0027"
+			],
+			"example": "// csharp_style_expression_bodied_accessors = true\npublic int Age { get => _age; set => _age = value; }\n\n// csharp_style_expression_bodied_accessors = false\npublic int Age { get { return _age; } set { _age = value; } }",
+			"docFile": "ide0027.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_constructors",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for constructors"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for constructors when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for constructors"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0021"
+			],
+			"example": "// csharp_style_expression_bodied_constructors = true\npublic Customer(int age) => Age = age;\n\n// csharp_style_expression_bodied_constructors = false\npublic Customer(int age) { Age = age; }",
+			"docFile": "ide0021.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_indexers",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for indexers"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for indexers when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for indexers"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0026"
+			],
+			"example": "// csharp_style_expression_bodied_indexers = true\npublic T this[int i] => _values[i];\n\n// csharp_style_expression_bodied_indexers = false\npublic T this[int i] { get { return _values[i]; } }",
+			"docFile": "ide0026.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_lambdas",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for lambdas"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for lambdas when they'll be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for lambdas"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0053"
+			],
+			"example": "// csharp_style_expression_bodied_lambdas = true\nFunc<int, int> square = x => x * x;\n\n// csharp_style_expression_bodied_lambdas = false\nFunc<int, int> square = x => { return x * x; };",
+			"docFile": "ide0053.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_local_functions",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for local functions"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for local functions when they'll be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for local functions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0061"
+			],
+			"example": "// csharp_style_expression_bodied_local_functions = true\nvoid M()\n{\n    Hello();\n    void Hello() => Console.WriteLine(\"Hello\");\n}\n\n// csharp_style_expression_bodied_local_functions = false\nvoid M()\n{\n    Hello();\n    void Hello()\n    {\n        Console.WriteLine(\"Hello\");\n    }\n}",
+			"docFile": "ide0061.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_methods",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for methods"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for methods when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for methods"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0022"
+			],
+			"example": "// csharp_style_expression_bodied_methods = true\npublic int GetAge() => this.Age;\n\n// csharp_style_expression_bodied_methods = false\npublic int GetAge() { return this.Age; }",
+			"docFile": "ide0022.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_operators",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for operators"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for operators when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for operators"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0023",
+				"IDE0024"
+			],
+			"example": "// csharp_style_expression_bodied_operators = true\npublic static ComplexNumber operator + (ComplexNumber c1, ComplexNumber c2)\n    => new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary);\n\n// csharp_style_expression_bodied_operators = false\npublic static ComplexNumber operator + (ComplexNumber c1, ComplexNumber c2)\n{ return new ComplexNumber(c1.Real + c2.Real, c1.Imaginary + c2.Imaginary); }",
+			"docFile": "ide0023-ide0024.md"
+		},
+		{
+			"name": "csharp_style_expression_bodied_properties",
+			"group": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer expression bodies for properties"
+				},
+				{
+					"value": "when_on_single_line",
+					"description": "Prefer expression bodies for properties when they will be a single line"
+				},
+				{
+					"value": "false",
+					"description": "Prefer block bodies for properties"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0025"
+			],
+			"example": "// csharp_style_expression_bodied_properties = true\npublic int Age => _age;\n\n// csharp_style_expression_bodied_properties = false\npublic int Age { get { return _age; }}",
+			"docFile": "ide0025.md"
+		},
+		{
+			"name": "csharp_style_implicit_object_creation_when_type_is_apparent",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer target-typed `new` expressions when created type is apparent"
+				},
+				{
+					"value": "false",
+					"description": "Do not prefer target-typed `new` expressions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0090"
+			],
+			"example": "// csharp_style_implicit_object_creation_when_type_is_apparent = true\nC c = new();\nC c2 = new() { Field = 0 };\n\n// csharp_style_implicit_object_creation_when_type_is_apparent = false\nC c = new C();\nC c2 = new C() { Field = 0 };",
+			"docFile": "ide0090.md"
+		},
+		{
+			"name": "csharp_style_inlined_variable_declaration",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `out` variables to be declared inline in the argument list of a method call when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer `out` variables to be declared before the method call"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0018"
+			],
+			"example": "// csharp_style_inlined_variable_declaration = true\nif (int.TryParse(value, out int i)) {...}\n\n// csharp_style_inlined_variable_declaration = false\nint i;\nif (int.TryParse(value, out i)) {...}",
+			"docFile": "ide0018.md"
+		},
+		{
+			"name": "csharp_style_namespace_declarations",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "block_scoped",
+					"description": "Namespace declarations should be block scoped."
+				},
+				{
+					"value": "file_scoped",
+					"description": "Namespace declarations should be file scoped."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "block_scoped",
+			"ruleIds": [
+				"IDE0160",
+				"IDE0161"
+			],
+			"example": "// csharp_style_namespace_declarations = block_scoped\nusing System;\n\nnamespace Convention\n{\n    class C\n    {\n    }\n}\n\n// csharp_style_namespace_declarations = file_scoped\nusing System;\n\nnamespace Convention;\nclass C\n{\n}",
+			"docFile": "ide0160-ide0161.md"
+		},
+		{
+			"name": "csharp_style_pattern_matching_over_as_with_null_check",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer pattern matching to determine if something is of a particular type"
+				},
+				{
+					"value": "false",
+					"description": "Prefer `as` expressions with null checks to determine if something is of a particular type"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0019",
+				"IDE0260"
+			],
+			"example": "// csharp_style_pattern_matching_over_as_with_null_check = true\nif (o is string s) {...}\n\n// csharp_style_pattern_matching_over_as_with_null_check = false\nvar s = o as string;\nif (s != null) {...}",
+			"docFile": "ide0019.md"
+		},
+		{
+			"name": "csharp_style_pattern_matching_over_is_with_cast_check",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer pattern matching instead of `is` expressions with type casts."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0020",
+				"IDE0038"
+			],
+			"example": "// csharp_style_pattern_matching_over_is_with_cast_check = true\nif (o is int i) {...}\n\n// csharp_style_pattern_matching_over_is_with_cast_check = false\nif (o is int) {var i = (int)o; ... }",
+			"docFile": "ide0020-ide0038.md"
+		},
+		{
+			"name": "csharp_style_prefer_extended_property_pattern",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer the extended property pattern."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0170"
+			],
+			"example": null,
+			"docFile": "ide0170.md"
+		},
+		{
+			"name": "csharp_style_prefer_implicitly_typed_lambda_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use an implicitly typed lambda"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0350"
+			],
+			"example": null,
+			"docFile": "ide0350.md"
+		},
+		{
+			"name": "csharp_style_prefer_index_operator",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use the `^` operator when calculating an index from the end of a collection"
+				},
+				{
+					"value": "false",
+					"description": "Prefer not to use the `^` operator when calculating an index from the end of a collection"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0056"
+			],
+			"example": "// csharp_style_prefer_index_operator = true\nstring[] names = { \"Archimedes\", \"Pythagoras\", \"Euclid\" };\nvar index = names[^1];\n\n// csharp_style_prefer_index_operator = false\nstring[] names = { \"Archimedes\", \"Pythagoras\", \"Euclid\" };\nvar index = names[names.Length - 1];",
+			"docFile": "ide0056.md"
+		},
+		{
+			"name": "csharp_style_prefer_labeled_jump_statements",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer labeled jump statements"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0410"
+			],
+			"example": null,
+			"docFile": "ide0410.md"
+		},
+		{
+			"name": "csharp_style_prefer_local_over_anonymous_function",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer local functions over anonymous functions"
+				},
+				{
+					"value": "false",
+					"description": "Prefer anonymous functions over local functions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0039"
+			],
+			"example": "// csharp_style_prefer_local_over_anonymous_function = true\nint fibonacci(int n)\n{\n    return n <= 1 ? 1 : fibonacci(n-1) + fibonacci(n-2);\n}\n\n// csharp_style_prefer_local_over_anonymous_function = false\nFunc<int, int> fibonacci = (int n) =>\n{\n    return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);\n};",
+			"docFile": "ide0039.md"
+		},
+		{
+			"name": "csharp_style_prefer_method_group_conversion",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to convert a lambda expression to a method group."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0200"
+			],
+			"example": null,
+			"docFile": "ide0200.md"
+		},
+		{
+			"name": "csharp_style_prefer_not_pattern",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use the `not` pattern, when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer *not* to use the `not` pattern."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0083"
+			],
+			"example": "// csharp_style_prefer_not_pattern = true\nvar y = o is not C c;\n\n// csharp_style_prefer_not_pattern = false\nvar y = !(o is C c);",
+			"docFile": "ide0083.md"
+		},
+		{
+			"name": "csharp_style_prefer_null_check_over_type_check",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer null check over type check."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0150"
+			],
+			"example": null,
+			"docFile": "ide0150.md"
+		},
+		{
+			"name": "csharp_style_prefer_pattern_matching",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use pattern matching constructs, when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer not to use pattern matching constructs."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0078"
+			],
+			"example": null,
+			"docFile": "ide0078-ide0260.md"
+		},
+		{
+			"name": "csharp_style_prefer_primary_constructors",
+			"group": "Language rules (code block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use primary constructors."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0290"
+			],
+			"example": null,
+			"docFile": "ide0290.md"
+		},
+		{
+			"name": "csharp_style_prefer_range_operator",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use the range operator `..` when extracting a \"slice\" of a collection"
+				},
+				{
+					"value": "false",
+					"description": "Prefer *not* to use the range operator `..` when extracting a \"slice\" of a collection"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0057"
+			],
+			"example": "// csharp_style_prefer_range_operator = true\nstring sentence = \"the quick brown fox\";\nvar sub = sentence[0..^4];\n\n// csharp_style_prefer_range_operator = false\nstring sentence = \"the quick brown fox\";\nvar sub = sentence.Substring(0, sentence.Length - 4);",
+			"docFile": "ide0057.md"
+		},
+		{
+			"name": "csharp_style_prefer_readonly_struct",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to make a struct `readonly` when all its fields are `readonly`."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0250"
+			],
+			"example": null,
+			"docFile": "ide0250.md"
+		},
+		{
+			"name": "csharp_style_prefer_readonly_struct_member",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to make struct members `readonly`."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0251"
+			],
+			"example": null,
+			"docFile": "ide0251.md"
+		},
+		{
+			"name": "csharp_style_prefer_simple_property_accessors",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer simplified property accessors"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0360"
+			],
+			"example": null,
+			"docFile": "ide0360.md"
+		},
+		{
+			"name": "csharp_style_prefer_switch_expression",
+			"group": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use a `switch` expression"
+				},
+				{
+					"value": "false",
+					"description": "Prefer to use a `switch` statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0066"
+			],
+			"example": "// csharp_style_prefer_switch_expression = true\nreturn x switch\n{\n    1 => 1 * 1,\n    2 => 2 * 2,\n    _ => 0,\n};\n\n// csharp_style_prefer_switch_expression = false\nswitch (x)\n{\n    case 1:\n        return 1 * 1;\n    case 2:\n        return 2 * 2;\n    default:\n        return 0;\n}",
+			"docFile": "ide0066.md"
+		},
+		{
+			"name": "csharp_style_prefer_top_level_statements",
+			"group": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer top-level statements."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0210",
+				"IDE0211"
+			],
+			"example": null,
+			"docFile": "ide0210.md"
+		},
+		{
+			"name": "csharp_style_prefer_tuple_swap",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer using a tuple to swap two values."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0180"
+			],
+			"example": null,
+			"docFile": "ide0180.md"
+		},
+		{
+			"name": "csharp_style_prefer_unbound_generic_type_in_nameof",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer unbound generic type in `nameof` expression"
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0340"
+			],
+			"example": null,
+			"docFile": "ide0340.md"
+		},
+		{
+			"name": "csharp_style_prefer_utf8_string_literals",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer UTF-8 string literals to byte arrays."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0230"
+			],
+			"example": null,
+			"docFile": "ide0230.md"
+		},
+		{
+			"name": "csharp_style_throw_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use `throw` expressions instead of `throw` statements"
+				},
+				{
+					"value": "false",
+					"description": "Prefer to use `throw` statements instead of `throw` expressions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0016"
+			],
+			"example": "// csharp_style_throw_expression = true\nthis.s = s ?? throw new ArgumentNullException(nameof(s));\n\n// csharp_style_throw_expression = false\nif (s == null) { throw new ArgumentNullException(nameof(s)); }\nthis.s = s;",
+			"docFile": "ide0016.md"
+		},
+		{
+			"name": "csharp_style_unused_value_assignment_preference",
+			"group": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "discard_variable",
+					"description": "Prefer to use a discard when assigning a value that's not used"
+				},
+				{
+					"value": "unused_local_variable",
+					"description": "Prefer to use a local variable when assigning a value that's not used"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "discard_variable",
+			"ruleIds": [
+				"IDE0059"
+			],
+			"example": "// csharp_style_unused_value_assignment_preference = discard_variable\nint GetCount(Dictionary<string, int> wordCount, string searchWord)\n{\n    _ = wordCount.TryGetValue(searchWord, out var count);\n    return count;\n}\n\n// csharp_style_unused_value_assignment_preference = unused_local_variable\nint GetCount(Dictionary<string, int> wordCount, string searchWord)\n{\n    var unused = wordCount.TryGetValue(searchWord, out var count);\n    return count;\n}",
+			"docFile": "ide0059.md"
+		},
+		{
+			"name": "csharp_style_unused_value_expression_statement_preference",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "discard_variable",
+					"description": "Prefer to assign an unused expression to a discard"
+				},
+				{
+					"value": "unused_local_variable",
+					"description": "Prefer to assign an unused expression to a local variable that's never used"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "discard_variable",
+			"ruleIds": [
+				"IDE0058"
+			],
+			"example": "// Original code:\nSystem.Convert.ToInt32(\"35\");\n\n// After code fix for IDE0058:\n\n// csharp_style_unused_value_expression_statement_preference = discard_variable\n_ = System.Convert.ToInt32(\"35\");\n\n// csharp_style_unused_value_expression_statement_preference = unused_local_variable\nvar unused = Convert.ToInt32(\"35\");",
+			"docFile": "ide0058.md"
+		},
+		{
+			"name": "csharp_style_var_elsewhere",
+			"group": "Language rules ('var' preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `var` over explicit type in all cases, unless overridden by another code style rule"
+				},
+				{
+					"value": "false",
+					"description": "Prefer explicit type over `var` in all cases, unless overridden by another code style rule"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0007",
+				"IDE0008"
+			],
+			"example": "// csharp_style_var_elsewhere = true\nvar f = this.Init();\n\n// csharp_style_var_elsewhere = false\nbool f = this.Init();",
+			"docFile": "ide0007-ide0008.md"
+		},
+		{
+			"name": "csharp_style_var_for_built_in_types",
+			"group": "Language rules ('var' preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `var` is used to declare variables with built-in system types such as `int`"
+				},
+				{
+					"value": "false",
+					"description": "Prefer explicit type over `var` to declare variables with built-in system types such as `int`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0007",
+				"IDE0008"
+			],
+			"example": "// csharp_style_var_for_built_in_types = true\nvar x = 5;\n\n// csharp_style_var_for_built_in_types = false\nint x = 5;",
+			"docFile": "ide0007-ide0008.md"
+		},
+		{
+			"name": "csharp_style_var_when_type_is_apparent",
+			"group": "Language rules ('var' preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `var` when the type is already mentioned on the right-hand side of a declaration expression"
+				},
+				{
+					"value": "false",
+					"description": "Prefer explicit type when the type is already mentioned on the right-hand side of a declaration expression"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0007",
+				"IDE0008"
+			],
+			"example": "// csharp_style_var_when_type_is_apparent = true\nvar obj = new Customer();\n\n// csharp_style_var_when_type_is_apparent = false\nCustomer obj = new Customer();",
+			"docFile": "ide0007-ide0008.md"
+		},
+		{
+			"name": "csharp_using_directive_placement",
+			"group": "Language rules (`using` directive preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "outside_namespace",
+					"description": "Prefer `using` directives to be placed outside the namespace"
+				},
+				{
+					"value": "inside_namespace",
+					"description": "Prefer `using` directives to be placed inside the namespace"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "outside_namespace",
+			"ruleIds": [
+				"IDE0065"
+			],
+			"example": "// csharp_using_directive_placement = outside_namespace\nusing System;\n\nnamespace Conventions\n{\n    ...\n}\n\n// csharp_using_directive_placement = inside_namespace\nnamespace Conventions\n{\n    using System;\n    ...\n}",
+			"docFile": "ide0065.md"
+		},
+		{
+			"name": "dotnet_code_quality_unused_parameters",
+			"group": "Unnecessary code rules (parameter preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "all",
+					"description": "Flag methods with any accessibility that contain unused parameters"
+				},
+				{
+					"value": "non_public",
+					"description": "Flag only non-public methods that contain unused parameters"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "all",
+			"ruleIds": [
+				"IDE0060"
+			],
+			"example": "// dotnet_code_quality_unused_parameters = all\npublic int GetNum1(int unusedParam) { return 1; }\ninternal int GetNum2(int unusedParam) { return 1; }\nprivate int GetNum3(int unusedParam) { return 1; }\n\n// dotnet_code_quality_unused_parameters = non_public\ninternal int GetNum4(int unusedParam) { return 1; }\nprivate int GetNum5(int unusedParam) { return 1; }",
+			"docFile": "ide0060.md"
+		},
+		{
+			"name": "dotnet_prefer_system_hash_code",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use <xref:System.HashCode.Combine*?displayProperty=fullName> for hash code computation."
+				},
+				{
+					"value": "false",
+					"description": "Don't prefer to use `System.HashCode.Combine` for hash code computation."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0070"
+			],
+			"example": null,
+			"docFile": "ide0070.md"
+		},
+		{
+			"name": "dotnet_remove_unnecessary_suppression_exclusions",
+			"group": "Unnecessary code rules (suppression preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "category:",
+					"description": "Excludes suppressions for the listed rules or categories"
+				},
+				{
+					"value": "all",
+					"description": "Disables the rule (all rule IDs excluded)"
+				},
+				{
+					"value": "none",
+					"description": "Enables the rule for all rules (no exclusions)"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "none",
+			"ruleIds": [
+				"IDE0079"
+			],
+			"example": "using System.Diagnostics.CodeAnalysis;\n\nclass C1\n{\n    // 'dotnet_remove_unnecessary_suppression_exclusions = IDE0051'\n\n    // Unnecessary pragma suppression, but not flagged by IDE0079\n#pragma warning disable IDE0051 // IDE0051: Remove unused member\n    private int UsedMethod() => 0;\n#pragma warning restore IDE0051\n\n    public int PublicMethod() => UsedMethod();\n}",
+			"docFile": "ide0079.md"
+		},
+		{
+			"name": "dotnet_separate_import_directive_groups",
+			"group": "Using directive options",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Place a blank line between `using` directive groups."
+				},
+				{
+					"value": "false",
+					"description": "Do not place a blank line between `using` directive groups."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// dotnet_separate_import_directive_groups = true\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\n\nusing Octokit;\n\n// dotnet_separate_import_directive_groups = false\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\nusing Octokit;",
+			"docFile": "dotnet-formatting-options.md"
+		},
+		{
+			"name": "dotnet_sort_system_directives_first",
+			"group": "Using directive options",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Sort `System.*` `using` directives alphabetically, and place them before other `using` directives."
+				},
+				{
+					"value": "false",
+					"description": "Do not place `System.*` `using` directives before other `using` directives."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0055"
+			],
+			"example": "// dotnet_sort_system_directives_first = true\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\nusing Octokit;\n\n// dotnet_sort_system_directives_first = false\nusing System.Collections.Generic;\nusing Octokit;\nusing System.Threading.Tasks;",
+			"docFile": "dotnet-formatting-options.md"
+		},
+		{
+			"name": "dotnet_style_allow_multiple_blank_lines_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow multiple consecutive blank lines"
+				},
+				{
+					"value": "false",
+					"description": "Don't allow consecutive blank lines"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2000"
+			],
+			"example": null,
+			"docFile": "ide2000.md"
+		},
+		{
+			"name": "dotnet_style_allow_statement_immediately_after_block_experimental",
+			"group": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Allow subsequent statement to immediately follow block statement without a blank line in between"
+				},
+				{
+					"value": "false",
+					"description": "Require a blank line between a block statement and the subsequent statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE2003"
+			],
+			"example": null,
+			"docFile": "ide2003.md"
+		},
+		{
+			"name": "dotnet_style_coalesce_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer null-coalescing expressions."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0029",
+				"IDE0030",
+				"IDE0270"
+			],
+			"example": null,
+			"docFile": "ide0029-ide0030-ide0270.md"
+		},
+		{
+			"name": "dotnet_style_collection_initializer",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use collection initializers."
+				},
+				{
+					"value": "false",
+					"description": "Don't prefer collection initializers."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0028"
+			],
+			"example": null,
+			"docFile": "ide0028.md"
+		},
+		{
+			"name": "dotnet_style_explicit_tuple_names",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer tuple names to ItemX properties"
+				},
+				{
+					"value": "false",
+					"description": "Prefer ItemX properties to tuple names"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0033"
+			],
+			"example": "// dotnet_style_explicit_tuple_names = true\n(string name, int age) customer = GetCustomer();\nvar name = customer.name;\n\n// dotnet_style_explicit_tuple_names = false\n(string, int) customer = GetCustomer();\nvar name = customer.Item1;",
+			"docFile": "ide0033.md"
+		},
+		{
+			"name": "dotnet_style_namespace_match_folder",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer namespace naming to match folder structure."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0130"
+			],
+			"example": null,
+			"docFile": "ide0130.md"
+		},
+		{
+			"name": "dotnet_style_null_propagation",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use null-conditional operator when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer to use ternary null checking where possible"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0031"
+			],
+			"example": "// dotnet_style_null_propagation = true\nvar v = o?.ToString();\n\n// dotnet_style_null_propagation = false\nvar v = o == null ? null : o.ToString(); // or\nvar v = o != null ? o.ToString() : null;",
+			"docFile": "ide0031.md"
+		},
+		{
+			"name": "dotnet_style_object_initializer",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer objects to be initialized using object initializers when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer objects to *not* be initialized using object initializers"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0017"
+			],
+			"example": "// dotnet_style_object_initializer = true\nvar c = new Customer() { Age = 21 };\n\n// dotnet_style_object_initializer = false\nvar c = new Customer();\nc.Age = 21;",
+			"docFile": "ide0017.md"
+		},
+		{
+			"name": "dotnet_style_parentheses_in_arithmetic_binary_operators",
+			"group": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "always_for_clarity",
+					"description": "Prefer parentheses to clarify arithmetic operator precedence"
+				},
+				{
+					"value": "never_if_unnecessary",
+					"description": "Prefer no parentheses when arithmetic operator precedence is obvious"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "always_for_clarity",
+			"ruleIds": [
+				"IDE0047",
+				"IDE0048"
+			],
+			"example": "// dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity\nvar v = a + (b * c);\n\n// dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary\nvar v = a + b * c;",
+			"docFile": "ide0047-ide0048.md"
+		},
+		{
+			"name": "dotnet_style_parentheses_in_other_binary_operators",
+			"group": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "always_for_clarity",
+					"description": "Prefer parentheses to clarify other binary operator precedence"
+				},
+				{
+					"value": "never_if_unnecessary",
+					"description": "Prefer to not have parentheses when other binary operator precedence is obvious"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "always_for_clarity",
+			"ruleIds": [
+				"IDE0047",
+				"IDE0048"
+			],
+			"example": "// dotnet_style_parentheses_in_other_binary_operators = always_for_clarity\nvar v = a || (b && c);\n\n// dotnet_style_parentheses_in_other_binary_operators = never_if_unnecessary\nvar v = a || b && c;",
+			"docFile": "ide0047-ide0048.md"
+		},
+		{
+			"name": "dotnet_style_parentheses_in_other_operators",
+			"group": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "always_for_clarity",
+					"description": "Prefer parentheses to clarify other operator precedence"
+				},
+				{
+					"value": "never_if_unnecessary",
+					"description": "Prefer to not have parentheses when other operator precedence is obvious"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "never_if_unnecessary",
+			"ruleIds": [
+				"IDE0047",
+				"IDE0048"
+			],
+			"example": "// dotnet_style_parentheses_in_other_operators = always_for_clarity\nvar v = (a.b).Length;\n\n// dotnet_style_parentheses_in_other_operators = never_if_unnecessary\nvar v = a.b.Length;",
+			"docFile": "ide0047-ide0048.md"
+		},
+		{
+			"name": "dotnet_style_parentheses_in_relational_binary_operators",
+			"group": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "always_for_clarity",
+					"description": "Prefer parentheses to clarify relational operator precedence"
+				},
+				{
+					"value": "never_if_unnecessary",
+					"description": "Prefer to not have parentheses when relational operator precedence is obvious"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "always_for_clarity",
+			"ruleIds": [
+				"IDE0047",
+				"IDE0048"
+			],
+			"example": "// dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity\nvar v = (a < b) == (c > d);\n\n// dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary\nvar v = a < b == c > d;",
+			"docFile": "ide0047-ide0048.md"
+		},
+		{
+			"name": "dotnet_style_predefined_type_for_locals_parameters_members",
+			"group": "Language rules (language keywords instead of framework type names)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer the language keyword for local variables, method parameters, and class members"
+				},
+				{
+					"value": "false",
+					"description": "Prefer the type name for local variables, method parameters, and class members"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0049"
+			],
+			"example": "// dotnet_style_predefined_type_for_locals_parameters_members = true\nprivate int _member;\n\n// dotnet_style_predefined_type_for_locals_parameters_members = false\nprivate Int32 _member;",
+			"docFile": "ide0049.md"
+		},
+		{
+			"name": "dotnet_style_predefined_type_for_member_access",
+			"group": "Language rules (language keywords instead of framework type names)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer the language keyword for member access expressions"
+				},
+				{
+					"value": "false",
+					"description": "Prefer the type name for member access expressions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0049"
+			],
+			"example": "// dotnet_style_predefined_type_for_member_access = true\nvar local = int.MaxValue;\n\n// dotnet_style_predefined_type_for_member_access = false\nvar local = Int32.MaxValue;",
+			"docFile": "ide0049.md"
+		},
+		{
+			"name": "dotnet_style_prefer_auto_properties",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer automatically implemented properties"
+				},
+				{
+					"value": "false",
+					"description": "Prefer properties with private backing fields"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0032"
+			],
+			"example": "// dotnet_style_prefer_auto_properties = true\npublic int Age { get; }\n\n// dotnet_style_prefer_auto_properties = false\nprivate int age;\n\npublic int Age\n{\n    get\n    {\n        return age;\n    }\n}",
+			"docFile": "ide0032.md"
+		},
+		{
+			"name": "dotnet_style_prefer_compound_assignment",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer compound assignment expressions"
+				},
+				{
+					"value": "false",
+					"description": "Don't prefer compound assignment expressions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0054",
+				"IDE0074"
+			],
+			"example": "// dotnet_style_prefer_compound_assignment = true\nx += 5;\n\n// dotnet_style_prefer_compound_assignment = false\nx = x + 5;",
+			"docFile": "ide0054-ide0074.md"
+		},
+		{
+			"name": "dotnet_style_prefer_conditional_expression_over_assignment",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer assignments with a ternary conditional"
+				},
+				{
+					"value": "false",
+					"description": "Prefer assignments with an if-else statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0045"
+			],
+			"example": "// dotnet_style_prefer_conditional_expression_over_assignment = true\nstring s = expr ? \"hello\" : \"world\";\n\n// dotnet_style_prefer_conditional_expression_over_assignment = false\nstring s;\nif (expr)\n{\n    s = \"hello\";\n}\nelse\n{\n    s = \"world\";\n}",
+			"docFile": "ide0045.md"
+		},
+		{
+			"name": "dotnet_style_prefer_conditional_expression_over_return",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer return statements to use a ternary conditional"
+				},
+				{
+					"value": "false",
+					"description": "Prefer return statements to use an if-else statement"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0046"
+			],
+			"example": "// dotnet_style_prefer_conditional_expression_over_return = true\nreturn expr ? \"hello\" : \"world\"\n\n// dotnet_style_prefer_conditional_expression_over_return = false\nif (expr)\n{\n    return \"hello\";\n}\nelse\n{\n    return \"world\";\n}",
+			"docFile": "ide0046.md"
+		},
+		{
+			"name": "dotnet_style_prefer_foreach_explicit_cast_in_source",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "always",
+					"description": "Prefer explicit casts in source code."
+				},
+				{
+					"value": "when_strongly_typed",
+					"description": "Prefer explicit casts for strongly typed (generic) collections but not for legacy collections, such as <xref:System.Collections.ArrayList>."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "when_strongly_typed",
+			"ruleIds": [
+				"IDE0220"
+			],
+			"example": null,
+			"docFile": "ide0220.md"
+		},
+		{
+			"name": "dotnet_style_prefer_inferred_anonymous_type_member_names",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer inferred anonymous type member names"
+				},
+				{
+					"value": "false",
+					"description": "Prefer explicit anonymous type member names"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0037"
+			],
+			"example": "// dotnet_style_prefer_inferred_anonymous_type_member_names = true\nvar anon = new { age, name };\n\n// dotnet_style_prefer_inferred_anonymous_type_member_names = false\nvar anon = new { age = age, name = name };",
+			"docFile": "ide0037.md"
+		},
+		{
+			"name": "dotnet_style_prefer_inferred_tuple_names",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer inferred tuple element names"
+				},
+				{
+					"value": "false",
+					"description": "Prefer explicit tuple element names"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0037"
+			],
+			"example": "// dotnet_style_prefer_inferred_tuple_names = true\nvar tuple = (age, name);\n\n// dotnet_style_prefer_inferred_tuple_names = false\nvar tuple = (age: age, name: name);",
+			"docFile": "ide0037.md"
+		},
+		{
+			"name": "dotnet_style_prefer_is_null_check_over_reference_equality_method",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer `is null` check"
+				},
+				{
+					"value": "false",
+					"description": "Prefer reference equality method"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0041"
+			],
+			"example": "// dotnet_style_prefer_is_null_check_over_reference_equality_method = true\nif (value is null)\n    return;\n\n// dotnet_style_prefer_is_null_check_over_reference_equality_method = false\nif (object.ReferenceEquals(value, null))\n    return;\n\n// dotnet_style_prefer_is_null_check_over_reference_equality_method = false\nif ((object)o == null)\n    return;",
+			"docFile": "ide0041.md"
+		},
+		{
+			"name": "dotnet_style_prefer_non_hidden_explicit_cast_in_source",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to make all intermediate explicit casts visible in source code."
+				},
+				{
+					"value": "false",
+					"description": "Don't prefer to make all intermediate explicit casts visible in source code."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0221"
+			],
+			"example": null,
+			"docFile": "ide0221.md"
+		},
+		{
+			"name": "dotnet_style_prefer_simplified_boolean_expressions",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer simplified conditional expressions"
+				},
+				{
+					"value": "false",
+					"description": "Do not prefer simplified conditional expressions"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0075"
+			],
+			"example": "// dotnet_style_prefer_simplified_boolean_expressions = true\nvar result1 = M1() && M2();\nvar result2 = M1() || M2();\n\n// dotnet_style_prefer_simplified_boolean_expressions = false\nvar result1 = M1() && M2() ? true : false;\nvar result2 = M1() ? true : M2();",
+			"docFile": "ide0075.md"
+		},
+		{
+			"name": "dotnet_style_prefer_simplified_interpolation",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer simplified interpolated strings"
+				},
+				{
+					"value": "false",
+					"description": "Do not prefer simplified interpolated strings"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0071"
+			],
+			"example": "// dotnet_style_prefer_simplified_interpolation = true\nvar str = $\"prefix {someValue} suffix\";\n\n// dotnet_style_prefer_simplified_interpolation = false\nvar str = $\"prefix {someValue.ToString()} suffix\";",
+			"docFile": "ide0071.md"
+		},
+		{
+			"name": "dotnet_style_qualification_for_event",
+			"group": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer events to be prefaced with `this.` in C# or `Me.` in Visual Basic."
+				},
+				{
+					"value": "false",
+					"description": "Prefer events *not* to be prefaced with `this.` or `Me.`."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0003",
+				"IDE0009"
+			],
+			"example": "// dotnet_style_qualification_for_event = true\nthis.Elapsed += Handler;\n\n// dotnet_style_qualification_for_event = false\nElapsed += Handler;",
+			"docFile": "ide0003-ide0009.md"
+		},
+		{
+			"name": "dotnet_style_qualification_for_field",
+			"group": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer fields to be prefaced with `this.` in C# or `Me.` in Visual Basic"
+				},
+				{
+					"value": "false",
+					"description": "Prefer fields *not* to be prefaced with `this.` or `Me.`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0003",
+				"IDE0009"
+			],
+			"example": "// dotnet_style_qualification_for_field = true\nthis.capacity = 0;\n\n// dotnet_style_qualification_for_field = false\ncapacity = 0;",
+			"docFile": "ide0003-ide0009.md"
+		},
+		{
+			"name": "dotnet_style_qualification_for_method",
+			"group": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer methods to be prefaced with `this.` in C# or `Me.` in Visual Basic."
+				},
+				{
+					"value": "false",
+					"description": "Prefer methods *not* to be prefaced with `this.` or `Me.`."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0003",
+				"IDE0009"
+			],
+			"example": "// dotnet_style_qualification_for_method = true\nthis.Display();\n\n// dotnet_style_qualification_for_method = false\nDisplay();",
+			"docFile": "ide0003-ide0009.md"
+		},
+		{
+			"name": "dotnet_style_qualification_for_property",
+			"group": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer properties to be prefaced with `this.` in C# or `Me.` in Visual Basic."
+				},
+				{
+					"value": "false",
+					"description": "Prefer properties *not* to be prefaced with `this.` or `Me.`."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "false",
+			"ruleIds": [
+				"IDE0003",
+				"IDE0009"
+			],
+			"example": "// dotnet_style_qualification_for_property = true\nthis.ID = 0;\n\n// dotnet_style_qualification_for_property = false\nID = 0;",
+			"docFile": "ide0003-ide0009.md"
+		},
+		{
+			"name": "dotnet_style_readonly_field",
+			"group": "Language rules (field preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer that private fields be marked `readonly` if they're only ever assigned inline or in a constructor"
+				},
+				{
+					"value": "false",
+					"description": "Specify no preference over whether private fields are marked `readonly`"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0044"
+			],
+			"example": "// dotnet_style_readonly_field = true\nclass MyClass\n{\n    private readonly int _daysInYear = 365;\n}",
+			"docFile": "ide0044.md"
+		},
+		{
+			"name": "dotnet_style_require_accessibility_modifiers",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "always",
+					"description": "Prefer accessibility modifiers to be specified."
+				},
+				{
+					"value": "for_non_interface_members",
+					"description": "Prefer accessibility modifiers except for public interface members."
+				},
+				{
+					"value": "never",
+					"description": "Do not prefer accessibility modifiers to be specified."
+				},
+				{
+					"value": "omit_if_default",
+					"description": "Prefer accessibility modifiers except if they are the default modifier."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "for_non_interface_members",
+			"ruleIds": [
+				"IDE0040"
+			],
+			"example": "// dotnet_style_require_accessibility_modifiers = always\n// dotnet_style_require_accessibility_modifiers = for_non_interface_members\nclass MyClass\n{\n    private const string thisFieldIsConst = \"constant\";\n}\n\n// dotnet_style_require_accessibility_modifiers = never\nclass MyClass\n{\n    const string thisFieldIsConst = \"constant\";\n}",
+			"docFile": "ide0040.md"
+		},
+		{
+			"name": "file_header_template",
+			"group": "Language rules (`using` directive preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "{fileName}",
+					"description": "Prefer the string as the required file header."
+				},
+				{
+					"value": "unset",
+					"description": "Do not require a file header."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "unset",
+			"ruleIds": [
+				"IDE0073"
+			],
+			"example": "// file_header_template = Copyright (c) SomeCorp. All rights reserved.\\nLicensed under the xyz license.\n\n// Copyright (c) SomeCorp. All rights reserved.\n// Licensed under the xyz license.\nnamespace N1\n{\n    class C1 { }\n}\n\n// file_header_template = unset\n//      OR\n// file_header_template =\nnamespace N2\n{\n    class C2 { }\n}",
+			"docFile": "ide0073.md"
+		},
+		{
+			"name": "visual_basic_preferred_modifier_order",
+			"group": "Language rules (modifier preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "Partial",
+					"description": ""
+				},
+				{
+					"value": "Private",
+					"description": ""
+				},
+				{
+					"value": "Public",
+					"description": ""
+				}
+			],
+			"allowsMultipleValues": true,
+			"defaultValue": "Partial, Default, Private, Protected, Public, Friend, NotOverridable, Overridable, MustOverride, Overloads, Overrides, MustInherit, NotInheritable, Static, Shared, Shadows, ReadOnly, WriteOnly, Dim, Const, WithEvents, Widening, Narrowing, Custom, Async",
+			"ruleIds": [
+				"IDE0036"
+			],
+			"example": null,
+			"docFile": "ide0036.md"
+		},
+		{
+			"name": "visual_basic_style_prefer_isnot_expression",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer to use the `IsNot` pattern, when possible"
+				},
+				{
+					"value": "false",
+					"description": "Prefer *not* to use the `IsNot` pattern."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0084"
+			],
+			"example": null,
+			"docFile": "ide0084.md"
+		},
+		{
+			"name": "visual_basic_style_prefer_simplified_object_creation",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "true",
+					"description": "Prefer simplified object creation form."
+				},
+				{
+					"value": "false",
+					"description": "Disables the rule."
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "true",
+			"ruleIds": [
+				"IDE0140"
+			],
+			"example": null,
+			"docFile": "ide0140.md"
+		},
+		{
+			"name": "visual_basic_style_unused_value_assignment_preference",
+			"group": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "unused_local_variable",
+					"description": "Prefer to use a local variable when assigning a value that's not used"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "unused_local_variable",
+			"ruleIds": [
+				"IDE0059"
+			],
+			"example": null,
+			"docFile": "ide0059.md"
+		},
+		{
+			"name": "visual_basic_style_unused_value_expression_statement_preference",
+			"group": "Language rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"values": [
+				{
+					"value": "unused_local_variable",
+					"description": "Prefer to assign an unused expression to a local variable that's never used"
+				}
+			],
+			"allowsMultipleValues": false,
+			"defaultValue": "unused_local_variable",
+			"ruleIds": [
+				"IDE0058"
+			],
+			"example": null,
+			"docFile": "ide0058.md"
+		}
+	],
+	"rules": [
+		{
+			"id": "IDE0001",
+			"title": "Simplify name",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0001",
+			"title": "Name can be simplified",
+			"category": "Style",
+			"subcategory": null,
+			"languages": [],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0002",
+			"title": "Simplify member access",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0003",
+			"title": "Name can be simplified",
+			"category": "Style",
+			"subcategory": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_qualification_for_field",
+				"dotnet_style_qualification_for_property",
+				"dotnet_style_qualification_for_method",
+				"dotnet_style_qualification_for_event"
+			]
+		},
+		{
+			"id": "IDE0009",
+			"title": "Member access should be qualified",
+			"category": "Style",
+			"subcategory": "Language rules ('this.' and 'Me.' qualifiers)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_qualification_for_field",
+				"dotnet_style_qualification_for_property",
+				"dotnet_style_qualification_for_method",
+				"dotnet_style_qualification_for_event"
+			]
+		},
+		{
+			"id": "IDE0004",
+			"title": "Remove unnecessary cast",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0005",
+			"title": "Remove unnecessary import",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (`using` directive preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0005",
+			"title": "Open declaration can be removed",
+			"category": "Style",
+			"subcategory": null,
+			"languages": [],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0007",
+			"title": "Use `var` instead of explicit type",
+			"category": "Style",
+			"subcategory": "Language rules ('var' preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_var_for_built_in_types",
+				"csharp_style_var_when_type_is_apparent",
+				"csharp_style_var_elsewhere"
+			]
+		},
+		{
+			"id": "IDE0008",
+			"title": "Use explicit type instead of `var`",
+			"category": "Style",
+			"subcategory": "Language rules ('var' preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_var_for_built_in_types",
+				"csharp_style_var_when_type_is_apparent",
+				"csharp_style_var_elsewhere"
+			]
+		},
+		{
+			"id": "IDE0010",
+			"title": "Add missing cases to switch statement",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0011",
+			"title": "Add braces",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_braces"
+			]
+		},
+		{
+			"id": "IDE0016",
+			"title": "Use throw expression",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_throw_expression"
+			]
+		},
+		{
+			"id": "IDE0017",
+			"title": "Use object initializers",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_object_initializer"
+			]
+		},
+		{
+			"id": "IDE0018",
+			"title": "Inline variable declaration",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_inlined_variable_declaration"
+			]
+		},
+		{
+			"id": "IDE0019",
+			"title": "Use pattern matching to avoid `as` followed by a `null` check",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_pattern_matching_over_as_with_null_check"
+			]
+		},
+		{
+			"id": "IDE0020",
+			"title": "Use pattern matching to avoid `is` check followed by a cast (with variable)",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_pattern_matching_over_is_with_cast_check"
+			]
+		},
+		{
+			"id": "IDE0038",
+			"title": "Use pattern matching to avoid `is` check followed by a cast (without variable)",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_pattern_matching_over_is_with_cast_check"
+			]
+		},
+		{
+			"id": "IDE0021",
+			"title": "Use expression body for constructors",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_constructors"
+			]
+		},
+		{
+			"id": "IDE0022",
+			"title": "Use expression body for methods",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_methods"
+			]
+		},
+		{
+			"id": "IDE0023",
+			"title": "Use expression body for conversion operators",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_operators"
+			]
+		},
+		{
+			"id": "IDE0024",
+			"title": "Use expression body for operators",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_operators"
+			]
+		},
+		{
+			"id": "IDE0025",
+			"title": "Use expression body for properties",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_properties"
+			]
+		},
+		{
+			"id": "IDE0026",
+			"title": "Use expression body for indexers",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_indexers"
+			]
+		},
+		{
+			"id": "IDE0027",
+			"title": "Use expression body for accessors",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_accessors"
+			]
+		},
+		{
+			"id": "IDE0028",
+			"title": "Use collection initializers",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_collection_initializer",
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0029",
+			"title": "Null check can be simplified (ternary conditional check)",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_coalesce_expression"
+			]
+		},
+		{
+			"id": "IDE0030",
+			"title": "Null check can be simplified (nullable ternary conditional check)",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_coalesce_expression"
+			]
+		},
+		{
+			"id": "IDE0270",
+			"title": "Null check can be simplified (if null check)",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_coalesce_expression"
+			]
+		},
+		{
+			"id": "IDE0031",
+			"title": "Use null propagation",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_null_propagation"
+			]
+		},
+		{
+			"id": "IDE0032",
+			"title": "Use auto-implemented property",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_auto_properties"
+			]
+		},
+		{
+			"id": "IDE0033",
+			"title": "Use explicitly provided tuple name",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_explicit_tuple_names"
+			]
+		},
+		{
+			"id": "IDE0034",
+			"title": "Simplify `default` expression",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_simple_default_expression"
+			]
+		},
+		{
+			"id": "IDE0035",
+			"title": "Remove unreachable code",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0036",
+			"title": "Order modifiers",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"csharp_preferred_modifier_order",
+				"visual_basic_preferred_modifier_order"
+			]
+		},
+		{
+			"id": "IDE0037",
+			"title": "Use inferred member name",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_inferred_tuple_names",
+				"dotnet_style_prefer_inferred_anonymous_type_member_names"
+			]
+		},
+		{
+			"id": "IDE0039",
+			"title": "Use local function instead of lambda",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_local_over_anonymous_function"
+			]
+		},
+		{
+			"id": "IDE0040",
+			"title": "Add accessibility modifiers",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_require_accessibility_modifiers"
+			]
+		},
+		{
+			"id": "IDE0041",
+			"title": "Use 'is null' check",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_is_null_check_over_reference_equality_method"
+			]
+		},
+		{
+			"id": "IDE0042",
+			"title": "Deconstruct variable declaration",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_deconstructed_variable_declaration"
+			]
+		},
+		{
+			"id": "IDE0043",
+			"title": "Invalid format string",
+			"category": "Style",
+			"subcategory": "Language rules (string operations)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0044",
+			"title": "Add readonly modifier",
+			"category": "Style",
+			"subcategory": "Language rules (field preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_readonly_field"
+			]
+		},
+		{
+			"id": "IDE0045",
+			"title": "Use conditional expression for assignment",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_conditional_expression_over_assignment"
+			]
+		},
+		{
+			"id": "IDE0046",
+			"title": "Use conditional expression for return",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_conditional_expression_over_return"
+			]
+		},
+		{
+			"id": "IDE0047",
+			"title": "Remove unnecessary parentheses",
+			"category": "Style",
+			"subcategory": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_parentheses_in_arithmetic_binary_operators",
+				"dotnet_style_parentheses_in_relational_binary_operators",
+				"dotnet_style_parentheses_in_other_binary_operators",
+				"dotnet_style_parentheses_in_other_operators"
+			]
+		},
+		{
+			"id": "IDE0048",
+			"title": "Add parentheses for clarity",
+			"category": "Style",
+			"subcategory": "Language rules (parentheses preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_parentheses_in_arithmetic_binary_operators",
+				"dotnet_style_parentheses_in_relational_binary_operators",
+				"dotnet_style_parentheses_in_other_binary_operators",
+				"dotnet_style_parentheses_in_other_operators"
+			]
+		},
+		{
+			"id": "IDE0049",
+			"title": "Use language keywords instead of framework type names for type references",
+			"category": "Style",
+			"subcategory": "Language rules (language keywords instead of framework type names)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_predefined_type_for_locals_parameters_members",
+				"dotnet_style_predefined_type_for_member_access"
+			]
+		},
+		{
+			"id": "IDE0050",
+			"title": "Convert anonymous type to tuple",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0051",
+			"title": "Remove unused private member",
+			"category": "CodeQuality",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0052",
+			"title": "Remove unread private member",
+			"category": "CodeQuality",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0053",
+			"title": "Use expression body for lambdas",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_lambdas"
+			]
+		},
+		{
+			"id": "IDE0054",
+			"title": "Use compound assignment",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_compound_assignment"
+			]
+		},
+		{
+			"id": "IDE0074",
+			"title": "Use coalesce compound assignment",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_compound_assignment"
+			]
+		},
+		{
+			"id": "IDE0055",
+			"title": "Formatting rule",
+			"category": "Style",
+			"subcategory": "N/A",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0056",
+			"title": "Use index operator",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_index_operator"
+			]
+		},
+		{
+			"id": "IDE0057",
+			"title": "Use range operator",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_range_operator"
+			]
+		},
+		{
+			"id": "IDE0058",
+			"title": "Remove unnecessary expression value",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"csharp_style_unused_value_expression_statement_preference",
+				"visual_basic_style_unused_value_expression_statement_preference"
+			]
+		},
+		{
+			"id": "IDE0059",
+			"title": "Remove unnecessary value assignment",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"csharp_style_unused_value_assignment_preference",
+				"visual_basic_style_unused_value_assignment_preference"
+			]
+		},
+		{
+			"id": "IDE0059",
+			"title": "The value is unused",
+			"category": "Style",
+			"subcategory": null,
+			"languages": [],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0060",
+			"title": "Remove unused parameter",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (parameter preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_code_quality_unused_parameters"
+			]
+		},
+		{
+			"id": "IDE0061",
+			"title": "Use expression body for local functions",
+			"category": "Style",
+			"subcategory": "Language rules (expression-bodied members)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_expression_bodied_local_functions"
+			]
+		},
+		{
+			"id": "IDE0062",
+			"title": "Make local function static",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_static_local_function"
+			]
+		},
+		{
+			"id": "IDE0063",
+			"title": "Use simple `using` statement",
+			"category": "Style",
+			"subcategory": "Language rules (code block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_simple_using_statement"
+			]
+		},
+		{
+			"id": "IDE0064",
+			"title": "Make struct fields writable",
+			"category": "CodeQuality",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0065",
+			"title": "`using` directive placement",
+			"category": "Style",
+			"subcategory": "Language rules (`using` directive preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_using_directive_placement"
+			]
+		},
+		{
+			"id": "IDE0066",
+			"title": "Use switch expression",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_switch_expression"
+			]
+		},
+		{
+			"id": "IDE0070",
+			"title": "Use `System.HashCode.Combine`",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_prefer_system_hash_code"
+			]
+		},
+		{
+			"id": "IDE0071",
+			"title": "Simplify interpolation",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_simplified_interpolation"
+			]
+		},
+		{
+			"id": "IDE0072",
+			"title": "Add missing cases to switch expression",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0073",
+			"title": "Require file header",
+			"category": "Style",
+			"subcategory": "Language rules (`using` directive preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"file_header_template"
+			]
+		},
+		{
+			"id": "IDE0075",
+			"title": "Simplify conditional expression",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_simplified_boolean_expressions"
+			]
+		},
+		{
+			"id": "IDE0076",
+			"title": "Remove invalid global `SuppressMessageAttribute`",
+			"category": "CodeQuality",
+			"subcategory": "Miscellaneous rules",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0077",
+			"title": "Avoid legacy format target in global `SuppressMessageAttribute`",
+			"category": "CodeQuality",
+			"subcategory": "Miscellaneous rules",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0078",
+			"title": "Use pattern matching",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_pattern_matching"
+			]
+		},
+		{
+			"id": "IDE0260",
+			"title": "Use pattern matching",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_pattern_matching_over_as_with_null_check"
+			]
+		},
+		{
+			"id": "IDE0079",
+			"title": "Remove unnecessary suppression",
+			"category": "CodeQuality",
+			"subcategory": "Unnecessary code rules (suppression preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_remove_unnecessary_suppression_exclusions"
+			]
+		},
+		{
+			"id": "IDE0080",
+			"title": "Remove unnecessary suppression operator",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0081",
+			"title": "Remove `ByVal`",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0082",
+			"title": "Convert `typeof` to `nameof`",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0083",
+			"title": "Use pattern matching (`not` operator)",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_not_pattern"
+			]
+		},
+		{
+			"id": "IDE0084",
+			"title": "Use pattern matching (`IsNot` operator)",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"optionNames": [
+				"visual_basic_style_prefer_isnot_expression"
+			]
+		},
+		{
+			"id": "IDE0090",
+			"title": "Simplify `new` expression",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_implicit_object_creation_when_type_is_apparent"
+			]
+		},
+		{
+			"id": "IDE0100",
+			"title": "Remove unnecessary equality operator",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0110",
+			"title": "Remove unnecessary discard",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0120",
+			"title": "Simplify LINQ expression",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0121",
+			"title": "Simplify LINQ type check and cast",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0130",
+			"title": "Namespace does not match folder structure",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_namespace_match_folder"
+			]
+		},
+		{
+			"id": "IDE0140",
+			"title": "Simplify object creation",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"visualbasic"
+			],
+			"optionNames": [
+				"visual_basic_style_prefer_simplified_object_creation"
+			]
+		},
+		{
+			"id": "IDE0150",
+			"title": "Prefer `null` check over type check",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_null_check_over_type_check"
+			]
+		},
+		{
+			"id": "IDE0160",
+			"title": "Use block-scoped namespace",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_namespace_declarations"
+			]
+		},
+		{
+			"id": "IDE0161",
+			"title": "Use file-scoped namespace",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_namespace_declarations"
+			]
+		},
+		{
+			"id": "IDE0170",
+			"title": "Simplify property pattern",
+			"category": "Style",
+			"subcategory": "Language rules (pattern matching preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_extended_property_pattern"
+			]
+		},
+		{
+			"id": "IDE0180",
+			"title": "Use tuple to swap values",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_tuple_swap"
+			]
+		},
+		{
+			"id": "IDE0200",
+			"title": "Remove unnecessary lambda expression",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_method_group_conversion"
+			]
+		},
+		{
+			"id": "IDE0210",
+			"title": "Convert to top-level statements",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_top_level_statements"
+			]
+		},
+		{
+			"id": "IDE0211",
+			"title": "Convert to 'Program.Main' style program",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_top_level_statements"
+			]
+		},
+		{
+			"id": "IDE0220",
+			"title": "Add explicit cast",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_foreach_explicit_cast_in_source"
+			]
+		},
+		{
+			"id": "IDE0221",
+			"title": "Add explicit cast",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_non_hidden_explicit_cast_in_source"
+			]
+		},
+		{
+			"id": "IDE0230",
+			"title": "Use UTF-8 string literal",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_utf8_string_literals"
+			]
+		},
+		{
+			"id": "IDE0240",
+			"title": "Nullable directive is redundant",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0241",
+			"title": "Nullable directive is unnecessary",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0250",
+			"title": "Struct can be made 'readonly'",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_readonly_struct"
+			]
+		},
+		{
+			"id": "IDE0251",
+			"title": "Member can be made 'readonly'",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_readonly_struct_member"
+			]
+		},
+		{
+			"id": "IDE0280",
+			"title": "Use 'nameof'",
+			"category": "Style",
+			"subcategory": "Language rules (parameter preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0290",
+			"title": "Use primary constructor",
+			"category": "Style",
+			"subcategory": "Language rules (code block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_primary_constructors"
+			]
+		},
+		{
+			"id": "IDE0300",
+			"title": "Use collection expression for array",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0301",
+			"title": "Use collection expression for empty",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0302",
+			"title": "Use collection expression for stackalloc",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0303",
+			"title": "Use collection expression for Create",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0304",
+			"title": "Use collection expression for builder",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0305",
+			"title": "Use collection expression for fluent",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0306",
+			"title": "Use collection expression for new",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"dotnet_style_prefer_collection_expression"
+			]
+		},
+		{
+			"id": "IDE0320",
+			"title": "Make anonymous function static",
+			"category": "Style",
+			"subcategory": "Language rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_static_anonymous_function"
+			]
+		},
+		{
+			"id": "IDE0330",
+			"title": "Prefer 'System.Threading.Lock'",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_prefer_system_threading_lock"
+			]
+		},
+		{
+			"id": "IDE0340",
+			"title": "Use unbound generic type",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_unbound_generic_type_in_nameof"
+			]
+		},
+		{
+			"id": "IDE0350",
+			"title": "Use implicitly typed lambda",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_implicitly_typed_lambda_expression"
+			]
+		},
+		{
+			"id": "IDE0360",
+			"title": "Simplify property accessor",
+			"category": "Style",
+			"subcategory": "Language rules (expression-level preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_simple_property_accessors"
+			]
+		},
+		{
+			"id": "IDE0370",
+			"title": "Remove unnecessary suppression",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (suppression preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0380",
+			"title": "Remove unnecessary `unsafe` modifier",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0390",
+			"title": "Make method synchronous",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0391",
+			"title": "Make method synchronous",
+			"category": "Style",
+			"subcategory": "Unnecessary code rules (modifier preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE0410",
+			"title": "Use labeled jump statement",
+			"category": "Style",
+			"subcategory": "Language rules (code-block preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_prefer_labeled_jump_statements"
+			]
+		},
+		{
+			"id": "IDE1005",
+			"title": "Use conditional delegate call",
+			"category": "Style",
+			"subcategory": "Language rules (null-checking preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_conditional_delegate_call"
+			]
+		},
+		{
+			"id": "IDE1007",
+			"title": "The name does not exist in the current context",
+			"category": "Style",
+			"subcategory": "Language rules",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		},
+		{
+			"id": "IDE2000",
+			"title": "Avoid multiple blank lines",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_allow_multiple_blank_lines_experimental"
+			]
+		},
+		{
+			"id": "IDE2001",
+			"title": "Embedded statements must be on their own line",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_allow_embedded_statements_on_same_line_experimental"
+			]
+		},
+		{
+			"id": "IDE2002",
+			"title": "Consecutive braces must not have blank line between them",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_allow_blank_lines_between_consecutive_braces_experimental"
+			]
+		},
+		{
+			"id": "IDE2003",
+			"title": "Blank line required between block and subsequent statement",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp",
+				"visualbasic"
+			],
+			"optionNames": [
+				"dotnet_style_allow_statement_immediately_after_block_experimental"
+			]
+		},
+		{
+			"id": "IDE2004",
+			"title": "Blank line not allowed after constructor initializer colon",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental"
+			]
+		},
+		{
+			"id": "IDE2005",
+			"title": "Blank line not allowed after conditional expression token",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental"
+			]
+		},
+		{
+			"id": "IDE2006",
+			"title": "Blank line not allowed after arrow expression clause token",
+			"category": "Style",
+			"subcategory": "Language rules (new-line preferences)",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": [
+				"csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental"
+			]
+		},
+		{
+			"id": "IDE3000",
+			"title": "Implement with Copilot",
+			"category": "CodeQuality",
+			"subcategory": "Miscellaneous rules",
+			"languages": [
+				"csharp"
+			],
+			"optionNames": []
+		}
+	]
+}
