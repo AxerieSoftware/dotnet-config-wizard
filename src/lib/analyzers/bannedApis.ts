@@ -51,6 +51,11 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 		]
 	},
 	{
+		title: 'Synchronous form reads: use ReadFormAsync',
+		projectKinds: ['service'],
+		apis: [{ symbol: 'P:Microsoft.AspNetCore.Http.HttpRequest.Form', message: 'Use await Request.ReadFormAsync(); reading Form synchronously blocks a thread on the request body.' }]
+	},
+	{
 		title: 'Console output in libraries: use ILogger',
 		projectKinds: ['library'],
 		apis: [{ symbol: 'T:System.Console', message: 'Libraries log through ILogger instead of writing to the console.' }]

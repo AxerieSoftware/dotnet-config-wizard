@@ -1,0 +1,48 @@
+{
+	"id": "Microsoft.EntityFrameworkCore.Analyzers",
+	"version": "10.0.12",
+	"rules": [
+		{
+			"id": "EF1001",
+			"source": "Microsoft.EntityFrameworkCore.Analyzers",
+			"title": "Internal EF Core API usage.",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "EF1002",
+			"source": "Microsoft.EntityFrameworkCore.Analyzers",
+			"title": "Risk of vulnerability to SQL injection.",
+			"category": "Security",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "EF1003",
+			"source": "Microsoft.EntityFrameworkCore.Analyzers",
+			"title": "Risk of vulnerability to SQL injection.",
+			"category": "Security",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		}
+	]
+}

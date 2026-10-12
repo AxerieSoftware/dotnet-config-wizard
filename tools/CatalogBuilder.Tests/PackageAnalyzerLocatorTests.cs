@@ -18,11 +18,17 @@ public sealed class PackageAnalyzerLocatorTests
 	[TestMethod]
 	public void Find_UnversionedLayouts_ReadsRootLanguageNeutralAndCSharpFolders()
 	{
-		var packageDirectory = CreatePackage("analyzers/Root.dll", "analyzers/dotnet/Neutral.dll", "analyzers/dotnet/cs/CSharp.dll", "analyzers/dotnet/vb/VisualBasic.dll");
+		var packageDirectory = CreatePackage(
+			"analyzers/Root.dll",
+			"analyzers/cs/Threading.dll",
+			"analyzers/vb/ThreadingVisualBasic.dll",
+			"analyzers/dotnet/Neutral.dll",
+			"analyzers/dotnet/cs/CSharp.dll",
+			"analyzers/dotnet/vb/VisualBasic.dll");
 
 		var assemblies = PackageAnalyzerLocator.Find(packageDirectory, HostRoslynVersion);
 
-		CollectionAssert.AreEquivalent(new[] { "Root.dll", "Neutral.dll", "CSharp.dll" }, assemblies.Select(Path.GetFileName).ToList());
+		CollectionAssert.AreEquivalent(new[] { "Root.dll", "Threading.dll", "Neutral.dll", "CSharp.dll" }, assemblies.Select(Path.GetFileName).ToList());
 	}
 
 	private static string CreatePackage(params string[] relativePaths)

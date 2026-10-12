@@ -1,0 +1,115 @@
+name: Refresh catalog
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-catalog
+  cancel-in-progress: false
+
+# Rebuilds catalog/generated from the latest SDKs, packages and dotnet/docs, and opens or updates one pull request.
+# Pull requests opened with GITHUB_TOKEN don't trigger other workflows, so this job runs the checks itself and labels the
+# pull request needs-attention when they fail, for example after an SDK band is replaced.
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      BRANCH: catalog-refresh
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Cache SDKs, packages and the docs clone
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache
+          key: catalog-cache-${{ github.run_id }}
+          restore-keys: catalog-cache-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild the catalog
+        run: node scripts/buildCatalog.ts
+
+      - name: Regenerate this repo's own config files
+        id: dogfood
+        continue-on-error: true
+        run: node scripts/renderConfig.ts config/dogfood.json
+
+      - name: Typecheck, lint, find unused code and run unit tests
+        id: checks
+        continue-on-error: true
+        run: npm run check
+
+      - name: Build sample projects with generated config
+        id: validate-output
+        continue-on-error: true
+        run: node scripts/validateOutput.ts
+
+      - name: Open or update the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOGFOOD_OUTCOME: ${{ steps.dogfood.outcome }}
+          CHECKS_OUTCOME: ${{ steps.checks.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate-output.outcome }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "The catalog is unchanged."
+            exit 0
+          fi
+
+          body="$RUNNER_TEMP/body.md"
+          {
+            node scripts/summarizeCatalog.ts
+            echo
+            echo "## Checks"
+            echo
+            echo "- Regenerating config/dogfood.json files: $DOGFOOD_OUTCOME"
+            echo "- npm run check: $CHECKS_OUTCOME"
+            echo "- validate-output: $VALIDATE_OUTCOME"
+            echo
+            echo "Run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} has the logs."
+          } > "$body"
+
+          labels=catalog
+          if [ "$DOGFOOD_OUTCOME" != success ] || [ "$CHECKS_OUTCOME" != success ] || [ "$VALIDATE_OUTCOME" != success ]; then labels="$labels,needs-attention"; fi
+          if jq -e 'any(.[]; .isStale or .isDeprecated)' catalog/generated/packages.json > /dev/null; then labels="$labels,stale-package"; fi
+          gh label create catalog --color 0e8a16 --description "Weekly catalog refresh" --force
+          gh label create needs-attention --color d93f0b --description "Checks failed on the refresh" --force
+          gh label create stale-package --color fbca04 --description "A package fails the maintenance gate" --force
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --create "$BRANCH"
+          git add --all
+          git commit --quiet --message "Refresh catalog"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$BRANCH"
+
+          if gh pr view "$BRANCH" --json state --jq '.state' 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$BRANCH" --body-file "$body" --remove-label needs-attention,stale-package
+            gh pr edit "$BRANCH" --add-label "$labels"
+          else
+            gh pr create --head "$BRANCH" --title "Refresh catalog" --body-file "$body" --label "$labels"
+          fi

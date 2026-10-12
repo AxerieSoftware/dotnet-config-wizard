@@ -2,6 +2,7 @@
 	{
 		"id": "SonarAnalyzer.CSharp",
 		"title": "SonarAnalyzer",
+		"includedWith": null,
 		"version": "10.35.0.4138",
 		"latestVersion": "10.35.0.4138",
 		"latestPublished": "2026-09-28",
@@ -12,6 +13,7 @@
 	{
 		"id": "Roslynator.Analyzers",
 		"title": "Roslynator",
+		"includedWith": null,
 		"version": "5.0.1",
 		"latestVersion": "5.0.1",
 		"latestPublished": "2026-10-04",
@@ -22,6 +24,7 @@
 	{
 		"id": "Roslynator.Formatting.Analyzers",
 		"title": "Roslynator formatting",
+		"includedWith": null,
 		"version": "5.0.1",
 		"latestVersion": "5.0.1",
 		"latestPublished": "2026-10-04",
@@ -32,6 +35,7 @@
 	{
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
+		"includedWith": null,
 		"version": "3.0.299",
 		"latestVersion": "3.0.299",
 		"latestPublished": "2026-10-11",
@@ -42,6 +46,7 @@
 	{
 		"id": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
 		"title": "Banned API analyzers",
+		"includedWith": null,
 		"version": "5.6.0",
 		"latestVersion": "5.6.0",
 		"latestPublished": "2026-07-02",
@@ -52,11 +57,78 @@
 	{
 		"id": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
 		"title": "Public API analyzers",
+		"includedWith": null,
 		"version": "5.6.0",
 		"latestVersion": "5.11.0-1.26425.128",
 		"latestPublished": "2026-09-08",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 23
+	},
+	{
+		"id": "Microsoft.VisualStudio.Threading.Analyzers",
+		"title": "Threading analyzers",
+		"includedWith": null,
+		"version": "18.7.23",
+		"latestVersion": "18.7.23",
+		"latestPublished": "2026-06-22",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 24
+	},
+	{
+		"id": "ErrorProne.NET.CoreAnalyzers",
+		"title": "ErrorProne.NET",
+		"includedWith": null,
+		"version": "0.9.0-beta.4",
+		"latestVersion": "0.9.0-beta.4",
+		"latestPublished": "2026-06-05",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 34
+	},
+	{
+		"id": "NUnit.Analyzers",
+		"title": "NUnit analyzers",
+		"includedWith": null,
+		"version": "4.15.0",
+		"latestVersion": "4.15.0",
+		"latestPublished": "2026-09-12",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 99
+	},
+	{
+		"id": "xunit.analyzers",
+		"title": "xUnit analyzers",
+		"includedWith": "xunit.v3",
+		"version": "2.2.0",
+		"latestVersion": "2.2.0",
+		"latestPublished": "2026-10-09",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 114
+	},
+	{
+		"id": "MSTest.Analyzers",
+		"title": "MSTest analyzers",
+		"includedWith": "MSTest.Sdk and MSTest",
+		"version": "4.5.1",
+		"latestVersion": "4.5.1",
+		"latestPublished": "2026-10-07",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 80
+	},
+	{
+		"id": "Microsoft.EntityFrameworkCore.Analyzers",
+		"title": "EF Core analyzers",
+		"includedWith": "Microsoft.EntityFrameworkCore",
+		"version": "10.0.12",
+		"latestVersion": "11.0.0-rc.1.26425.128",
+		"latestPublished": "2026-09-08",
+		"isDeprecated": false,
+		"isStale": false,
+		"ruleCount": 3
 	}
 ]

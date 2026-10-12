@@ -82,6 +82,12 @@ describe('analyzer packages', () => {
 		expect(content).toContain('<GlobalPackageReference Include="Roslynator.Analyzers"');
 		expect(content).not.toContain('Include="Meziantou.Analyzer"');
 	});
+
+	it('never references analyzers that come with another package', () => {
+		const config = toConfig({ path: '', build: { ManagePackageVersionsCentrally: 'true' } }, { path: 'tests', packages: ['xunit.analyzers', 'MSTest.Analyzers'] });
+
+		expect(toBuildFiles(config, catalog, 'none').files.map(file => file.path)).not.toContain('tests/Directory.Packages.props');
+	});
 });
 
 describe('repo-level files', () => {

@@ -90,9 +90,12 @@ function toPackageItems(config: WizardConfig, scope: ScopeConfig, catalog: Catal
 	if (scope.packages === undefined) return [];
 
 	const parent = getParentScope(config, scope);
-	const inherited = parent ? resolveScope(config, parent).packages : [];
-	const removed = inherited.filter(packageId => !scope.packages?.includes(packageId));
-	const added = scope.packages.filter(packageId => !inherited.includes(packageId));
+	// Analyzers that come with another package, such as xunit.v3, are already referenced through it.
+	const isReferenced = (packageId: string) => !catalog.packages.get(packageId)?.includedWith;
+	const inherited = (parent ? resolveScope(config, parent).packages : []).filter(isReferenced);
+	const packageIds = scope.packages.filter(isReferenced);
+	const removed = inherited.filter(packageId => !packageIds.includes(packageId));
+	const added = packageIds.filter(packageId => !inherited.includes(packageId));
 	// GlobalPackageReference already keeps analyzers out of consumers; a PackageReference needs PrivateAssets for that.
 	const privateAssets: Record<string, string> = itemType === 'PackageReference' ? { PrivateAssets: 'all' } : {};
 

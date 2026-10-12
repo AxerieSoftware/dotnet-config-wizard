@@ -29,6 +29,8 @@ export type RuleParameter = { key: string; description: string; type: string; de
 export type PackageEntry = {
 	id: string;
 	title: string;
+	/** The package or SDK that already brings these analyzers in, such as xunit.v3; the wizard never references them itself. */
+	includedWith: string | null;
 	version: string;
 	latestVersion: string;
 	latestPublished: string;

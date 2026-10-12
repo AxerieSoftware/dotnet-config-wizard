@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text.RegularExpressions;
 using CatalogBuilder.Models;
 
@@ -82,11 +84,37 @@ internal static partial class AnalyzerReader
 					notes.Add(message);
 			}
 
-			if (!exception.LoaderExceptions.All(loaderException => loaderException is TypeLoadException))
-				failures.Add($"Some types in '{assembly.GetName().Name}' couldn't be loaded: {exception.LoaderExceptions.FirstOrDefault(loaderException => loaderException is not TypeLoadException)?.Message}");
+			var loadedTypes = exception.Types.OfType<Type>().ToList();
+			var otherException = exception.LoaderExceptions.FirstOrDefault(loaderException => loaderException is not TypeLoadException);
+			if (otherException is not null)
+			{
+				// A missing dependency doesn't name the types it broke, so compare analyzer-like type names with what loaded.
+				// ASP.NET Core's editor features, for example, need a Roslyn assembly only Visual Studio ships.
+				var missingAnalyzerTypes = GetDefinedTypeNames(assembly.Location)
+					.Where(name => AnalyzerTypeNamePattern().IsMatch(name))
+					.Except(loadedTypes.Select(type => type.FullName!), StringComparer.Ordinal)
+					.ToList();
+				var message = $"Some types in '{assembly.GetName().Name}' couldn't be loaded: {otherException.Message}";
+				if (missingAnalyzerTypes.Count > 0)
+					failures.Add($"{message} Analyzer types affected: {string.Join(", ", missingAnalyzerTypes)}.");
+				else
+					notes.Add(message);
+			}
 
-			return exception.Types.OfType<Type>();
+			return loadedTypes;
 		}
+	}
+
+	private static IEnumerable<string> GetDefinedTypeNames(string assemblyPath)
+	{
+		using var stream = File.OpenRead(assemblyPath);
+		using var peReader = new PEReader(stream);
+		var metadataReader = peReader.GetMetadataReader();
+		return metadataReader.TypeDefinitions
+			.Select(metadataReader.GetTypeDefinition)
+			.Select(type => (Namespace: metadataReader.GetString(type.Namespace), Name: metadataReader.GetString(type.Name)))
+			.Select(type => type.Namespace.Length == 0 ? type.Name : $"{type.Namespace}.{type.Name}")
+			.ToList();
 	}
 
 	private static IEnumerable<string> GetFixableIds(Type fixProviderType, List<string> failures)
@@ -191,7 +219,7 @@ internal static partial class AnalyzerReader
 		return property.GetValue(instance)!;
 	}
 
-	[GeneratedRegex("^[A-Z]+[0-9]+$")]
+	[GeneratedRegex("^[A-Za-z]+[0-9]+$")]
 	private static partial Regex RuleIdPattern();
 
 	[GeneratedRegex("(Analyzer|CodeFixProvider|FixProvider)$")]

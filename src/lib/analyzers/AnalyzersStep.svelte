@@ -78,7 +78,10 @@
 
 <section class="card">
 	<h2>Analyzer packages</h2>
-	<p class="note">The SDK's own analyzers always run. Packages are referenced from every project in this folder; their rules only apply where they're referenced.</p>
+	<p class="note">
+		The SDK's own analyzers always run, including ASP.NET Core's in web projects. Packages are referenced from every project in this folder; their rules only apply where they're referenced. Analyzers
+		that come with a test framework or EF Core aren't referenced again; selecting them lets you configure their rules.
+	</p>
 	{#if !wizard.isRootActive}
 		<label class="checkbox">
 			<input type="checkbox" checked={isInheritingPackages} onchange={event => wizard.setInheritsPackages(event.currentTarget.checked)}>
@@ -97,6 +100,9 @@
 				<strong>{analyzerPackage.title}</strong>
 				<code>{analyzerPackage.id} {analyzerPackage.version}</code>
 				<span class="note">{analyzerPackage.ruleCount} rules, last released {analyzerPackage.latestPublished}</span>
+				{#if analyzerPackage.includedWith}
+					<span class="badge">Comes with {analyzerPackage.includedWith}</span>
+				{/if}
 				{#if analyzerPackage.isStale}
 					<span class="badge warning-badge">No release in 18 months</span>
 				{/if}

@@ -10,9 +10,9 @@ The catalog covers the latest SDK of every .NET channel from 10.0 on that isn't 
 
 | Output | Source |
 | --- | --- |
-| `sdk-<band>.json` `rules` | Every C# `DiagnosticAnalyzer` in the SDK's code-style and NetAnalyzers assemblies and in the band's `Microsoft.NET.ILLink.Tasks` package (IL2xxx/IL3xxx), read through `SupportedDiagnostics`, plus every compiler warning (CSxxxx). |
+| `sdk-<band>.json` `rules` | Every C# `DiagnosticAnalyzer` in the SDK's code-style and NetAnalyzers assemblies, in the band's `Microsoft.NET.ILLink.Tasks` package (IL2xxx/IL3xxx) and in its ASP.NET Core targeting pack (ASPxxxx, BLxxxx), read through `SupportedDiagnostics`, plus every compiler warning (CSxxxx). |
 | `sdk-<band>.json` `analysisLevels` | The SDK's `analysislevel_<level>_<mode>.globalconfig` files: level, then mode, then rule ID to severity. |
-| `package-<id>.json` | The rules of each analyzer package listed in `catalog/packages.json`, at its latest stable version. |
+| `package-<id>.json` | The rules of each analyzer package listed in `catalog/packages.json`, at its newest stable version, or its newest prerelease when no stable release is under 18 months old (ErrorProne.NET only ships prereleases). |
 | `packages.json` | Each package's version, newest release (prereleases included), publish date and deprecation, for the maintenance gate. |
 | `bands.json` | `releases-index.json` support details for each band the run read. |
 | `style-options.json` | The property tables in dotnet/docs `docs/fundamentals/code-analysis/style-rules`, including `includes/`, which rule pages pull in with `[!INCLUDE]`. |
@@ -24,7 +24,21 @@ Analyzers are loaded with the Roslyn build that ships in the same SDK, through r
 - **Sonar descriptions** aren't copied, because Sonar's license doesn't allow republishing them; rules link to rules.sonarsource.com instead.
 - **Compiler warnings** come from Roslyn's internal `ErrorCode` enum (`WRN_*`), with titles from its resources and levels from `ErrorFacts.GetWarningLevel`. Levels 1 to 4 are always on; 5 and up are warning waves. Docs links come from the `f1_keywords` of the dotnet/docs compiler-message pages.
 - **Type-load failures** in packages are usually Roslyn helper types embedded for another Roslyn version. They're notes unless the type looks like an analyzer or code fix, which fails the run.
-- **Package folder layouts** vary: `analyzers/` (Sonar), `analyzers/dotnet/` (PublicApi), `analyzers/dotnet/cs/`, and Roslyn-versioned `analyzers/dotnet/roslynX.Y/cs/` (Roslynator, Meziantou), where the newest version the host Roslyn can load wins.
+- **Missing dependencies** don't name the types they break, so CatalogBuilder compares the analyzer-like type names in the assembly's metadata with the types that loaded. ASP.NET Core's editor features, for example, need `Microsoft.CodeAnalysis.ExternalAccess.AspNetCore`, which only Visual Studio ships; every one of its analyzers still loads.
+- **Rule IDs** can be mixed case, such as `xUnit1000` and `NUnit1001`.
+- **Package folder layouts** vary: `analyzers/` (Sonar), `analyzers/cs/` (VS Threading), `analyzers/dotnet/` (PublicApi), `analyzers/dotnet/cs/`, and Roslyn-versioned `analyzers/dotnet/roslynX.Y/cs/` (Roslynator, Meziantou), where the newest version the host Roslyn can load wins.
+
+## Packages that come with another package
+
+Some analyzers arrive through the package that needs them: `xunit.analyzers` through xunit.v3, `MSTest.Analyzers` through MSTest.Sdk and MSTest, and `Microsoft.EntityFrameworkCore.Analyzers` through Microsoft.EntityFrameworkCore. Their `catalog/packages.json` entry names that package in `includedWith`. The wizard lets you select them to configure their rules but never references them, so it can't pin a version that conflicts with the framework's own. ASP.NET Core's analyzers ship in the SDK's targeting pack and run in every web project, so they're part of each band's rules.
+
+## Weekly refresh
+
+`.github/workflows/refresh-catalog.yml` runs every Monday and on demand. It rebuilds the catalog, regenerates this repo's own config files, runs the checks and validate-output, and opens or updates one `catalog-refresh` pull request. `scripts/summarizeCatalog.ts` writes its description: new and removed rules by source, SDK and package version changes, and packages that fail the maintenance gate (no release in 18 months, or deprecated).
+
+- Labels: `catalog` always, `stale-package` when a package fails the gate, and `needs-attention` when a check fails. A stale package never fails the run, so one package can't hold back the rest.
+- Pull requests opened with `GITHUB_TOKEN` don't trigger other workflows, which is why the job runs the checks itself. The repo setting "Allow GitHub Actions to create and approve pull requests" must be on.
+- When a new SDK band replaces one, `config/dogfood.json` and the tests that name the old band need updating by hand; the pull request is labeled `needs-attention` until they are.
 
 ## SDK layout
 

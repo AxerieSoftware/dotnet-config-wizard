@@ -6,10 +6,16 @@ import type { Catalog, CatalogRule } from '../catalog/catalog.ts';
  * rule IDs or a whole package, for Roslynator's formatting rules that all duplicate IDE0055. A unit test checks every ID exists.
  */
 export const OVERLAPS: readonly { concern: string; ruleIds: string[]; packageIds?: string[] }[] = [
-	{ concern: 'ConfigureAwait', ruleIds: ['CA2007', 'MA0004', 'RCS1090'] },
+	{ concern: 'ConfigureAwait', ruleIds: ['CA2007', 'MA0004', 'RCS1090', 'VSTHRD111', 'EPC15'] },
 	{ concern: 'Forward CancellationToken', ruleIds: ['CA2016', 'MA0040'] },
-	{ concern: 'Blocking calls in async methods', ruleIds: ['CA1849', 'MA0042', 'S6966'] },
-	{ concern: 'async void methods', ruleIds: ['MA0155', 'S3168'] },
+	{ concern: 'Blocking calls in async methods', ruleIds: ['CA1849', 'MA0042', 'S6966', 'VSTHRD103', 'EPC35'] },
+	{ concern: 'async void methods', ruleIds: ['MA0155', 'S3168', 'VSTHRD100', 'EPC27'] },
+	{ concern: 'async void delegates', ruleIds: ['MA0147', 'VSTHRD101', 'EPC17'] },
+	{ concern: 'Unobserved async results', ruleIds: ['MA0134', 'VSTHRD110'] },
+	{ concern: 'Returning a null Task', ruleIds: ['MA0022', 'VSTHRD114', 'EPC31'] },
+	{ concern: 'Tasks in using statements', ruleIds: ['VSTHRD107', 'EPC26'] },
+	{ concern: 'Rethrowing exceptions', ruleIds: ['CA2200', 'S3445', 'ERP021'] },
+	{ concern: 'Format string arguments', ruleIds: ['CA2241', 'EPC41'] },
 	{ concern: 'Braces', ruleIds: ['IDE0011', 'RCS1001', 'RCS1003', 'RCS1007', 'S121'] },
 	{ concern: 'StringComparison', ruleIds: ['CA1307', 'CA1310', 'MA0001'] },
 	{ concern: 'Unused private members', ruleIds: ['IDE0051', 'IDE0052', 'S1144', 'RCS1213'] },
@@ -22,7 +28,7 @@ export const OVERLAPS: readonly { concern: string; ruleIds: string[]; packageIds
 	{ concern: 'TODO comments', ruleIds: ['MA0026', 'S1135'] },
 	{ concern: 'Redundant parentheses', ruleIds: ['IDE0047', 'RCS1032', 'S1110'] },
 	{ concern: 'Null propagation', ruleIds: ['IDE0031', 'RCS1146'] },
-	{ concern: 'Async suffix', ruleIds: ['MA0137', 'RCS1046'] },
+	{ concern: 'Async suffix', ruleIds: ['MA0137', 'RCS1046', 'VSTHRD200'] },
 	{ concern: 'Catching general exceptions', ruleIds: ['CA1031', 'S2221'] },
 	{ concern: 'Argument exception parameter names', ruleIds: ['CA2208', 'S3928'] },
 	{ concern: 'Redundant default initialization', ruleIds: ['CA1805', 'S3052', 'RCS1129'] },
@@ -37,7 +43,9 @@ const OWNER_ORDER = [
 	'Meziantou.Analyzer',
 	'SonarAnalyzer.CSharp',
 	'Roslynator.Analyzers',
-	'Roslynator.Formatting.Analyzers'
+	'Roslynator.Formatting.Analyzers',
+	'Microsoft.VisualStudio.Threading.Analyzers',
+	'ErrorProne.NET.CoreAnalyzers'
 ];
 
 export type ActiveOverlap = { concern: string; owner: CatalogRule; duplicates: CatalogRule[] };

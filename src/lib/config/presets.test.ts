@@ -90,6 +90,15 @@ describe('C2: performance', () => {
 		expect(render('library').file('tests/.editorconfig')).toContain('dotnet_diagnostic.CA2007.severity = none');
 	});
 
+	it('adds only the general async rules of the threading analyzers to Service', () => {
+		const editorConfig = render('service').file('.editorconfig');
+
+		expect(render('service').file('Directory.Packages.props')).toContain('Include="Microsoft.VisualStudio.Threading.Analyzers"');
+		expect(editorConfig).toContain('dotnet_diagnostic.VSTHRD010.severity = none');
+		expect(editorConfig).toContain('dotnet_diagnostic.VSTHRD100.severity = none');
+		expect(editorConfig).not.toContain('dotnet_diagnostic.VSTHRD002.severity');
+	});
+
 	it("turns off Sonar's loop-to-LINQ rule in Strict", () => {
 		expect(render('strict').file('.editorconfig')).toContain('dotnet_diagnostic.S3267.severity = none');
 	});

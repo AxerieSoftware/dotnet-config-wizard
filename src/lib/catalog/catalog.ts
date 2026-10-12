@@ -10,7 +10,8 @@ export const SDK_SOURCE_TITLES: Readonly<Record<string, string>> = {
 	'Microsoft.CodeAnalysis.CSharp': 'C# compiler',
 	[CODE_STYLE_SOURCE]: 'Code style',
 	'Microsoft.CodeAnalysis.NetAnalyzers': '.NET analyzers',
-	'Microsoft.NET.ILLink.Tasks': 'Trim and AOT analyzers'
+	'Microsoft.NET.ILLink.Tasks': 'Trim and AOT analyzers',
+	'Microsoft.AspNetCore.App.Ref': 'ASP.NET Core analyzers'
 };
 
 export type CatalogRule = {

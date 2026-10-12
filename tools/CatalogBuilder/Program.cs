@@ -7,6 +7,7 @@ using CatalogBuilder;
 using CatalogBuilder.Models;
 
 const string ILLinkPackageId = "Microsoft.NET.ILLink.Tasks";
+const string AspNetCorePackId = "Microsoft.AspNetCore.App.Ref";
 const int StaleAfterMonths = 18;
 
 var arguments = ParseArguments(args);
@@ -37,12 +38,14 @@ foreach (var layout in layouts)
 	var channel = channels[layout.Channel];
 	var ilLinkDirectory = await nuGetClient.ExtractAsync(ILLinkPackageId, channel.LatestRuntime);
 	var ilLinkAssemblies = PackageAnalyzerLocator.Find(ilLinkDirectory, GetRoslynVersion(layout));
+	var aspNetCoreAssemblies = layout.GetAspNetCoreAnalyzerAssemblies(channel.LatestRuntime);
 
 	var results = new[]
 	{
 		AnalyzerReader.Read("Microsoft.CodeAnalysis.CSharp.CodeStyle", layout.CodeStyleAssemblies, layout.ProbeDirectories),
 		AnalyzerReader.Read("Microsoft.CodeAnalysis.NetAnalyzers", layout.NetAnalyzersAssemblies, layout.ProbeDirectories),
-		AnalyzerReader.Read(ILLinkPackageId, ilLinkAssemblies, [Path.GetDirectoryName(ilLinkAssemblies[0])!, .. layout.ProbeDirectories])
+		AnalyzerReader.Read(ILLinkPackageId, ilLinkAssemblies, [Path.GetDirectoryName(ilLinkAssemblies[0])!, .. layout.ProbeDirectories]),
+		AnalyzerReader.Read(AspNetCorePackId, aspNetCoreAssemblies, [Path.GetDirectoryName(aspNetCoreAssemblies[0])!, .. layout.ProbeDirectories])
 	};
 	var rules = results
 		.SelectMany(result => result.Rules)
@@ -65,30 +68,34 @@ var hostLayout = layouts
 	.MaxBy(layout => Version.Parse(layout.Channel))!;
 var trackedPackages = JsonSerializer.Deserialize<List<TrackedPackage>>(await File.ReadAllTextAsync(packagesPath), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
 var packageEntries = new List<PackageEntry>();
+var staleBefore = DateTimeOffset.UtcNow.AddMonths(-StaleAfterMonths);
 foreach (var trackedPackage in trackedPackages)
 {
 	var versions = await nuGetClient.GetVersionsAsync(trackedPackage.Id);
-	var stableVersion = versions.Last(version => !version.Contains('-', StringComparison.Ordinal));
 	var latestInfo = await nuGetClient.GetVersionInfoAsync(trackedPackage.Id, versions[^1]);
-	var stableInfo = latestInfo.Version == stableVersion ? latestInfo : await nuGetClient.GetVersionInfoAsync(trackedPackage.Id, stableVersion);
+	var stableVersion = versions.LastOrDefault(version => !version.Contains('-', StringComparison.Ordinal));
+	var stableInfo = stableVersion is null || stableVersion == latestInfo.Version ? latestInfo : await nuGetClient.GetVersionInfoAsync(trackedPackage.Id, stableVersion);
+	// A package that only ships prereleases, such as ErrorProne.NET, is read at its newest prerelease.
+	var catalogedInfo = stableInfo.Published < staleBefore ? latestInfo : stableInfo;
+	var catalogedVersion = catalogedInfo.Version;
 
-	var packageDirectory = await nuGetClient.ExtractAsync(trackedPackage.Id, stableVersion);
+	var packageDirectory = await nuGetClient.ExtractAsync(trackedPackage.Id, catalogedVersion);
 	var assemblies = PackageAnalyzerLocator.Find(packageDirectory, GetRoslynVersion(hostLayout));
 	var probeDirectories = assemblies.Select(Path.GetDirectoryName).Distinct().Concat(hostLayout.ProbeDirectories).ToList();
 	var result = AnalyzerReader.Read(trackedPackage.Id, assemblies, probeDirectories!, trackedPackage.RepublishDescriptions);
-	failures.AddRange(result.Failures.Select(failure => $"{trackedPackage.Id} {stableVersion}: {failure}"));
-	notes.AddRange(result.Notes.Select(note => $"{trackedPackage.Id} {stableVersion}: {note}"));
+	failures.AddRange(result.Failures.Select(failure => $"{trackedPackage.Id} {catalogedVersion}: {failure}"));
+	notes.AddRange(result.Notes.Select(note => $"{trackedPackage.Id} {catalogedVersion}: {note}"));
 
 	catalogedRuleIds.UnionWith(result.Rules.Select(rule => rule.Id));
-	await WriteJsonAsync(Path.Combine(outputDirectory, $"package-{trackedPackage.Id.ToLowerInvariant()}.json"), new PackageCatalog(trackedPackage.Id, stableVersion, result.Rules));
+	await WriteJsonAsync(Path.Combine(outputDirectory, $"package-{trackedPackage.Id.ToLowerInvariant()}.json"), new PackageCatalog(trackedPackage.Id, catalogedVersion, result.Rules));
 
-	var isStale = latestInfo.Published < DateTimeOffset.UtcNow.AddMonths(-StaleAfterMonths);
-	var isDeprecated = stableInfo.IsDeprecated || latestInfo.IsDeprecated;
-	packageEntries.Add(new PackageEntry(trackedPackage.Id, trackedPackage.Title, stableVersion, latestInfo.Version, latestInfo.Published.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), isDeprecated, isStale, result.Rules.Count));
+	var isStale = latestInfo.Published < staleBefore;
+	var isDeprecated = catalogedInfo.IsDeprecated || latestInfo.IsDeprecated;
+	packageEntries.Add(new PackageEntry(trackedPackage.Id, trackedPackage.Title, trackedPackage.IncludedWith, catalogedVersion, latestInfo.Version, latestInfo.Published.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), isDeprecated, isStale, result.Rules.Count));
 	if (isStale || isDeprecated)
 		Console.Error.WriteLine($"{trackedPackage.Id} fails the maintenance gate: last published {latestInfo.Published:yyyy-MM-dd}{(isDeprecated ? ", deprecated" : "")}.");
 
-	Console.WriteLine($"Wrote {result.Rules.Count} rules from {trackedPackage.Id} {stableVersion}.");
+	Console.WriteLine($"Wrote {result.Rules.Count} rules from {trackedPackage.Id} {catalogedVersion}.");
 }
 
 var styleRulesDirectory = Path.Combine(docsDirectory, "docs", "fundamentals", "code-analysis", "style-rules");

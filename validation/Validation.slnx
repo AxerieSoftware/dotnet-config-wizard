@@ -2,6 +2,7 @@
 	<Folder Name="/src/">
 		<Project Path="src/Sample.App/Sample.App.csproj" />
 		<Project Path="src/Sample.Library/Sample.Library.csproj" />
+		<Project Path="src/Sample.Web/Sample.Web.csproj" />
 	</Folder>
 	<Folder Name="/tests/">
 		<Project Path="tests/Sample.MSTestTests/Sample.MSTestTests.csproj" />

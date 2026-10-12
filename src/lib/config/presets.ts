@@ -20,7 +20,7 @@ export const PRESETS: Readonly<Record<PresetId, { title: string; description: st
 	recommended: { title: 'Recommended', description: 'Microsoft conventions enforced on build, with performance, security and supply-chain checks. Warnings fail CI builds.' },
 	strict: { title: 'Strict', description: 'Recommended with Sonar, performance and security as errors, and warnings failing every build.' },
 	library: { title: 'Library author', description: 'Recommended for packages: ConfigureAwait, AOT compatibility, public API tracking and package metadata.' },
-	service: { title: 'Service', description: 'Recommended for apps and services, with ASP.NET Core-friendly banned APIs.' }
+	service: { title: 'Service', description: 'Recommended for apps and services, with ASP.NET Core-friendly banned APIs and the general async rules of the threading analyzers.' }
 };
 
 const FORMATTING: Record<string, Record<string, string>> = {
@@ -136,6 +136,13 @@ const MEZIANTOU = 'Meziantou.Analyzer';
 const BANNED_API = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
 const SONAR = 'SonarAnalyzer.CSharp';
 const PUBLIC_API = 'Microsoft.CodeAnalysis.PublicApiAnalyzers';
+const VS_THREADING = 'Microsoft.VisualStudio.Threading.Analyzers';
+
+// The threading analyzers' JoinableTaskFactory and main-thread rules only suit Visual Studio extensions and UI apps, and
+// VSTHRD200's Async suffix is naming rather than async correctness.
+const VS_THREADING_OFF: Record<string, Severity> = Object.fromEntries(
+	['VSTHRD001', 'VSTHRD003', 'VSTHRD004', 'VSTHRD010', 'VSTHRD011', 'VSTHRD012', 'VSTHRD108', 'VSTHRD109', 'VSTHRD115', 'VSTHRD200'].map(id => [id, 'none'])
+);
 
 /**
  * Builds a preset for an SDK band. Rules the band doesn't have are left out, and any concern that two active analyzers
@@ -173,6 +180,11 @@ export function toPresetConfig(presetId: PresetId, catalog: Catalog): WizardConf
 		root.build.TreatWarningsAsErrors = 'true';
 		delete root.ciBuild.TreatWarningsAsErrors;
 		root.packages = [...root.packages, SONAR];
+	}
+
+	if (presetId === 'service') {
+		root.severities = { ...root.severities, ...VS_THREADING_OFF };
+		root.packages = [...root.packages, VS_THREADING];
 	}
 
 	if (presetId === 'library') {

@@ -5,7 +5,7 @@ namespace CatalogBuilder;
 /// <summary>
 /// Finds the C# analyzer assemblies in an extracted package. Packages put them in <c>analyzers/dotnet/cs</c>, in
 /// Roslyn-versioned folders such as <c>analyzers/dotnet/roslyn4.14/cs</c>, in language-neutral <c>analyzers/dotnet</c>,
-/// or at the <c>analyzers</c> root. Of versioned folders, the newest one the host's Roslyn can load wins.
+/// in <c>analyzers/cs</c>, or at the <c>analyzers</c> root. Of versioned folders, the newest one the host's Roslyn can load wins.
 /// </summary>
 internal static partial class PackageAnalyzerLocator
 {
@@ -18,7 +18,7 @@ internal static partial class PackageAnalyzerLocator
 		var dotnetDirectory = Path.Combine(analyzersDirectory, "dotnet");
 		var versionedDirectory = FindNewestLoadableRoslynDirectory(dotnetDirectory, hostRoslynVersion);
 		string[] candidateDirectories = versionedDirectory is null
-			? [analyzersDirectory, dotnetDirectory, Path.Combine(dotnetDirectory, "cs")]
+			? [analyzersDirectory, Path.Combine(analyzersDirectory, "cs"), dotnetDirectory, Path.Combine(dotnetDirectory, "cs")]
 			: [versionedDirectory, Path.Combine(versionedDirectory, "cs")];
 
 		return candidateDirectories

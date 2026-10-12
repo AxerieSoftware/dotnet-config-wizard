@@ -85,8 +85,9 @@ function validate(validationCase: ValidationCase, channel: string): string[] {
 	if (compilerRunCount !== projectCount) problems.push(`The compiler ran for ${compilerRunCount} of ${projectCount} projects; see ${join(workingDirectory, BUILD_LOG)}.`);
 
 	// A package that fails to load reports nothing, so check every compiler run was handed each package's analyzers.
+	// Analyzers that come with a framework package, such as xunit.v3, only load in projects that use it.
 	const compilerRuns = buildLog.split('\n').filter(line => line.match(COMPILER_RUN) !== null);
-	for (const packageId of packageIds) {
+	for (const packageId of packageIds.filter(id => !catalog.packages.get(id)?.includedWith)) {
 		const loadedCount = compilerRuns.filter(line => line.toLowerCase().includes(`/${packageId.toLowerCase()}/`)).length;
 		if (loadedCount !== projectCount) problems.push(`${packageId} analyzers were passed to ${loadedCount} of ${projectCount} compiler runs.`);
 	}
