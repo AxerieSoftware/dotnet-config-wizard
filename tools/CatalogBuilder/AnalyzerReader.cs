@@ -105,7 +105,7 @@ internal static partial class AnalyzerReader
 		}
 	}
 
-	private static IEnumerable<string> GetDefinedTypeNames(string assemblyPath)
+	private static List<string> GetDefinedTypeNames(string assemblyPath)
 	{
 		using var stream = File.OpenRead(assemblyPath);
 		using var peReader = new PEReader(stream);

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, type Page, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
+import { openStep } from './openStep.ts';
 
 /** Picks an item from the repo root's right-click menu in the file tree. */
 async function chooseFromRootMenu(page: Page, item: string): Promise<void> {
@@ -39,12 +40,12 @@ test('a formatting choice shows in the live preview', async ({ page }) => {
 
 test('code-style choices carry through to the downloaded zip', async ({ page }) => {
 	await page.goto('/');
-	await page.getByRole('link', { name: 'Start', exact: true }).click();
-	await page.getByRole('link', { name: 'Code style' }).first().click();
+	await openStep(page, 'Start');
+	await openStep(page, 'Code style');
 
 	await page.getByRole('combobox', { name: 'dotnet_style_qualification_for_field', exact: true }).selectOption('true');
 	await page.getByRole('combobox', { name: 'IDE0009 severity' }).selectOption('warning');
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 
 	const reviewFile = page.getByTestId('file-.editorconfig');
 	await expect(reviewFile).toContainText('## this. and Me. qualification (IDE0003, IDE0009)\ndotnet_style_qualification_for_field = true');
@@ -80,9 +81,8 @@ test('a rule that needs a newer C# than the target framework is hidden until ask
 	await page.getByRole('checkbox', { name: 'net11.0' }).uncheck();
 	await page.getByRole('checkbox', { name: 'net10.0' }).check();
 	await expect(page.getByTestId('effective-csharp')).toContainText('Compiles as C# 14.0');
-	await page.getByRole('link', { name: 'Code style' }).first().click();
+	await openStep(page, 'Code style');
 	// The collapsed sidebar stays open over the page while the mouse is on it.
-	await page.mouse.move(900, 400);
 
 	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toHaveCount(0);
 
@@ -129,7 +129,7 @@ test('a package rule severity set in the rule browser lands in the exported file
 	await page.getByRole('textbox', { name: 'Search rules' }).fill('MA0004');
 
 	await page.getByRole('combobox', { name: 'MA0004 severity' }).selectOption('error');
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('## Meziantou.Analyzer: Usage\n# MA0004: Use Task.ConfigureAwait\ndotnet_diagnostic.MA0004.severity = error');
 });
@@ -143,7 +143,7 @@ test('turning off duplicates leaves one active rule per concern', async ({ page 
 	await concern.getByRole('button', { name: 'Turn off duplicates' }).click();
 
 	await expect(concern).toHaveCount(0);
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_diagnostic.MA0040.severity = none');
 });
 
@@ -152,7 +152,7 @@ test('banned APIs are exported as BannedSymbols.txt', async ({ page }) => {
 	await page.getByRole('checkbox', { name: /Banned API analyzers/ }).check();
 
 	await page.getByRole('button', { name: 'Add: Clock access: use TimeProvider' }).click();
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 
 	await expect(page.getByTestId('file-BannedSymbols.txt')).toContainText('P:System.DateTime.UtcNow;Use TimeProvider.GetUtcNow() so time can be faked in tests.');
 });
@@ -171,12 +171,12 @@ test('a CI-only build property lands in the CI builds group of Directory.Build.p
 test('central package management, nuget.config and global.json all download in the zip', async ({ page }) => {
 	await page.goto('/wizard/analyzers');
 	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
-	await page.getByRole('link', { name: 'Packages', exact: true }).click();
+	await openStep(page, 'Packages');
 	await page.getByRole('combobox', { name: 'ManagePackageVersionsCentrally', exact: true }).selectOption('true');
 	await page.getByRole('checkbox', { name: 'Generate nuget.config' }).check();
-	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'SDK' }).click();
+	await openStep(page, 'SDK');
 	await page.getByRole('checkbox', { name: 'Generate global.json' }).check();
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 
 	const downloadPromise = page.waitForEvent('download');
 	await page.getByRole('button', { name: 'Download zip' }).click();
@@ -200,7 +200,7 @@ test('the tests folder preset relaxes test-only rules and stops packing', async 
 test('a folder override shows what it inherits and only writes what it changes', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');
-	await page.getByRole('link', { name: 'Formatting' }).first().click();
+	await openStep(page, 'Formatting');
 
 	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
 	await expect(indentStyle.locator('option:checked')).toHaveText('Inherited (space)');
@@ -216,7 +216,7 @@ test('a folder override shows what it inherits and only writes what it changes',
 test('settings that differ from what the folder inherits are highlighted', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');
-	await page.getByRole('link', { name: 'Formatting' }).first().click();
+	await openStep(page, 'Formatting');
 
 	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
 	await expect(indentStyle).not.toHaveClass(/\bchanged\b/);
@@ -229,13 +229,13 @@ test('settings that differ from what the folder inherits are highlighted', async
 test('a folder can drop an analyzer package its parent references', async ({ page }) => {
 	await page.goto('/wizard/analyzers');
 	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
-	await page.getByRole('link', { name: 'Start', exact: true }).first().click();
+	await openStep(page, 'Start');
 	await addFolder(page, 'tests');
-	await page.getByRole('link', { name: 'Analyzers' }).first().click();
+	await openStep(page, 'Analyzers');
 
 	await page.getByRole('checkbox', { name: 'Same packages as the folder above' }).uncheck();
 	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).uncheck();
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 
 	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<PackageReference Remove="Meziantou.Analyzer" />');
 });
@@ -268,10 +268,7 @@ test('a risky combination shows as a check on the review step and a count in the
 	await page.getByRole('combobox', { name: 'RestoreLockedMode', exact: true }).selectOption('true');
 
 	await expect(page.getByRole('link', { name: /Review and export\s*1 problems/ })).toBeVisible();
-	await page
-		.getByRole('link', { name: /Review and export/ })
-		.first()
-		.click();
+	await openStep(page, 'Review and export');
 
 	await expect(page.locator('.issue-error')).toContainText('RestoreLockedMode needs RestorePackagesWithLockFile');
 });
@@ -295,7 +292,7 @@ test('a category severity writes one line and duplicates turn off in one click',
 	await page.getByRole('button', { name: 'Turn off all duplicates' }).click();
 
 	await expect(page.getByRole('heading', { name: 'Duplicate rules' })).toHaveCount(0);
-	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await openStep(page, 'Review and export');
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_analyzer_diagnostic.category-Performance.severity = error');
 	await expect(page.getByTestId('no-issues')).toBeVisible();
 });
@@ -382,7 +379,7 @@ test('clicking a rule line filters the rule table to it and focuses its severity
 test('opening a folder in the file tree makes it the folder being edited', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');
-	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Formatting' }).click();
+	await openStep(page, 'Formatting');
 	await page.getByRole('treeitem', { name: 'Repo root' }).locator('.tree-row').first().click();
 	await expect(editingBar(page)).toContainText('repo root');
 
@@ -403,10 +400,32 @@ test('settings survive a reload', async ({ page }) => {
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('category-Performance.severity = error');
 });
 
+test('an ignored folder has analyzers skip its code until it is no longer ignored', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await chooseFromRootMenu(page, 'Add a folder');
+	const dialog = page.getByRole('dialog', { name: 'Add a folder' });
+	await dialog.getByRole('textbox', { name: 'New folder' }).fill('legacy');
+	await dialog.getByRole('checkbox', { name: /Ignore its code/ }).check();
+	await dialog.getByRole('button', { name: 'Add folder' }).click();
+
+	await expect(page.getByTestId('file-legacy/.editorconfig')).toContainText('generated_code = true');
+	await expect(page.getByTestId('file-legacy/Directory.Build.props')).toContainText('<TreatWarningsAsErrors>false</TreatWarningsAsErrors>');
+	await expect(page.getByRole('treeitem', { name: /^legacy\/(, editing)?$/ })).toContainText('ignored');
+
+	await page
+		.getByRole('treeitem', { name: /^legacy\/(, editing)?$/ })
+		.locator('.tree-row')
+		.first()
+		.click({ button: 'right' });
+	await page.getByRole('menuitem', { name: 'Stop ignoring code in this folder' }).click();
+
+	await expect(page.getByTestId('file-legacy/.editorconfig')).toHaveCount(0);
+});
+
 test('the folder being edited survives a reload', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');
-	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Formatting' }).click();
+	await openStep(page, 'Formatting');
 	await expect(page).toHaveURL(/\/wizard\/formatting$/);
 
 	await page.reload();
@@ -439,7 +458,7 @@ test('nothing is saved until a setting changes, then the header says it is saved
 test('applying a preset over changes asks first, and Cancel keeps the changes', async ({ page }) => {
 	await page.goto('/wizard/formatting');
 	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
-	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Start', exact: true }).click();
+	await openStep(page, 'Start');
 
 	await page.getByRole('button', { name: /^Strict/ }).click();
 	await expect(page.getByRole('dialog', { name: 'Replace your settings?' })).toBeVisible();
@@ -455,12 +474,9 @@ test('a share link reopens the same settings in a new browser', async ({ page, b
 	await page.goto('/wizard/start');
 	await page.getByRole('button', { name: /^Recommended/ }).click();
 	await page.getByRole('button', { name: /^Libraries/ }).click();
-	await page.getByRole('link', { name: 'Formatting' }).first().click();
+	await openStep(page, 'Formatting');
 	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
-	await page
-		.getByRole('link', { name: /Review and export/ })
-		.first()
-		.click();
+	await openStep(page, 'Review and export');
 	await page.getByRole('button', { name: 'Copy share link' }).click();
 	await expect(page.getByRole('button', { name: 'Copied to clipboard' })).toBeVisible();
 	const shareUrl = await page.evaluate(() => navigator.clipboard.readText());

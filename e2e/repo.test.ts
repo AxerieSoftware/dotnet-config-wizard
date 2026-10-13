@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
+import { openStep } from './openStep.ts';
 
 const REPO_FILES: Record<string, string> = {
 	'.editorconfig': 'root = true\n\n[*]\nindent_style = space\n\n[*.cs]\nresharper_braces_for_ifelse = required\n',
@@ -49,7 +50,7 @@ test('an opened repo loads its config files and saves edits back without losing 
 	await page.getByText(/notes about what was loaded/).click();
 	await expect(page.getByRole('list', { name: 'Import notes' })).toContainText('resharper_braces_for_ifelse');
 
-	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Formatting' }).click();
+	await openStep(page, 'Formatting');
 	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
 
 	await expect.poll(() => readRepoFile(page, '.editorconfig')).toContain('indent_style = tab');

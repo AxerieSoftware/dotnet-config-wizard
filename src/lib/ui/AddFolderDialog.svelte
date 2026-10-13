@@ -7,6 +7,7 @@
 	let dialog: HTMLDialogElement | undefined = $state();
 	let path = $state('');
 	let problem = $state<string | undefined>(undefined);
+	let isIgnored = $state(false);
 
 	const existingPaths = $derived(wizard.config.scopes.map(scope => scope.path));
 	const unusedPresets = $derived(SCOPE_PRESETS.filter(preset => !existingPaths.includes(preset.scope.path)));
@@ -35,6 +36,7 @@
 		}
 
 		wizard.addScope({ path: result.path });
+		if (isIgnored) wizard.setIgnored(result.path, true);
 		dialog?.close();
 	}
 
@@ -42,6 +44,7 @@
 		wizard.addFolderParentPath = undefined;
 		path = '';
 		problem = undefined;
+		isIgnored = false;
 	}
 </script>
 
@@ -62,6 +65,10 @@
 		<label class="field">
 			<span>{parentPath === '' ? 'Or another folder' : 'Folder'}</span>
 			<input aria-label="New folder" bind:value={path} placeholder="src/Legacy">
+		</label>
+		<label class="checkbox">
+			<input type="checkbox" bind:checked={isIgnored}>
+			<span>Ignore its code: analyzers skip it, and its warnings don't fail the build</span>
 		</label>
 		{#if problem}
 			<p class="message danger" role="alert"><Icon name="errorCircle" /><span>{problem}</span></p>

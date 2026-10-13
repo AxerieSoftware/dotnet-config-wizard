@@ -209,6 +209,17 @@ export class WizardState {
 		this.importNotes = notes;
 	}
 
+	/** Has analyzers skip a folder's code, or stop skipping it; an ignored folder's compiler warnings don't fail the build either. */
+	public setIgnored(path: string, isIgnored: boolean): void {
+		const scope = this.config.scopes.find(entry => entry.path === path);
+		if (!scope || path === '') return;
+
+		setOrDelete(scope, 'isIgnored', isIgnored ? true : undefined);
+		scope.build ??= {};
+		setOrDelete(scope.build, 'TreatWarningsAsErrors', isIgnored ? 'false' : undefined);
+		if (Object.keys(scope.build).length === 0) delete scope.build;
+	}
+
 	public addScope(scope: ScopeConfig): void {
 		this.config.scopes.push(structuredClone(scope));
 		this.activeScopePath = scope.path;

@@ -12,6 +12,8 @@
 	import document from '@fluentui/svg-icons/icons/document_20_regular.svg?raw';
 	import documentCheckmark from '@fluentui/svg-icons/icons/document_checkmark_20_regular.svg?raw';
 	import errorCircle from '@fluentui/svg-icons/icons/error_circle_20_regular.svg?raw';
+	import eye from '@fluentui/svg-icons/icons/eye_20_regular.svg?raw';
+	import eyeOff from '@fluentui/svg-icons/icons/eye_off_20_regular.svg?raw';
 	import folder from '@fluentui/svg-icons/icons/folder_20_regular.svg?raw';
 	import folderAdd from '@fluentui/svg-icons/icons/folder_add_20_regular.svg?raw';
 	import folderOpen from '@fluentui/svg-icons/icons/folder_open_20_regular.svg?raw';
@@ -40,6 +42,8 @@
 		code,
 		documentCheckmark,
 		errorCircle,
+		eye,
+		eyeOff,
 		folderOpen,
 		globe,
 		dismiss,

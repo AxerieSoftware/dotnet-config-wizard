@@ -69,6 +69,11 @@ function describeEditorConfigLine(text: string, section: string | undefined, cat
 
 	const [, key, value] = match;
 	if (key === 'root') return { title: 'root = true', details: ['Editors and the compiler stop looking for .editorconfig files in folders above this one.'] };
+	if (key === 'generated_code')
+		return {
+			title: `generated_code = ${value}`,
+			details: ["Treats this folder's C# as generated code: analyzers skip it and nullable warnings are off, but it still has to compile."]
+		};
 	if (key === 'is_global') return { title: 'is_global = true', details: ['Makes this a global analyzer config: its settings apply to every file of each project that includes it.'] };
 
 	const ruleId = RULE_SEVERITY.exec(key)?.[1];

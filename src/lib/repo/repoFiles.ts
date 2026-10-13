@@ -21,7 +21,10 @@ const SKIPPED_FOLDERS = new Set(['.git', '.vs', '.vscode', '.idea', 'bin', 'obj'
 
 export function isConfigFile(path: string): boolean {
 	const segments = path.split('/');
-	return CONFIG_FILE_NAMES.has(segments.at(-1) ?? '') && !segments.slice(0, -1).some(segment => SKIPPED_FOLDERS.has(segment));
+	const fileName = segments.at(-1) ?? '';
+	// NuGet reads nuget.config in any casing, such as NuGet.Config; MSBuild needs its files' exact names.
+	const isConfigName = CONFIG_FILE_NAMES.has(fileName) || fileName.toLowerCase() === 'nuget.config';
+	return isConfigName && !segments.slice(0, -1).some(segment => SKIPPED_FOLDERS.has(segment));
 }
 
 /** Reads every config file under a folder the user picked, skipping build output and dependencies. */

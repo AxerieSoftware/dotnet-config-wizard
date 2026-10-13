@@ -31,6 +31,8 @@ export type ScopeConfig = {
 	ruleParameters?: Record<string, Record<string, string>>;
 	/** Entries for this scope's `BannedSymbols.txt`, added to the ones it inherits. */
 	bannedApis?: BannedApi[];
+	/** Whether analyzers skip this folder's C# as if it were generated, such as for legacy code nobody maintains. */
+	isIgnored?: boolean;
 };
 
 export type NuGetSource = { key: string; url: string; patterns: string[] };
@@ -93,6 +95,7 @@ function findScopeProblem(scope: unknown): string | undefined {
 		return 'ruleParameters must map rule IDs to string key/value objects.';
 	if (scope.bannedApis !== undefined && !(Array.isArray(scope.bannedApis) && scope.bannedApis.every(api => isRecord(api) && typeof api.symbol === 'string' && typeof api.message === 'string')))
 		return 'bannedApis must be an array of { symbol, message } objects.';
+	if (scope.isIgnored !== undefined && typeof scope.isIgnored !== 'boolean') return 'isIgnored must be true or false.';
 
 	return undefined;
 }

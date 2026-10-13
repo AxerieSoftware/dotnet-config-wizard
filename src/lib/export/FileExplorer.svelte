@@ -135,6 +135,14 @@
 		if (!node.isScope) {
 			return [
 				{ label: 'Give this folder its own settings', icon: 'folder', onSelect: () => wizard.addScope({ path: node.path }) },
+				{
+					label: 'Ignore code in this folder',
+					icon: 'eyeOff',
+					onSelect: () => {
+						wizard.addScope({ path: node.path });
+						wizard.setIgnored(node.path, true);
+					}
+				},
 				{ label: 'Add a folder inside', icon: 'folderAdd', onSelect: () => wizard.askToAddFolder(node.path) }
 			];
 		}
@@ -155,9 +163,16 @@
 								viewMode = 'effective';
 							}
 						},
+						isIgnoredFolder(node.path)
+							? { label: 'Stop ignoring code in this folder', icon: 'eye' as const, onSelect: () => wizard.setIgnored(node.path, false) }
+							: { label: 'Ignore code in this folder', icon: 'eyeOff' as const, onSelect: () => wizard.setIgnored(node.path, true) },
 						{ label: 'Remove folder', icon: 'dismiss' as const, isDanger: true, onSelect: () => wizard.askToRemoveScope(node.path) }
 					])
 		];
+	}
+
+	function isIgnoredFolder(path: string): boolean {
+		return wizard.config.scopes.some(scope => scope.path === path && scope.isIgnored);
 	}
 
 	function resizeTree(width: number): void {
@@ -202,7 +217,9 @@
 				{/if}
 				<Icon name="folder" small />
 				<span>{node.path === '' ? 'Repo root' : `${node.name}/`}</span>
-				{#if node.children.length === 0}
+				{#if isIgnoredFolder(node.path)}
+					<span class="tree-empty">ignored</span>
+				{:else if node.children.length === 0}
 					<span class="tree-empty">no files</span>
 				{/if}
 			</div>

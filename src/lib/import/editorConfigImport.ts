@@ -52,6 +52,10 @@ export function importEditorConfig(text: string, catalog: Catalog): ImportResult
 		}
 
 		if (key.toLowerCase() === 'root' || key.toLowerCase() === 'global_level' || !glob) continue;
+		if (key.toLowerCase() === 'generated_code') {
+			if (value.toLowerCase() === 'true') settings.isIgnored = true;
+			continue;
+		}
 
 		const lowerKey = key.toLowerCase();
 		if (FORMATTING_KEY_NAMES.has(lowerKey)) {

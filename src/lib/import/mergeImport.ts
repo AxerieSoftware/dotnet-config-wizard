@@ -14,6 +14,7 @@ export function mergeImport(scope: ScopeConfig, settings: ImportResult['settings
 	if (settings.build) scope.build = { ...scope.build, ...settings.build };
 	if (settings.ciBuild) scope.ciBuild = { ...scope.ciBuild, ...settings.ciBuild };
 	if (settings.tfms && settings.tfms.length > 0) scope.tfms = settings.tfms;
+	if (settings.isIgnored) scope.isIgnored = true;
 	if (settings.packages) scope.packages = [...new Set([...(scope.packages ?? []), ...settings.packages])];
 	if (settings.naming) {
 		const importedSymbols = new Set(settings.naming.map(rule => rule.symbols));

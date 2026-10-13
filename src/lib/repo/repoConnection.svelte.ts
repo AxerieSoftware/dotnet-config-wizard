@@ -49,9 +49,11 @@ export class RepoConnection {
 		try {
 			await Promise.all(
 				files.map(async file => {
-					const text = toSavedText(file.path, file.content, this.diskTexts.get(file.path), catalog);
-					if (text !== this.diskTexts.get(file.path)) await writeConfigFile(directory, file.path, text);
-					this.diskTexts.set(file.path, text);
+					// A file the repo already has, such as NuGet.Config, is saved under its own name rather than beside it.
+					const diskPath = this.diskTexts.keys().find(path => path.toLowerCase() === file.path.toLowerCase()) ?? file.path;
+					const text = toSavedText(file.path, file.content, this.diskTexts.get(diskPath), catalog);
+					if (text !== this.diskTexts.get(diskPath)) await writeConfigFile(directory, diskPath, text);
+					this.diskTexts.set(diskPath, text);
 					this.savedVersions.set(file.path, file.content);
 				})
 			);

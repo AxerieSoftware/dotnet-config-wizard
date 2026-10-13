@@ -75,6 +75,35 @@ describe('loading a repo', () => {
 	});
 });
 
+describe('packages in a loaded repo', () => {
+	it("keeps a folder's inherited packages when its props file only adds one", () => {
+		const { config } = toRepoConfig(
+			[
+				{ path: 'Directory.Packages.props', text: '<Project><ItemGroup><GlobalPackageReference Include="Meziantou.Analyzer" Version="1.0.0" /></ItemGroup></Project>' },
+				{ path: 'src/Directory.Packages.props', text: '<Project><ItemGroup><GlobalPackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="1.0.0" /></ItemGroup></Project>' }
+			],
+			catalog
+		);
+
+		expect(config.scopes.find(scope => scope.path === 'src')?.packages).toEqual(['Meziantou.Analyzer', 'Microsoft.CodeAnalysis.PublicApiAnalyzers']);
+	});
+
+	it('selects a framework analyzer whose rules a folder configures, since frameworks bring their own', () => {
+		const { config } = toRepoConfig([{ path: 'tests/.editorconfig', text: '[*.cs]\ndotnet_diagnostic.MSTEST0001.severity = warning' }], catalog);
+
+		expect(config.scopes.find(scope => scope.path === 'tests')?.packages).toEqual(['MSTest.Analyzers']);
+	});
+
+	it('reads nuget.config in any casing', () => {
+		const { config } = toRepoConfig(
+			[{ path: 'NuGet.Config', text: '<configuration><packageSources><add key="feed" value="https://example.com/v3/index.json" /></packageSources></configuration>' }],
+			catalog
+		);
+
+		expect(config.nuget?.sources.map(source => source.key)).toEqual(['feed']);
+	});
+});
+
 describe('saving over existing files', () => {
 	const config = toRepoConfig(files, catalog).config;
 	const output = toGeneratedOutput(config, catalog, { commentStyle: 'idAndTitle' });

@@ -23,7 +23,9 @@ export function toFormattingSections(scope: ScopeConfig): EditorConfigSection[] 
 }
 
 export function toCSharpFormattingEntries(scope: ScopeConfig): EditorConfigEntry[] {
-	return toEntries(scope.formatting?.[CSHARP_GLOB] ?? {});
+	// Roslyn treats generated code as off limits, so analyzers skip an ignored folder and its nullable warnings turn off.
+	const ignored = scope.isIgnored ? [{ key: 'generated_code', value: 'true' }] : [];
+	return [...ignored, ...toEntries(scope.formatting?.[CSHARP_GLOB] ?? {})];
 }
 
 function toEntries(settings: Record<string, string>): EditorConfigEntry[] {

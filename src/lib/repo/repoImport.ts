@@ -1,6 +1,7 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import type { BandEntry } from '../catalog/catalogFiles.ts';
+import { getParentScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import { toFileName, toFolderPath } from '../export/fileTree.ts';
 import { importFile } from '../import/importFile.ts';
@@ -41,6 +42,8 @@ export function toRepoConfig(repoFiles: readonly RepoFile[], catalog: Catalog): 
 		if (unmanaged.length > 0) notes.push({ fileName: file.path, severity: 'info', message: `Kept as is: ${[...new Set(unmanaged)].join(', ')}.` });
 	}
 
+	addInheritedAndFrameworkPackages(config, catalog);
+
 	// Every folder needs target frameworks to gate options by C# version; the root falls back to the band's own.
 	scopes[0].tfms ??= [`net${catalog.band.channel}`];
 	return { config, notes };
@@ -54,7 +57,7 @@ function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig
 		return [];
 	}
 
-	if (fileName === 'nuget.config') {
+	if (fileName.toLowerCase() === 'nuget.config') {
 		const nuget = importNuGetConfig(file.text);
 		if (nuget) config.nuget = nuget;
 		return [];
@@ -77,6 +80,24 @@ function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig
 	mergeImport(scope, result.settings);
 	// What the importers report as dropped stays in the file, so only the other notes apply here.
 	return result.notes.filter(note => !note.isDropped);
+}
+
+/**
+ * A nested props file lists only the packages it adds, and framework analyzers such as MSTest's are never referenced, so
+ * each folder gets its parent's packages, its own, and any framework whose rules it configures.
+ */
+function addInheritedAndFrameworkPackages(config: WizardConfig, catalog: Catalog): void {
+	for (const scope of config.scopes) {
+		const parent = getParentScope(config, scope);
+		const inherited = parent ? resolveScope(config, parent).packages : [];
+		const known = new Set([...inherited, ...(scope.packages ?? [])]);
+		const frameworks = Object.keys(scope.severities ?? {})
+			.map(id => catalog.rules.get(id)?.packageId)
+			.filter((packageId): packageId is string => typeof packageId === 'string' && Boolean(catalog.packages.get(packageId)?.includedWith) && !known.has(packageId));
+		if (!scope.packages && frameworks.length === 0) continue;
+
+		scope.packages = [...new Set([...known, ...frameworks])];
+	}
 }
 
 function toDepth(path: string): number {

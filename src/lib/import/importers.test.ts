@@ -82,6 +82,17 @@ describe('importEditorConfig', () => {
 		expect(importFile('Analyzers.globalconfig', 'is_global = true\nglobal_level = 100\ndotnet_diagnostic.CA1822.severity = error', catalog)?.settings.severities).toEqual({ CA1822: 'error' });
 	});
 
+	it('reads generated_code as an ignored folder, and writes it back', () => {
+		const result = importEditorConfig('[*.cs]\ngenerated_code = true', catalog);
+		const editorConfig = toGeneratedOutput({ versions: { sdkBand: '10.0.4xx' }, scopes: [{ path: '' }, { path: 'legacy', ...result.settings }] }, catalog, { commentStyle: 'none' }).files.find(
+			file => file.path === 'legacy/.editorconfig'
+		)?.content;
+
+		expect(result.settings.isIgnored).toBe(true);
+		expect(result.notes).toEqual([]);
+		expect(editorConfig).toContain('[*.cs]\ngenerated_code = true');
+	});
+
 	it("reads rule IDs and severities in any case, and reports a severity it can't read", () => {
 		const result = importEditorConfig('[*.cs]\ndotnet_diagnostic.ca1822.severity = Warning\ndotnet_diagnostic.CA2007.severity = loud', catalog);
 
