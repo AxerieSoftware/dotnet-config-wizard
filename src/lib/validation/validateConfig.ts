@@ -19,17 +19,24 @@ const PACKAGE_METADATA = ['PackageLicenseExpression', 'PackageReadmeFile', 'Auth
 
 /** Checks a config and its generated output for combinations that break builds or don't do what they look like. */
 export function validateConfig(config: WizardConfig, catalog: Catalog, skippedKeys: readonly (SkippedKey & { scopePath: string })[]): ValidationIssue[] {
-	const issues: ValidationIssue[] = skippedKeys.map(skipped => ({ severity: 'warning', scopePath: skipped.scopePath, message: `${skipped.key} is left out of the files: ${skipped.reason}.` }));
+	const ignoredPaths = config.scopes.filter(scope => scope.isIgnored).map(scope => scope.path);
+	// An ignored folder's .editorconfig also covers the folders inside it.
+	const isIgnored = (path: string) => ignoredPaths.some(ignored => path === ignored || path.startsWith(`${ignored}/`));
+	const issues: ValidationIssue[] = skippedKeys
+		.filter(skipped => !isIgnored(skipped.scopePath))
+		.map(skipped => ({ severity: 'warning', scopePath: skipped.scopePath, message: `${skipped.key} is left out of the files: ${skipped.reason}.` }));
 
 	for (const scope of config.scopes) {
 		const resolved = resolveScope(config, scope);
-		for (const check of SCOPE_CHECKS) issues.push(...check({ config, scope, resolved, catalog }).map(issue => ({ ...issue, scopePath: scope.path })));
+		const checks = isIgnored(scope.path) ? SCOPE_CHECKS : [...SCOPE_CHECKS, ...ANALYSIS_CHECKS];
+		for (const check of checks) issues.push(...check({ config, scope, resolved, catalog }).map(issue => ({ ...issue, scopePath: scope.path })));
 	}
 
 	issues.push(...checkNuGetConfig(config));
 	return issues;
 }
 
+// Checks about building, restoring and packing, which apply to every folder.
 const SCOPE_CHECKS: readonly ScopeCheck[] = [
 	({ scope, resolved }) => {
 		const hasLockedMode = resolved.build.RestoreLockedMode === 'true' || resolved.ciBuild.RestoreLockedMode === 'true';
@@ -40,24 +47,6 @@ const SCOPE_CHECKS: readonly ScopeCheck[] = [
 		if (resolved.build.RestoreLockedMode === 'true')
 			return [{ severity: 'warning', message: 'RestoreLockedMode applies to every build, so adding a package locally fails until packages.lock.json is updated. Limit it to CI builds.' }];
 		return [];
-	},
-	({ resolved, catalog }) => {
-		const ide0005 = catalog.rules.get('IDE0005');
-		if (resolved.build.GenerateDocumentationFile !== 'false' || !ide0005 || !isReported(getEffectiveSeverity(ide0005, resolved, catalog))) return [];
-		return [{ severity: 'error', message: 'IDE0005 can only run on build when GenerateDocumentationFile is true.' }];
-	},
-	({ scope, resolved, catalog }) => {
-		if (resolved.build.EnforceCodeStyleInBuild === 'true') return [];
-		const ideRuleIds = Object.entries(scope.severities ?? {})
-			.filter(([id, severity]) => id.startsWith('IDE') && catalog.rules.get(id)?.isEnforcedOnBuild && (severity === 'warning' || severity === 'error'))
-			.map(([id]) => id);
-		if (ideRuleIds.length === 0) return [];
-		return [{ severity: 'warning', message: `${ideRuleIds.join(', ')} only show in the editor until EnforceCodeStyleInBuild is true, so they won't fail a build.` }];
-	},
-	({ resolved, catalog }) => {
-		const ca2007 = catalog.rules.get('CA2007');
-		if (resolved.projectKind === 'library' || !resolved.projectKind || !ca2007 || !isReported(getEffectiveSeverity(ca2007, resolved, catalog))) return [];
-		return [{ severity: 'warning', message: `CA2007 (ConfigureAwait) only helps libraries; ${resolved.projectKind} projects have no synchronization context to avoid.` }];
 	},
 	({ resolved }) => {
 		if (resolved.build.IsAotCompatible !== 'true' || resolved.projectKind === 'library' || !resolved.projectKind) return [];
@@ -102,7 +91,29 @@ const SCOPE_CHECKS: readonly ScopeCheck[] = [
 		...[scope.build?.PackageReadmeFile, scope.build?.PackageIcon]
 			.filter(fileName => fileName !== undefined)
 			.map(fileName => ({ severity: 'info' as const, message: `${fileName} must exist in ${scope.path === '' ? 'the repo root' : `${scope.path}/`} for packing to succeed.` }))
-	],
+	]
+];
+
+// Checks about analysis and code style, which an ignored folder skips because analyzers don't look at its code.
+const ANALYSIS_CHECKS: readonly ScopeCheck[] = [
+	({ resolved, catalog }) => {
+		const ide0005 = catalog.rules.get('IDE0005');
+		if (resolved.build.GenerateDocumentationFile !== 'false' || !ide0005 || !isReported(getEffectiveSeverity(ide0005, resolved, catalog))) return [];
+		return [{ severity: 'error', message: 'IDE0005 can only run on build when GenerateDocumentationFile is true.' }];
+	},
+	({ scope, resolved, catalog }) => {
+		if (resolved.build.EnforceCodeStyleInBuild === 'true') return [];
+		const ideRuleIds = Object.entries(scope.severities ?? {})
+			.filter(([id, severity]) => id.startsWith('IDE') && catalog.rules.get(id)?.isEnforcedOnBuild && (severity === 'warning' || severity === 'error'))
+			.map(([id]) => id);
+		if (ideRuleIds.length === 0) return [];
+		return [{ severity: 'warning', message: `${ideRuleIds.join(', ')} only show in the editor until EnforceCodeStyleInBuild is true, so they won't fail a build.` }];
+	},
+	({ resolved, catalog }) => {
+		const ca2007 = catalog.rules.get('CA2007');
+		if (resolved.projectKind === 'library' || !resolved.projectKind || !ca2007 || !isReported(getEffectiveSeverity(ca2007, resolved, catalog))) return [];
+		return [{ severity: 'warning', message: `CA2007 (ConfigureAwait) only helps libraries; ${resolved.projectKind} projects have no synchronization context to avoid.` }];
+	},
 	({ config, scope, resolved, catalog }) => {
 		// A folder that inherits the same duplicates as its parent is fixed by fixing the parent, so only new ones are reported.
 		const parent = getParentScope(config, scope);

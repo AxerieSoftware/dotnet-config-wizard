@@ -28,6 +28,13 @@ describe('validateConfig', () => {
 		expect(issuesFor(toPresetConfig(preset, catalog)).filter(issue => issue.message.includes('repeat what this folder already inherits'))).toEqual([]);
 	});
 
+	it('skips analysis checks in an ignored folder and the folders inside it, but still checks how it builds', () => {
+		const repeated = { formatting: { '[*]': { indent_style: 'space' } } };
+		const config = toConfig({ path: '', ...repeated }, { path: 'legacy', isIgnored: true, ...repeated, ciBuild: { RestoreLockedMode: 'true' } }, { path: 'legacy/Old', ...repeated });
+
+		expect(issuesFor(config).map(issue => `${issue.scopePath}: ${issue.severity}`)).toEqual(['legacy: error']);
+	});
+
 	it('errors when locked restore has no lock files to check', () => {
 		expect(messagesFor(toConfig({ path: '', ciBuild: { RestoreLockedMode: 'true' } }))).toContain(
 			'error: RestoreLockedMode needs RestorePackagesWithLockFile; without lock files every locked restore fails.'
