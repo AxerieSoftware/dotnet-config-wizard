@@ -5,9 +5,13 @@ import type { Severity } from '../config/wizardConfig.ts';
 import { type ImportNote, type ImportResult, toUnmaintainedNotes } from './importResult.ts';
 
 const PROPERTY_GROUP = /<PropertyGroup(?<attributes>[^>]*)>(?<body>[\s\S]*?)<\/PropertyGroup>/g;
-const PROPERTY = /<(?<name>\w+)(?:\s[^>]*)?>(?<value>[^<]*)<\/\k<name>>/g;
+const PROPERTY = /<(?<name>\w+)(?<attributes>\s[^>]*)?>(?<value>[^<]*)<\/\k<name>>/g;
+const CONDITION = /Condition="(?<condition>[^"]*)"/;
+// Compiler warnings can be written as bare numbers in NoWarn, such as 1591 for CS1591.
+const COMPILER_WARNING = /^(?:CS)?\d+$/;
 const PACKAGE_ITEM = /<(?:Global)?Package(?:Reference|Version)\s[^>]*Include="(?<id>[^"]+)"/g;
-const CI_CONDITION = /ContinuousIntegrationBuild|\$\(CI\)|TF_BUILD|GITHUB_ACTIONS/;
+/** A condition that limits a group to CI builds. */
+export const CI_CONDITION = /ContinuousIntegrationBuild|\$\(CI\)|TF_BUILD|GITHUB_ACTIONS/;
 const UNMAINTAINED_PACKAGES = ['StyleCop.Analyzers', 'SecurityCodeScan', 'SecurityCodeScan.VS2019', 'IDisposableAnalyzers', 'AsyncFixer'];
 const DROPPED_PROPERTIES: Readonly<Record<string, string>> = {
 	LangVersion: 'the C# version follows the target framework, as Microsoft recommends',
@@ -29,7 +33,7 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 	let skippedConditionCount = 0;
 
 	for (const group of text.matchAll(PROPERTY_GROUP)) {
-		const condition = /Condition="(?<condition>[^"]*)"/.exec(group.groups?.attributes ?? '')?.groups?.condition;
+		const condition = CONDITION.exec(group.groups?.attributes ?? '')?.groups?.condition;
 		const isCiOnly = condition !== undefined && CI_CONDITION.test(condition);
 		if (condition && !isCiOnly) {
 			skippedConditionCount++;
@@ -37,9 +41,17 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 		}
 
 		for (const property of (group.groups?.body ?? '').matchAll(PROPERTY)) {
+			// A condition on the property itself limits it the same way a group's does.
+			const propertyCondition = CONDITION.exec(property.groups?.attributes ?? '')?.groups?.condition;
+			const isPropertyCiOnly = propertyCondition !== undefined && CI_CONDITION.test(propertyCondition);
+			if (propertyCondition && !isPropertyCiOnly) {
+				skippedConditionCount++;
+				continue;
+			}
+
 			const name = property.groups?.name ?? '';
 			const value = (property.groups?.value ?? '').trim();
-			notes.push(...importProperty(name, value, isCiOnly, settings, unsupported));
+			notes.push(...importProperty(name, value, isCiOnly || isPropertyCiOnly, catalog, settings, unsupported));
 		}
 	}
 
@@ -47,23 +59,32 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 	const analyzerPackages = packageIds.filter(id => catalog.packages.has(id));
 	if (analyzerPackages.length > 0) settings.packages = analyzerPackages;
 	const unmaintained = packageIds.filter(id => UNMAINTAINED_PACKAGES.includes(id));
-	if (unmaintained.length > 0) notes.push({ severity: 'warning', message: `${unmaintained.join(', ')} are no longer maintained, so the wizard doesn't reference them.` });
+	if (unmaintained.length > 0) notes.push({ severity: 'warning', isDropped: true, message: `${unmaintained.join(', ')} are no longer maintained, so the wizard doesn't reference them.` });
 
-	if (skippedConditionCount > 0) notes.push({ severity: 'info', message: `Skipped ${skippedConditionCount} conditional property groups; only unconditional and CI-only settings are imported.` });
-	if (unsupported.size > 0) notes.push({ severity: 'info', message: `${[...unsupported].join(', ')} aren't properties the wizard writes, so they were dropped.` });
+	if (skippedConditionCount > 0)
+		notes.push({ severity: 'info', isDropped: true, message: `Skipped ${skippedConditionCount} conditional properties or property groups; only unconditional and CI-only settings are imported.` });
+	if (unsupported.size > 0) notes.push({ severity: 'info', isDropped: true, message: `${[...unsupported].join(', ')} aren't properties the wizard writes, so they were dropped.` });
 	return { settings, notes };
 }
 
-function importProperty(name: string, value: string, isCiOnly: boolean, settings: ImportResult['settings'], unsupported: Set<string>): ImportNote[] {
+function importProperty(name: string, value: string, isCiOnly: boolean, catalog: Catalog, settings: ImportResult['settings'], unsupported: Set<string>): ImportNote[] {
 	if (DROPPED_PROPERTIES[name]) {
 		const severity = name === 'PackageLicenseUrl' || name === 'PackageIconUrl' ? 'error' : 'info';
-		return [{ severity, message: `${name} was dropped: ${DROPPED_PROPERTIES[name]}.` }];
+		// Deprecated package properties stay errors even when loading a repo keeps them in the file.
+		return [{ severity, ...(severity === 'info' ? { isDropped: true } : {}), message: `${name} was dropped: ${DROPPED_PROPERTIES[name]}.` }];
 	}
 
 	if (name === 'NoWarn') {
-		const ruleIds = toListEntries(value, name).map(id => (/^\d+$/.test(id) ? `CS${id.padStart(4, '0')}` : id));
+		const ids = toListEntries(value, name).map(id => (/^\d+$/.test(id) ? `CS${id.padStart(4, '0')}` : id));
+		// Only compiler and analyzer warnings can be suppressed from .editorconfig; NuGet and MSBuild ones can't.
+		const ruleIds = ids.filter(id => COMPILER_WARNING.test(id) || catalog.rules.has(id));
+		const otherIds = ids.filter(id => !ruleIds.includes(id));
 		settings.severities = { ...settings.severities, ...Object.fromEntries(ruleIds.map(id => [id, 'none' as Severity])) };
-		return [{ severity: 'info', message: `NoWarn ${ruleIds.join(', ')} became severity none in .editorconfig, where suppressions belong.` }, ...toUnmaintainedNotes(ruleIds)];
+		return [
+			...(ruleIds.length > 0 ? [{ severity: 'info' as const, message: `NoWarn ${ruleIds.join(', ')} became severity none in .editorconfig, where suppressions belong.` }] : []),
+			...(otherIds.length > 0 ? [{ severity: 'warning' as const, isDropped: true, message: `NoWarn ${otherIds.join(', ')} can't be set in .editorconfig, so keep them in NoWarn.` }] : []),
+			...toUnmaintainedNotes(ruleIds)
+		];
 	}
 
 	if (name === 'TargetFramework' || name === 'TargetFrameworks') {
@@ -72,7 +93,7 @@ function importProperty(name: string, value: string, isCiOnly: boolean, settings
 		const unsupportedTfms = tfms.filter(tfm => !isSupportedTargetFramework(tfm));
 		return [
 			{ severity: 'info', message: `${name} became this folder's target frameworks; shared props don't set it, so each project keeps its own.` },
-			...(unsupportedTfms.length > 0 ? [{ severity: 'warning' as const, message: `${unsupportedTfms.join(', ')} were dropped; the wizard supports .NET 10 and later only.` }] : [])
+			...(unsupportedTfms.length > 0 ? [{ severity: 'warning' as const, isDropped: true, message: `${unsupportedTfms.join(', ')} were dropped; the wizard supports .NET 10 and later only.` }] : [])
 		];
 	}
 

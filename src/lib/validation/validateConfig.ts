@@ -1,6 +1,6 @@
 import { parseAnalysisLevel } from '../analyzers/analysisLevel.ts';
 import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity.ts';
-import { findActiveOverlaps } from '../analyzers/overlaps.ts';
+import { type ActiveOverlap, findActiveOverlaps } from '../analyzers/overlaps.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
@@ -15,6 +15,7 @@ type ScopeCheck = (context: { config: WizardConfig; scope: ScopeConfig; resolved
 
 const NUGET_AUDIT_WARNINGS = ['NU1901', 'NU1902', 'NU1903', 'NU1904'];
 const AZURE_ARTIFACTS_HOST = 'pkgs.dev.azure.com';
+const PACKAGE_METADATA = ['PackageLicenseExpression', 'PackageReadmeFile', 'Authors'];
 
 /** Checks a config and its generated output for combinations that break builds or don't do what they look like. */
 export function validateConfig(config: WizardConfig, catalog: Catalog, skippedKeys: readonly (SkippedKey & { scopePath: string })[]): ValidationIssue[] {
@@ -87,6 +88,13 @@ const SCOPE_CHECKS: readonly ScopeCheck[] = [
 		if (scope.build?.IncludeSymbols !== 'true' || !config.nuget?.sources.some(source => source.url.includes(AZURE_ARTIFACTS_HOST))) return [];
 		return [{ severity: 'warning', message: "Azure Artifacts doesn't host .snupkg symbol packages; publish symbols to the Azure Artifacts symbol server instead." }];
 	},
+	({ scope, resolved }) => {
+		// Reported once, on the folder that makes its projects libraries.
+		if (scope.projectKind !== 'library' || resolved.build.IsPackable === 'false') return [];
+		const missing = PACKAGE_METADATA.filter(name => resolved.build[name] === undefined);
+		if (missing.length === 0) return [];
+		return [{ severity: 'info', message: `Library packages here have no ${missing.join(', ')}. Set them on the Build step; nuget.org flags packages without a license or README.` }];
+	},
 	({ scope }) => [
 		...(scope.build?.PackageValidationBaselineVersion
 			? [{ severity: 'info' as const, message: `Restore downloads ${scope.build.PackageValidationBaselineVersion} of each package for package validation, so that version must already be published.` }]
@@ -95,11 +103,17 @@ const SCOPE_CHECKS: readonly ScopeCheck[] = [
 			.filter(fileName => fileName !== undefined)
 			.map(fileName => ({ severity: 'info' as const, message: `${fileName} must exist in ${scope.path === '' ? 'the repo root' : `${scope.path}/`} for packing to succeed.` }))
 	],
-	({ resolved, catalog }) =>
-		findActiveOverlaps(catalog, rule => (!rule.packageId || resolved.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, resolved, catalog))).map(overlap => ({
-			severity: 'warning',
-			message: `${overlap.concern} is checked by ${[overlap.owner, ...overlap.duplicates].map(rule => rule.id).join(', ')}; each problem would be reported more than once. Turn off the duplicates on the Analyzers step.`
-		})),
+	({ config, scope, resolved, catalog }) => {
+		// A folder that inherits the same duplicates as its parent is fixed by fixing the parent, so only new ones are reported.
+		const parent = getParentScope(config, scope);
+		const parentOverlapKeys = new Set(parent ? findScopeOverlaps(resolveScope(config, parent), catalog).map(toOverlapKey) : []);
+		return findScopeOverlaps(resolved, catalog)
+			.filter(overlap => !parentOverlapKeys.has(toOverlapKey(overlap)))
+			.map(overlap => ({
+				severity: 'warning',
+				message: `${overlap.concern} is checked by ${[overlap.owner, ...overlap.duplicates].map(rule => rule.id).join(', ')}; each problem would be reported more than once. Turn off the duplicates on the Analyzers step.`
+			}));
+	},
 	({ config, scope }) => {
 		const parent = getParentScope(config, scope);
 		if (!parent) return [];
@@ -125,6 +139,14 @@ const SCOPE_CHECKS: readonly ScopeCheck[] = [
 		return [{ severity: 'info', message: `${repeated.join(', ')} repeat what this folder already inherits and can be removed.` }];
 	}
 ];
+
+function findScopeOverlaps(resolved: ResolvedScope, catalog: Catalog): ActiveOverlap[] {
+	return findActiveOverlaps(catalog, rule => (!rule.packageId || resolved.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, resolved, catalog)));
+}
+
+function toOverlapKey(overlap: ActiveOverlap): string {
+	return [overlap.concern, overlap.owner.id, ...overlap.duplicates.map(rule => rule.id)].join(' ');
+}
 
 function checkNuGetConfig(config: WizardConfig): ValidationIssue[] {
 	if (!config.nuget) return [];

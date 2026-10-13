@@ -1,6 +1,33 @@
 import { readFile } from 'node:fs/promises';
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
+
+/** Picks an item from the repo root's right-click menu in the file tree. */
+async function chooseFromRootMenu(page: Page, item: string): Promise<void> {
+	await page
+		.getByRole('treeitem', { name: /^Repo root/ })
+		.locator('.tree-row')
+		.first()
+		.click({ button: 'right' });
+	await page.getByRole('menuitem', { name: item }).click();
+}
+
+/** Adds a common folder, such as `tests`, through the tree's menu and the Add folder dialog. */
+async function addFolder(page: Page, path: string): Promise<void> {
+	await chooseFromRootMenu(page, 'Add a folder');
+	await page
+		.getByRole('dialog', { name: 'Add a folder' })
+		.getByRole('button', { name: new RegExp(`^${path}/`) })
+		.click();
+}
+
+async function chooseImportFile(page: Page, editorConfig: string): Promise<void> {
+	await page.getByLabel('Choose files').setInputFiles({ name: '.editorconfig', mimeType: 'text/plain', buffer: Buffer.from(editorConfig) });
+}
+
+function editingBar(page: Page) {
+	return page.getByRole('status').filter({ hasText: /\bEditing\b/ });
+}
 
 test('a formatting choice shows in the live preview', async ({ page }) => {
 	await page.goto('/wizard/formatting');
@@ -12,7 +39,7 @@ test('a formatting choice shows in the live preview', async ({ page }) => {
 
 test('code-style choices carry through to the downloaded zip', async ({ page }) => {
 	await page.goto('/');
-	await page.getByRole('link', { name: 'Start' }).click();
+	await page.getByRole('link', { name: 'Start', exact: true }).click();
 	await page.getByRole('link', { name: 'Code style' }).first().click();
 
 	await page.getByRole('combobox', { name: 'dotnet_style_qualification_for_field', exact: true }).selectOption('true');
@@ -33,6 +60,12 @@ test('code-style choices carry through to the downloaded zip', async ({ page }) 
 	expect(strFromU8(files['.editorconfig'])).toBe(await reviewFile.textContent());
 });
 
+test('an unset rule shows the severity it runs at by default', async ({ page }) => {
+	await page.goto('/wizard/code-style');
+
+	await expect(page.getByRole('combobox', { name: 'IDE0036 severity' }).locator('option:checked')).toHaveText('Default (silent)');
+});
+
 test('rules the build never runs are labeled editor only', async ({ page }) => {
 	await page.goto('/wizard/code-style');
 
@@ -42,10 +75,14 @@ test('rules the build never runs are labeled editor only', async ({ page }) => {
 test('a rule that needs a newer C# than the target framework is hidden until asked', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await page.getByRole('combobox', { name: 'SDK band' }).selectOption('11.0.1xx');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('# Settings for .NET SDK 11.0.1xx');
+	await page.goto('/wizard/build');
 	await page.getByRole('checkbox', { name: 'net11.0' }).uncheck();
 	await page.getByRole('checkbox', { name: 'net10.0' }).check();
-	await expect(page.getByTestId('effective-csharp')).toContainText('Code compiles as C# 14.0');
+	await expect(page.getByTestId('effective-csharp')).toContainText('Compiles as C# 14.0');
 	await page.getByRole('link', { name: 'Code style' }).first().click();
+	// The collapsed sidebar stays open over the page while the mouse is on it.
+	await page.mouse.move(900, 400);
 
 	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toHaveCount(0);
 
@@ -53,6 +90,18 @@ test('a rule that needs a newer C# than the target framework is hidden until ask
 
 	await expect(page.getByRole('combobox', { name: 'IDE0410 severity' })).toBeDisabled();
 	await expect(page.locator('.rule-row', { hasText: 'IDE0410' }).getByText('Needs C# 15.0')).toBeVisible();
+});
+
+test('switching the SDK moves the default target framework with it', async ({ page }) => {
+	await page.goto('/wizard/start');
+
+	await page.getByRole('combobox', { name: 'SDK band' }).selectOption('11.0.1xx');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('# Settings for .NET SDK 11.0.1xx');
+	await page.goto('/wizard/build');
+
+	await expect(page.getByRole('checkbox', { name: 'net11.0' })).toBeChecked();
+	await expect(page.getByRole('checkbox', { name: 'net10.0' })).not.toBeChecked();
+	await expect(page.getByTestId('effective-csharp')).toContainText('Compiles as C# 15.0');
 });
 
 test('switching to the preview SDK updates the file header', async ({ page }) => {
@@ -125,7 +174,7 @@ test('central package management, nuget.config and global.json all download in t
 	await page.getByRole('link', { name: 'Packages', exact: true }).click();
 	await page.getByRole('combobox', { name: 'ManagePackageVersionsCentrally', exact: true }).selectOption('true');
 	await page.getByRole('checkbox', { name: 'Generate nuget.config' }).check();
-	await page.getByRole('link', { name: 'SDK', exact: true }).click();
+	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'SDK' }).click();
 	await page.getByRole('checkbox', { name: 'Generate global.json' }).check();
 	await page.getByRole('link', { name: 'Review and export' }).first().click();
 
@@ -142,7 +191,7 @@ test('central package management, nuget.config and global.json all download in t
 test('the tests folder preset relaxes test-only rules and stops packing', async ({ page }) => {
 	await page.goto('/wizard/start');
 
-	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+	await addFolder(page, 'tests');
 
 	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('dotnet_diagnostic.CA1707.severity = none');
 	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<IsPackable>false</IsPackable>');
@@ -150,22 +199,38 @@ test('the tests folder preset relaxes test-only rules and stops packing', async 
 
 test('a folder override shows what it inherits and only writes what it changes', async ({ page }) => {
 	await page.goto('/wizard/start');
-	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+	await addFolder(page, 'tests');
 	await page.getByRole('link', { name: 'Formatting' }).first().click();
 
 	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
 	await expect(indentStyle.locator('option:checked')).toHaveText('Inherited (space)');
 	await indentStyle.selectOption('tab');
 
+	await expect(page.getByRole('combobox', { name: 'Markdown: Indent style' }).locator('option:checked')).toHaveText('From [*] (tab)');
+	await expect(page.getByRole('region', { name: 'All files' })).toContainText('Tabs: keep indent size and tab width equal');
+	await expect(page.getByRole('region', { name: 'Markdown' })).not.toContainText('Tabs:');
 	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('#### All files ####\n[*]\nindent_style = tab');
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('indent_style = space');
+});
+
+test('settings that differ from what the folder inherits are highlighted', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'tests');
+	await page.getByRole('link', { name: 'Formatting' }).first().click();
+
+	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
+	await expect(indentStyle).not.toHaveClass(/\bchanged\b/);
+	await indentStyle.selectOption('space');
+	await expect(indentStyle).not.toHaveClass(/\bchanged\b/);
+	await indentStyle.selectOption('tab');
+	await expect(indentStyle).toHaveClass(/\bchanged\b/);
 });
 
 test('a folder can drop an analyzer package its parent references', async ({ page }) => {
 	await page.goto('/wizard/analyzers');
 	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
-	await page.getByRole('link', { name: 'Start' }).first().click();
-	await page.getByRole('button', { name: 'Add Test projects (tests)' }).click();
+	await page.getByRole('link', { name: 'Start', exact: true }).first().click();
+	await addFolder(page, 'tests');
 	await page.getByRole('link', { name: 'Analyzers' }).first().click();
 
 	await page.getByRole('checkbox', { name: 'Same packages as the folder above' }).uncheck();
@@ -177,11 +242,13 @@ test('a folder can drop an analyzer package its parent references', async ({ pag
 
 test('a custom folder outside the repo is rejected', async ({ page }) => {
 	await page.goto('/wizard/start');
+	await chooseFromRootMenu(page, 'Add a folder');
 
-	await page.getByRole('textbox', { name: 'New folder' }).fill('../shared');
-	await page.getByRole('button', { name: 'Add folder' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Add a folder' });
+	await dialog.getByRole('textbox', { name: 'New folder' }).fill('../shared');
+	await dialog.getByRole('button', { name: 'Add folder' }).click();
 
-	await expect(page.getByRole('alert')).toHaveText('The folder must be inside the repo.');
+	await expect(dialog.getByRole('alert')).toHaveText('The folder must be inside the repo.');
 });
 
 test('applying the Recommended preset fills in every file it needs', async ({ page }) => {
@@ -191,7 +258,7 @@ test('applying the Recommended preset fills in every file it needs', async ({ pa
 
 	await expect(page.getByRole('button', { name: /^Recommended/ })).toHaveAttribute('aria-pressed', 'true');
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_analyzer_diagnostic.category-Security.severity = error');
-	await expect(page.getByTestId('file-Directory.Packages.props')).toContainText('<GlobalPackageReference Include="Meziantou.Analyzer"');
+	await expect(page.getByTestId('file-Directory.Packages.props')).toContainText('<GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers"');
 	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('dotnet_diagnostic.CA1707.severity = none');
 	await expect(page.getByTestId('file-nuget.config')).toContainText('<clear />');
 });
@@ -209,6 +276,122 @@ test('a risky combination shows as a check on the review step and a count in the
 	await expect(page.locator('.issue-error')).toContainText('RestoreLockedMode needs RestorePackagesWithLockFile');
 });
 
+test('Strict for libraries combines a strictness with a project kind', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Strict/ }).click();
+	await page.getByRole('button', { name: /^Libraries/ }).click();
+
+	await expect(page.getByRole('button', { name: /^Strict/ })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByRole('button', { name: /^Libraries/ })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByTestId('file-Directory.Packages.props')).toContainText('Include="SonarAnalyzer.CSharp"');
+	await expect(page.getByTestId('file-src/Directory.Packages.props')).toContainText('Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"');
+});
+
+test('a category severity writes one line and duplicates turn off in one click', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('combobox', { name: 'Performance category severity' }).selectOption('error');
+	await page.getByRole('checkbox', { name: /SonarAnalyzer\.CSharp/ }).check();
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	await page.getByRole('button', { name: 'Turn off all duplicates' }).click();
+
+	await expect(page.getByRole('heading', { name: 'Duplicate rules' })).toHaveCount(0);
+	await page.getByRole('link', { name: 'Review and export' }).first().click();
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_analyzer_diagnostic.category-Performance.severity = error');
+	await expect(page.getByTestId('no-issues')).toBeVisible();
+});
+
+test("a folder's file shows the settings it really gets, with its own overrides marked", async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'tests');
+
+	await expect(page.locator('.viewer-path')).toHaveText('tests/.editorconfig');
+	await page.getByRole('button', { name: 'Effective', exact: true }).click();
+
+	const effective = page.getByTestId('effective-.editorconfig');
+	await expect(effective).toContainText('end_of_line = lf');
+	await expect(effective).toContainText('dotnet_diagnostic.CA1707.severity = none');
+	await expect(effective.locator('.line.own', { hasText: 'dotnet_diagnostic.CA1707.severity = none' })).toHaveCount(1);
+});
+
+test('each folder step says which folder it edits, and adding a folder switches to it', async ({ page }) => {
+	await page.goto('/wizard/formatting');
+	await expect(editingBar(page)).toContainText('repo root');
+
+	await chooseFromRootMenu(page, 'Add a folder');
+	await page
+		.getByRole('dialog', { name: 'Add a folder' })
+		.getByRole('button', { name: /^samples\// })
+		.click();
+
+	await expect(editingBar(page)).toContainText('samples/');
+	await expect(page.getByTestId('file-samples/Directory.Build.props')).toContainText('<IsPackable>false</IsPackable>');
+});
+
+test('the preview resizes from the keyboard and keeps its width', async ({ page }) => {
+	await page.goto('/wizard/formatting');
+	const resizer = page.getByRole('separator', { name: 'Resize preview' });
+
+	await expect(resizer).toHaveAttribute('aria-valuetext', 'Half the page');
+	const evenWidth = await page.getByRole('complementary', { name: 'Preview' }).evaluate(element => element.getBoundingClientRect().width);
+
+	await resizer.focus();
+	await page.keyboard.press('ArrowLeft');
+	await page.keyboard.press('ArrowLeft');
+	await page.reload();
+
+	await expect(page.getByRole('separator', { name: 'Resize preview' })).toHaveAttribute('aria-valuenow', String(Math.round(evenWidth + 64)));
+});
+
+test('the file tree resizes on its own and keeps its width', async ({ page }) => {
+	await page.goto('/wizard/formatting');
+	const tree = page.locator('.tree-pane');
+
+	await page.getByRole('separator', { name: 'Resize file tree' }).focus();
+	await page.keyboard.press('ArrowLeft');
+	await page.reload();
+
+	await expect(page.getByRole('separator', { name: 'Resize file tree' })).toHaveAttribute('aria-valuenow', '232');
+	expect(await tree.evaluate(element => element.getBoundingClientRect().width)).toBe(232);
+	await expect(page.getByRole('separator', { name: 'Resize preview' })).toHaveAttribute('aria-valuetext', 'Half the page');
+});
+
+test('hovering a line explains it and clicking it opens its setting', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Recommended/ }).click();
+	const line = page.getByTestId('file-.editorconfig').locator('.line', { hasText: 'csharp_style_namespace_declarations = file_scoped' });
+
+	await line.hover();
+	await expect(page.getByRole('tooltip')).toContainText('block_scoped');
+
+	await line.click();
+	await expect(page).toHaveURL(/\/wizard\/code-style$/);
+	await expect(page.getByRole('combobox', { name: 'csharp_style_namespace_declarations', exact: true })).toBeFocused();
+});
+
+test('clicking a rule line filters the rule table to it and focuses its severity', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Recommended/ }).click();
+
+	await page.getByTestId('file-.editorconfig').locator('.line', { hasText: 'dotnet_diagnostic.CA1848.severity = warning' }).click();
+
+	await expect(page).toHaveURL(/\/wizard\/analyzers$/);
+	await expect(page.getByRole('textbox', { name: 'Search rules' })).toHaveValue('CA1848');
+	await expect(page.getByRole('combobox', { name: 'CA1848 severity' })).toBeFocused();
+});
+
+test('opening a folder in the file tree makes it the folder being edited', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'tests');
+	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Formatting' }).click();
+	await page.getByRole('treeitem', { name: 'Repo root' }).locator('.tree-row').first().click();
+	await expect(editingBar(page)).toContainText('repo root');
+
+	await page.getByRole('treeitem', { name: 'tests/.editorconfig' }).click();
+
+	await expect(editingBar(page)).toContainText('tests/');
+	await expect(page.getByTestId('file-tests/.editorconfig')).toBeVisible();
+});
+
 test('settings survive a reload', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await page.getByRole('button', { name: /^Strict/ }).click();
@@ -220,10 +403,58 @@ test('settings survive a reload', async ({ page }) => {
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('category-Performance.severity = error');
 });
 
+test('the folder being edited survives a reload', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'tests');
+	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Formatting' }).click();
+	await expect(page).toHaveURL(/\/wizard\/formatting$/);
+
+	await page.reload();
+
+	await expect(editingBar(page)).toContainText('tests/');
+});
+
+test('nothing is saved until a setting changes, then the header says it is saved', async ({ page }) => {
+	await page.goto('/wizard/formatting');
+	const repoButton = page.getByRole('button', { name: /^In browser/ });
+
+	await expect(repoButton).toContainText('Open folder');
+	await expect(page.getByRole('button', { name: 'Start over' })).toHaveCount(0);
+	expect(await page.evaluate(() => localStorage.getItem('dotnet-config-wizard'))).toBeNull();
+
+	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
+	await page.reload();
+
+	await expect(repoButton).toContainText('Saved');
+	await page.getByRole('button', { name: 'Start over' }).click();
+	await page.getByRole('dialog', { name: 'Start over?' }).getByRole('button', { name: 'Start over' }).click();
+
+	await expect(page).toHaveURL(/\/wizard\/start$/);
+	await expect(repoButton).toContainText('Open folder');
+	await expect(page.getByRole('button', { name: 'Start over' })).toHaveCount(0);
+	await expect(page.getByTestId('file-.editorconfig')).not.toContainText('indent_style = tab');
+	expect(await page.evaluate(() => localStorage.getItem('dotnet-config-wizard'))).toBeNull();
+});
+
+test('applying a preset over changes asks first, and Cancel keeps the changes', async ({ page }) => {
+	await page.goto('/wizard/formatting');
+	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
+	await page.getByRole('navigation', { name: 'Wizard steps' }).getByRole('link', { name: 'Start', exact: true }).click();
+
+	await page.getByRole('button', { name: /^Strict/ }).click();
+	await expect(page.getByRole('dialog', { name: 'Replace your settings?' })).toBeVisible();
+	await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(page.getByRole('button', { name: /^Strict/ })).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('indent_style = tab');
+});
+
 test('a share link reopens the same settings in a new browser', async ({ page, browser, context }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto('/wizard/start');
-	await page.getByRole('button', { name: /^Library author/ }).click();
+	await page.getByRole('button', { name: /^Recommended/ }).click();
+	await page.getByRole('button', { name: /^Libraries/ }).click();
 	await page.getByRole('link', { name: 'Formatting' }).first().click();
 	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
 	await page
@@ -231,21 +462,23 @@ test('a share link reopens the same settings in a new browser', async ({ page, b
 		.first()
 		.click();
 	await page.getByRole('button', { name: 'Copy share link' }).click();
-	const shareUrl = await page.getByRole('textbox', { name: 'Share link' }).inputValue();
+	await expect(page.getByRole('button', { name: 'Copied to clipboard' })).toBeVisible();
+	const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
 
 	const otherPage = await (await browser.newContext()).newPage();
 	await otherPage.goto(shareUrl);
 
 	await expect(otherPage.getByTestId('file-.editorconfig')).toContainText('indent_style = tab');
-	await expect(otherPage.getByTestId('file-BannedSymbols.txt')).toContainText('T:System.Console;');
+	await expect(otherPage.getByTestId('file-src/BannedSymbols.txt')).toContainText('T:System.Console;');
 	expect(new URL(otherPage.url()).hash).toBe('');
+	await expect(otherPage.getByText('Opened settings from a share link.')).toBeVisible();
 });
 
-test('a pasted .editorconfig imports its settings and reports what it dropped', async ({ page }) => {
+test('an imported .editorconfig brings in its settings and reports what it dropped', async ({ page }) => {
 	await page.goto('/wizard/start');
+	await chooseFromRootMenu(page, 'Import files into this folder');
 
-	await page.getByRole('textbox', { name: 'Pasted file contents' }).fill('[*.cs]\ndotnet_diagnostic.CA1822.severity = error # keep static\ndotnet_diagnostic.SA1101.severity = none');
-	await page.getByRole('button', { name: 'Import pasted file' }).click();
+	await chooseImportFile(page, '[*.cs]\ndotnet_diagnostic.CA1822.severity = error # keep static\ndotnet_diagnostic.SA1101.severity = none');
 
 	await expect(page.getByRole('list', { name: 'Import notes' })).toContainText('StyleCop.Analyzers is no longer maintained');
 	await expect(page.getByRole('list', { name: 'Import notes' })).toContainText('Dropped 1 trailing comments');
@@ -254,9 +487,9 @@ test('a pasted .editorconfig imports its settings and reports what it dropped', 
 
 test('importing a config from an older catalog offers the rules added since', async ({ page }) => {
 	await page.goto('/wizard/start');
+	await chooseFromRootMenu(page, 'Import files into this folder');
 
-	await page.getByRole('textbox', { name: 'Pasted file contents' }).fill('# Settings for .NET SDK 10.0.4xx, catalog 2000-01-01\nroot = true');
-	await page.getByRole('button', { name: 'Import pasted file' }).click();
+	await chooseImportFile(page, '# Settings for .NET SDK 10.0.4xx, catalog 2000-01-01\nroot = true');
 	await page.getByRole('button', { name: 'Adopt CA1873' }).click();
 
 	await expect(page.getByRole('heading', { name: "What's new since your config" })).toBeVisible();

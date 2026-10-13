@@ -20,19 +20,35 @@
 	}
 </script>
 
-<h1>Naming</h1>
-<p class="lead">
-	Naming rules feed IDE1006. Roslyn applies the most specific rule that matches a symbol, so order doesn't matter: a rule for <code>private static readonly</code> fields wins over one for all private
-	fields.
-</p>
+<header class="step-header">
+	<h1>Naming</h1>
+	<p>Rules for IDE1006. The most specific match wins.</p>
+</header>
+
+<section class="card">
+	<div class="card-header">
+		<h2>Add a rule</h2>
+		<p class="note">Microsoft conventions: PascalCase types and members, <code>I</code>/<code>T</code> prefixes, <code>_camelCase</code> and <code>s_camelCase</code> fields.</p>
+	</div>
+	<div class="actions">
+		<button type="button" class="primary" onclick={addMicrosoftConventions}>Add Microsoft conventions</button>
+		{#each unusedTemplates as template (template.symbols)}
+			<button type="button" onclick={() => wizard.addNamingRule(template)}>{template.symbols.replaceAll('_', ' ')}</button>
+		{/each}
+	</div>
+</section>
 
 {#if inheritedRules.length > 0}
 	<section class="card">
-		<h2>Inherited rules</h2>
-		<p class="note">These come from the folder above. Add a rule with the same symbol group name to replace one here.</p>
-		{#each inheritedRules as rule (rule.symbols)}
-			<div class="rule-row unavailable"><code>{toRuleName(rule)}</code></div>
-		{/each}
+		<div class="card-header">
+			<h2>Inherited rules</h2>
+			<p class="note">From the folder above. A rule with the same symbol group replaces one.</p>
+		</div>
+		<div class="rows">
+			{#each inheritedRules as rule (rule.symbols)}
+				<div class="rule-row plain unavailable"><code>{toRuleName(rule)}</code></div>
+			{/each}
+		</div>
 	</section>
 {/if}
 
@@ -47,9 +63,9 @@
 				<span>Severity</span>
 				<SeveritySelect ruleId={rule.symbols} value={rule.severity} onchange={severity => (rule.severity = severity ?? 'suggestion')} />
 			</label>
-			<button type="button" class="secondary" onclick={() => wizard.removeNamingRule(index)}>Remove</button>
+			<button type="button" class="subtle" onclick={() => wizard.removeNamingRule(index)}>Remove</button>
 		</div>
-		<p class="note"><code>{toRuleName(rule)}</code></p>
+		<p class="caption mono">{toRuleName(rule)}</p>
 
 		<fieldset>
 			<legend>Symbol kinds</legend>
@@ -93,22 +109,5 @@
 		</div>
 	</section>
 {:else}
-	<p class="note">No naming rules yet. Add one of the common conventions below.</p>
+	<p class="note">No naming rules yet.</p>
 {/each}
-
-<section class="card">
-	<h2>Add a rule</h2>
-	<p class="note">
-		Microsoft's conventions, from the .NET runtime team: PascalCase types, members and constants, <code>I</code> and <code>T</code> prefixes, <code>_camelCase</code> instance fields and
-		<code>s_camelCase</code>
-		static fields.
-	</p>
-	<div class="actions wrap">
-		<button type="button" onclick={addMicrosoftConventions}>Add Microsoft conventions</button>
-	</div>
-	<div class="actions wrap">
-		{#each unusedTemplates as template (template.symbols)}
-			<button type="button" class="secondary" onclick={() => wizard.addNamingRule(template)}>{template.symbols.replaceAll('_', ' ')}</button>
-		{/each}
-	</div>
-</section>

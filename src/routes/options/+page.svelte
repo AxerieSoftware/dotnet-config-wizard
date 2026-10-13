@@ -18,19 +18,19 @@
 </svelte:head>
 
 <main class="reference">
-	<h1>Code-style options</h1>
-	<p class="lead">{data.options.length} .editorconfig options for .NET code style and C# formatting.</p>
+	<header class="reference-header">
+		<h1>Code-style options</h1>
+		<p>{data.options.length} .editorconfig options for .NET code style and C# formatting.</p>
+	</header>
 	{#each groups as [groupTitle, options] (groupTitle)}
 		<section class="card">
 			<h2>{groupTitle}</h2>
 			<ul class="reference-list">
 				{#each options as option (option.name)}
-					<li>
-						<a href={`/options/${option.name}`}><code>{option.name}</code></a>
-					</li>
+					<li><a class="mono" href={`/options/${option.name}`}>{option.name}</a></li>
 				{/each}
 			</ul>
 		</section>
 	{/each}
-	<p class="note">From <a href="https://github.com/dotnet/docs">dotnet/docs</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+	<p class="attribution">From <a href="https://github.com/dotnet/docs">dotnet/docs</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
 </main>

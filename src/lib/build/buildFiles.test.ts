@@ -90,6 +90,12 @@ describe('analyzer packages', () => {
 	});
 });
 
+it("writes a folder's BannedSymbols.txt when it inherits the banned API analyzer", () => {
+	const config = toConfig({ path: '', packages: ['Microsoft.CodeAnalysis.BannedApiAnalyzers'] }, { path: 'src', bannedApis: [{ symbol: 'T:System.Console', message: 'Use ILogger.' }] });
+
+	expect(toGeneratedOutput(config, catalog, { commentStyle: 'none' }).files.map(file => file.path)).toContain('src/BannedSymbols.txt');
+});
+
 describe('repo-level files', () => {
 	it('matches .gitattributes line endings to the formatting sections', () => {
 		const gitAttributes = toGitAttributes({ path: '', formatting: { '[*]': { end_of_line: 'lf' }, '[*.{cmd,bat}]': { end_of_line: 'crlf' }, '[*.md]': { end_of_line: 'lf' } } });

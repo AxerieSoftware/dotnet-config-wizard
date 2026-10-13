@@ -1,0 +1,84 @@
+import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
+import type { Catalog } from '../catalog/catalog.ts';
+import type { BandEntry } from '../catalog/catalogFiles.ts';
+import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
+import { toFileName, toFolderPath } from '../export/fileTree.ts';
+import { importFile } from '../import/importFile.ts';
+import type { ImportNote } from '../import/importResult.ts';
+import { mergeImport } from '../import/mergeImport.ts';
+import { importBannedSymbols, importGlobalJson, importNuGetConfig, importSonarLintXml } from '../import/repoSettingsImport.ts';
+import { findUnmanaged } from './preserve.ts';
+import { isConfigFile, type RepoFile } from './repoFiles.ts';
+
+export type RepoImport = { config: WizardConfig; notes: (ImportNote & { fileName: string })[] };
+
+/** The SDK band a repo's `global.json` pins, such as `10.0.4xx` for `10.0.401`, when the catalog covers it. */
+export function findPinnedBand(files: readonly RepoFile[], bands: readonly BandEntry[]): BandEntry | undefined {
+	const globalJson = files.find(file => file.path === 'global.json');
+	const sdkVersion = globalJson ? importGlobalJson(globalJson.text)?.sdkVersion : undefined;
+	const band = sdkVersion?.replace(/^(\d+\.\d+\.\d)\d\d.*$/, '$1xx');
+	return bands.find(entry => entry.band === band);
+}
+
+/**
+ * Builds a config from a repo's config files. Each folder that holds one becomes a folder in the wizard, filled from the
+ * root down, so the order the files arrive in doesn't matter. Settings the wizard doesn't manage are listed in the notes;
+ * they stay in the files when the wizard saves.
+ */
+export function toRepoConfig(repoFiles: readonly RepoFile[], catalog: Catalog): RepoImport {
+	const files = repoFiles.filter(file => isConfigFile(file.path));
+	const folderPaths = [...new Set(['', ...files.map(file => toFolderPath(file.path))])].sort((left, right) => toDepth(left) - toDepth(right) || left.localeCompare(right));
+	const scopes: ScopeConfig[] = folderPaths.map(path => ({ path }));
+	const config: WizardConfig = { versions: { sdkBand: catalog.band.band }, scopes };
+	const notes: RepoImport['notes'] = [];
+
+	const sortedFiles = [...files].sort((left, right) => toDepth(left.path) - toDepth(right.path) || left.path.localeCompare(right.path));
+	for (const file of sortedFiles) {
+		const scope = scopes.find(entry => entry.path === toFolderPath(file.path)) ?? scopes[0];
+		notes.push(...importRepoFile(file, scope, config, catalog).map(note => ({ ...note, fileName: file.path })));
+
+		const unmanaged = findUnmanaged(file.path, file.text, catalog);
+		if (unmanaged.length > 0) notes.push({ fileName: file.path, severity: 'info', message: `Kept as is: ${[...new Set(unmanaged)].join(', ')}.` });
+	}
+
+	// Every folder needs target frameworks to gate options by C# version; the root falls back to the band's own.
+	scopes[0].tfms ??= [`net${catalog.band.channel}`];
+	return { config, notes };
+}
+
+function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig, catalog: Catalog): ImportNote[] {
+	const fileName = toFileName(file.path);
+	if (fileName === 'global.json') {
+		const imported = importGlobalJson(file.text);
+		if (imported) config.globalJson = imported.globalJson;
+		return [];
+	}
+
+	if (fileName === 'nuget.config') {
+		const nuget = importNuGetConfig(file.text);
+		if (nuget) config.nuget = nuget;
+		return [];
+	}
+
+	if (fileName === 'BannedSymbols.txt') {
+		scope.bannedApis = importBannedSymbols(file.text);
+		return [];
+	}
+
+	if (fileName === 'SonarLint.xml') {
+		config.scopes[0].ruleParameters = importSonarLintXml(file.text);
+		return [];
+	}
+
+	if (fileName === GLOBAL_CONFIG_FILE) config.severityFile = 'globalconfig';
+	const result = importFile(fileName, file.text, catalog);
+	if (!result) return [];
+
+	mergeImport(scope, result.settings);
+	// What the importers report as dropped stays in the file, so only the other notes apply here.
+	return result.notes.filter(note => !note.isDropped);
+}
+
+function toDepth(path: string): number {
+	return path === '' ? 0 : path.split('/').length;
+}

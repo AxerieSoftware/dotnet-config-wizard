@@ -1,13 +1,18 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
+	import { getEffectiveSeverity } from '../analyzers/effectiveSeverity.ts';
 	import type { CatalogOption, CatalogRule } from '../catalog/catalog.ts';
 	import { getOptionBlocker, getRuleBlocker } from '../config/versionGates.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import SeveritySelect from '../ui/SeveritySelect.svelte';
 	import ValueSelect from '../ui/ValueSelect.svelte';
+	import OptionHelp from './OptionHelp.svelte';
 
 	const wizard = getWizardState();
 	let isUnavailableShown = $state(false);
+	// An example renders the first time its section opens, so the step doesn't highlight a hundred snippets nobody reads.
+	const openedExamples = new SvelteSet<string>();
 
 	const groups = $derived(
 		Map.groupBy(
@@ -34,78 +39,101 @@
 			.filter(entry => isUnavailableShown || !entry.blocker);
 	}
 
+	function toFallbackValue(option: CatalogOption): string | undefined {
+		return wizard.inheritedScope?.options[option.name] ?? option.defaultValue ?? undefined;
+	}
+
+	function isOptionChanged(option: CatalogOption): boolean {
+		const value = wizard.activeScope.options?.[option.name];
+		return value !== undefined && value !== toFallbackValue(option);
+	}
+
 	function toValueChoices(option: CatalogOption): string[] {
 		return [...new Set(option.values.map(value => value.value))];
 	}
 </script>
 
-<h1>Code style</h1>
-<p class="lead">Every C# code-style option, grouped the way the output file groups them. An option says what you prefer; its rule's severity says how loudly to complain.</p>
+<header class="step-header">
+	<h1>Code style</h1>
+	<p>The option picks the style; its rule's severity sets how the build reports it.</p>
+</header>
 
-<label class="checkbox toggle">
+<label class="checkbox">
 	<input type="checkbox" bind:checked={isUnavailableShown}>
-	Show options and rules that need a newer C# version or framework than C# {wizard.activeContext.csharpVersion} and {wizard.activeContext.tfms.join(', ')}
+	Show options and rules that need more than C# {wizard.activeContext.csharpVersion} ({wizard.activeContext.tfms.join(', ')})
 </label>
 
 {#each groups as group (group.title)}
 	<section class="card">
 		<h2>{group.title}</h2>
-		{#each group.entries as { option, blocker } (option.name)}
-			<div class="option-row" class:unavailable={blocker}>
-				<label class="field">
-					<span class="option-name">
-						<code>{option.name}</code>
-						{#if blocker}
-							<span class="badge">{blocker}</span>
+		<div class="rows">
+			{#each group.entries as { option, blocker } (option.name)}
+				<div class="option-row" class:unavailable={blocker}>
+					<label class="field">
+						<span class="option-name">
+							<code>{option.name}</code>
+							{#if blocker}
+								<span class="badge">{blocker}</span>
+							{/if}
+						</span>
+						{#if option.allowsMultipleValues}
+							<input
+								aria-label={option.name}
+								disabled={Boolean(blocker)}
+								class:changed={isOptionChanged(option)}
+								value={wizard.activeScope.options?.[option.name] ?? ''}
+								placeholder={wizard.inheritedScope?.options[option.name] ?? option.defaultValue ?? ''}
+								onchange={event => wizard.setOption(option.name, event.currentTarget.value.trim() === '' ? undefined : event.currentTarget.value.trim())}
+							>
+						{:else}
+							<ValueSelect
+								label={option.name}
+								disabled={Boolean(blocker)}
+								value={wizard.activeScope.options?.[option.name]}
+								values={toValueChoices(option)}
+								unsetLabel={toUnsetLabel(wizard.inheritedScope?.options[option.name], option.defaultValue ? `Default (${option.defaultValue})` : 'Default')}
+								fallbackValue={toFallbackValue(option)}
+								onchange={value => wizard.setOption(option.name, value)}
+							/>
 						{/if}
-					</span>
-					{#if option.allowsMultipleValues}
-						<input
-							aria-label={option.name}
-							disabled={Boolean(blocker)}
-							value={wizard.activeScope.options?.[option.name] ?? ''}
-							placeholder={wizard.inheritedScope?.options[option.name] ?? option.defaultValue ?? ''}
-							onchange={event => wizard.setOption(option.name, event.currentTarget.value.trim() === '' ? undefined : event.currentTarget.value.trim())}
-						>
-					{:else}
-						<ValueSelect
-							label={option.name}
-							disabled={Boolean(blocker)}
-							value={wizard.activeScope.options?.[option.name]}
-							values={toValueChoices(option)}
-							unsetLabel={toUnsetLabel(wizard.inheritedScope?.options[option.name], option.defaultValue ? `Default (${option.defaultValue})` : 'Default')}
-							onchange={value => wizard.setOption(option.name, value)}
-						/>
+					</label>
+					{#if option.values.length > 0 || option.example}
+						<details ontoggle={() => openedExamples.add(option.name)}>
+							<summary>Example</summary>
+							{#if openedExamples.has(option.name)}
+								<OptionHelp {option} value={wizard.activeScope.options?.[option.name] ?? toFallbackValue(option)} />
+							{/if}
+						</details>
 					{/if}
-				</label>
-				{#if option.example}
-					<details>
-						<summary>Example</summary>
-						<pre><code>{option.example}</code></pre>
-					</details>
-				{/if}
-			</div>
-		{/each}
+				</div>
+			{/each}
+		</div>
 
 		{#if group.rules.length > 0}
 			<h3>Rules</h3>
-			{#each group.rules as { rule, blocker } (rule.id)}
-				<div class="rule-row" class:unavailable={blocker}>
-					<span><strong>{rule.id}</strong> {rule.title}</span>
-					{#if blocker}
-						<span class="badge">{blocker}</span>
-					{:else if !rule.isEnforcedOnBuild}
-						<span class="badge" title="dotnet build never runs this rule; only the editor reports it.">Editor only</span>
-					{/if}
-					<SeveritySelect
-						ruleId={rule.id}
-						disabled={Boolean(blocker)}
-						value={wizard.activeScope.severities?.[rule.id]}
-						inheritedValue={wizard.inheritedScope?.severities[rule.id]}
-						onchange={severity => wizard.setSeverity(rule.id, severity)}
-					/>
-				</div>
-			{/each}
+			<div class="rows">
+				{#each group.rules as { rule, blocker } (rule.id)}
+					<div class="rule-row" class:unavailable={blocker}>
+						<span>
+							<span class="rule-id">{rule.id}</span>
+							{rule.title}
+							{#if blocker}
+								<span class="badge">{blocker}</span>
+							{:else if !rule.isEnforcedOnBuild}
+								<span class="badge" title="dotnet build never runs this rule; only the editor reports it.">Editor only</span>
+							{/if}
+						</span>
+						<SeveritySelect
+							ruleId={rule.id}
+							disabled={Boolean(blocker)}
+							value={wizard.activeScope.severities?.[rule.id]}
+							inheritedValue={wizard.inheritedScope?.severities[rule.id]}
+							unsetValue={getEffectiveSeverity(rule, wizard.resolvedActiveScope, wizard.catalog)}
+							onchange={severity => wizard.setSeverity(rule.id, severity)}
+						/>
+					</div>
+				{/each}
+			</div>
 		{/if}
 	</section>
 {/each}

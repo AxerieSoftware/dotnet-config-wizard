@@ -1,4 +1,4 @@
-import { CSHARP_GLOB } from './formattingSections.ts';
+import { ALL_FILES_GLOB, CSHARP_GLOB } from './formattingSections.ts';
 
 export type FormattingKey = { key: string; label: string; values: string[] };
 
@@ -12,15 +12,13 @@ export const FORMATTING_KEYS: readonly FormattingKey[] = [
 	{ key: 'trim_trailing_whitespace', label: 'Trim trailing whitespace', values: ['true', 'false'] }
 ];
 
-export const FORMATTING_GLOBS: readonly { glob: string; title: string; note?: string }[] = [
-	{ glob: '[*]', title: 'All files' },
+export const FORMATTING_GLOBS: readonly { glob: string; title: string }[] = [
+	{ glob: ALL_FILES_GLOB, title: 'All files' },
 	{ glob: CSHARP_GLOB, title: 'C# files' },
-	{ glob: '[*.vb]', title: 'Visual Basic files', note: 'Formatting only. The wizard covers C# analyzers and code style.' },
-	{ glob: '[*.{csproj,props,targets,xml,slnx,config,nuspec,resx}]', title: 'MSBuild and XML' },
+	{ glob: '[*.{csproj,props,targets,xml,sln,slnx,config,nuspec,resx}]', title: 'MSBuild, XML and solutions' },
 	{ glob: '[*.json]', title: 'JSON' },
 	{ glob: '[*.{yml,yaml}]', title: 'YAML' },
 	{ glob: '[*.md]', title: 'Markdown' },
-	{ glob: '[*.sln]', title: 'Solution files' },
 	{ glob: '[*.sh]', title: 'Shell scripts' },
 	{ glob: '[*.{cmd,bat}]', title: 'Windows scripts' },
 	{ glob: '[*.ps1]', title: 'PowerShell scripts' }

@@ -2,7 +2,15 @@
 	import type { CatalogRule } from '../catalog/catalog.ts';
 	import type { Severity } from '../config/wizardConfig.ts';
 
-	export type RuleRow = { rule: CatalogRule; configured: Severity | undefined; inherited: Severity | undefined; effective: Severity; blocker: string | undefined; ownerId: string | undefined };
+	export type RuleRow = {
+		rule: CatalogRule;
+		configured: Severity | undefined;
+		inherited: Severity | undefined;
+		effective: Severity;
+		blocker: string | undefined;
+		ownerId: string | undefined;
+		coveredById: string | undefined;
+	};
 </script>
 
 <script lang="ts">
@@ -14,7 +22,7 @@
 
 	// Only rows near the viewport are rendered; the catalog has well over a thousand rules. Rendered rows are absolutely
 	// positioned, which native table layout can't do, so the table semantics come from ARIA roles (see biome.json).
-	const ROW_HEIGHT = 56;
+	const ROW_HEIGHT = 64;
 	const VIEWPORT_HEIGHT = 560;
 	const OVERSCAN = 6;
 
@@ -41,15 +49,17 @@
 				style:height={`${ROW_HEIGHT}px`}
 			>
 				<div role="cell" class="rule-cell">
-					<span>
+					<span class="rule-head">
 						{#if row.rule.helpLink}
-							<a href={row.rule.helpLink} target="_blank" rel="noreferrer">{row.rule.id}</a>
+							<a class="rule-id" href={row.rule.helpLink} target="_blank" rel="noreferrer">{row.rule.id}</a>
 						{:else}
-							<strong>{row.rule.id}</strong>
+							<span class="rule-id">{row.rule.id}</span>
 						{/if}
-						{row.rule.title}
-					</span>
-					<span class="badges">
+						{#if row.ownerId}
+							<span class="badge warning">Duplicates {row.ownerId}</span>
+						{:else if row.coveredById}
+							<span class="badge" title={`${row.coveredById} already checks this, so this rule is off.`}>Covered by {row.coveredById}</span>
+						{/if}
 						{#if row.blocker}
 							<span class="badge">{row.blocker}</span>
 						{/if}
@@ -62,15 +72,20 @@
 						{#if row.rule.warningLevel && row.rule.warningLevel > 4}
 							<span class="badge">Warning wave {row.rule.warningLevel}</span>
 						{/if}
-						{#if row.ownerId}
-							<span class="badge warning-badge">Duplicates {row.ownerId}</span>
-						{/if}
 					</span>
+					<span class="rule-name" title={row.rule.title}>{row.rule.title}</span>
 				</div>
-				<div role="cell" class="source-cell">{row.rule.sourceTitle} · {row.rule.category}</div>
-				<div role="cell">{row.effective}</div>
+				<div role="cell" class="source-cell"><span>{row.rule.sourceTitle}</span><span>{row.rule.category}</span></div>
+				<div role="cell"><span class={`severity-text ${row.effective}`}>{row.effective}</span></div>
 				<div role="cell">
-					<SeveritySelect ruleId={row.rule.id} disabled={Boolean(row.blocker)} value={row.configured} inheritedValue={row.inherited} onchange={severity => onSeverityChange(row.rule.id, severity)} />
+					<SeveritySelect
+						ruleId={row.rule.id}
+						disabled={Boolean(row.blocker)}
+						value={row.configured}
+						inheritedValue={row.inherited}
+						unsetValue={row.effective}
+						onchange={severity => onSeverityChange(row.rule.id, severity)}
+					/>
 				</div>
 			</div>
 		{/each}

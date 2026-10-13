@@ -12,7 +12,7 @@ The catalog covers the latest SDK of every .NET channel from 10.0 on that isn't 
 | --- | --- |
 | `sdk-<band>.json` `rules` | Every C# `DiagnosticAnalyzer` in the SDK's code-style and NetAnalyzers assemblies, in the band's `Microsoft.NET.ILLink.Tasks` package (IL2xxx/IL3xxx) and in its ASP.NET Core targeting pack (ASPxxxx, BLxxxx), read through `SupportedDiagnostics`, plus every compiler warning (CSxxxx). |
 | `sdk-<band>.json` `analysisLevels` | The SDK's `analysislevel_<level>_<mode>.globalconfig` files: level, then mode, then rule ID to severity. |
-| `package-<id>.json` | The rules of each analyzer package listed in `catalog/packages.json`, at its newest stable version, or its newest prerelease when no stable release is under 18 months old (ErrorProne.NET only ships prereleases). |
+| `package-<id>.json` | The rules of each analyzer package listed in `catalog/packages.json`, at its newest stable version, or its newest prerelease when no stable release is under 18 months old. |
 | `packages.json` | Each package's version, newest release (prereleases included), publish date and deprecation, for the maintenance gate. |
 | `bands.json` | `releases-index.json` support details for each band the run read. |
 | `style-options.json` | The property tables in dotnet/docs `docs/fundamentals/code-analysis/style-rules`, including `includes/`, which rule pages pull in with `[!INCLUDE]`. |
@@ -26,7 +26,7 @@ Analyzers are loaded with the Roslyn build that ships in the same SDK, through r
 - **Type-load failures** in packages are usually Roslyn helper types embedded for another Roslyn version. They're notes unless the type looks like an analyzer or code fix, which fails the run.
 - **Missing dependencies** don't name the types they break, so CatalogBuilder compares the analyzer-like type names in the assembly's metadata with the types that loaded. ASP.NET Core's editor features, for example, need `Microsoft.CodeAnalysis.ExternalAccess.AspNetCore`, which only Visual Studio ships; every one of its analyzers still loads.
 - **Rule IDs** can be mixed case, such as `xUnit1000` and `NUnit1001`.
-- **Package folder layouts** vary: `analyzers/` (Sonar), `analyzers/cs/` (VS Threading), `analyzers/dotnet/` (PublicApi), `analyzers/dotnet/cs/`, and Roslyn-versioned `analyzers/dotnet/roslynX.Y/cs/` (Roslynator, Meziantou), where the newest version the host Roslyn can load wins.
+- **Package folder layouts** vary: `analyzers/` (Sonar), `analyzers/cs/` (VS Threading), `analyzers/dotnet/` (PublicApi), `analyzers/dotnet/cs/`, and Roslyn-versioned `analyzers/dotnet/roslynX.Y/cs/` (Meziantou), where the newest version the host Roslyn can load wins.
 
 ## Packages that come with another package
 

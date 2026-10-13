@@ -24,29 +24,32 @@
 	}
 </script>
 
-<h1>Packages</h1>
-<p class="lead">Central package management, NuGet audit and lock files, and where packages come from.</p>
-<p class="note">
-	With central package management on, projects can't set <code>Version</code> on a PackageReference. Move each version to a <code>&lt;PackageVersion Include="…" Version="…" /&gt;</code> item in
-	<code>Directory.Packages.props</code>. Analyzer packages are added for you as GlobalPackageReference items.
-</p>
+<header class="step-header">
+	<h1>Packages</h1>
+	<p>Central package management, NuGet audit, lock files and package sources.</p>
+</header>
+
+<ul class="note">
+	<li>With central package management on, projects can't set <code>Version</code> on a PackageReference.</li>
+	<li>Move each version to a <code>&lt;PackageVersion Include="…" Version="…" /&gt;</code> item in <code>Directory.Packages.props</code>.</li>
+	<li>Analyzer packages are added for you as GlobalPackageReference items.</li>
+</ul>
 
 <PropertyEditor {properties} />
 
 <section class="card">
-	<h2>nuget.config</h2>
-	{#if !wizard.isRootActive}
-		<p class="note">nuget.config applies to the whole repo, whichever folder is selected.</p>
-	{/if}
+	<div class="card-header">
+		<h2>nuget.config</h2>
+		<p class="note">Clears machine sources and maps each package to one source, blocking dependency confusion.</p>
+	</div>
 	<label class="checkbox">
 		<input type="checkbox" checked={nuget !== undefined} onchange={event => setNuGetEnabled(event.currentTarget.checked)}>
-		Generate nuget.config
+		Generate nuget.config{wizard.isRootActive ? '' : ' (whole repo)'}
 	</label>
-	<p class="note">It clears sources from machine and user config so restores match everywhere, and maps every package to one source, which blocks dependency confusion.</p>
 
 	{#if nuget}
 		{#each nuget.sources as source, index (index)}
-			<div class="field-grid source-row">
+			<div class="source-row">
 				<label class="field"
 					><span>Name</span><input aria-label={`Source ${index + 1} name`} value={source.key} onchange={event => updateSource(index, { key: event.currentTarget.value.trim() })}></label
 				>
@@ -54,10 +57,11 @@
 					><span>URL</span><input aria-label={`Source ${index + 1} URL`} value={source.url} onchange={event => updateSource(index, { url: event.currentTarget.value.trim() })}></label
 				>
 				<label class="field">
-					<span>Package patterns, comma separated</span>
+					<span>Package patterns</span>
 					<input
 						aria-label={`Source ${index + 1} patterns`}
 						value={source.patterns.join(', ')}
+						placeholder="Contoso.*, *"
 						onchange={event =>
 							updateSource(index, {
 								patterns: event.currentTarget.value
@@ -68,16 +72,14 @@
 					>
 				</label>
 				{#if nuget.sources.length > 1}
-					<button type="button" class="secondary" onclick={() => updateNuGet(current => ({ ...current, sources: current.sources.filter((_, sourceIndex) => sourceIndex !== index) }))}>Remove</button>
+					<button type="button" class="subtle" onclick={() => updateNuGet(current => ({ ...current, sources: current.sources.filter((_, sourceIndex) => sourceIndex !== index) }))}>Remove</button>
 				{/if}
 			</div>
 		{/each}
 		<div class="actions">
-			<button type="button" class="secondary" onclick={() => updateNuGet(current => ({ ...current, sources: [...current.sources, { key: 'private', url: '', patterns: ['Contoso.*'] }] }))}>
-				Add a source
-			</button>
+			<button type="button" onclick={() => updateNuGet(current => ({ ...current, sources: [...current.sources, { key: 'private', url: '', patterns: ['Contoso.*'] }] }))}>Add a source</button>
 		</div>
-		<label class="field">
+		<label class="field" style:max-width="480px">
 			<span>Audit source</span>
 			<select aria-label="Audit source" value={nuget.auditSourceUrl} onchange={event => updateNuGet(current => ({ ...current, auditSourceUrl: event.currentTarget.value }))}>
 				<option value={NUGET_ORG.url}>nuget.org</option>

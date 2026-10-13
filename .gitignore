@@ -6,7 +6,9 @@ node_modules
 .netlify
 .wrangler
 /.svelte-kit
+/.svelte-kit-e2e
 /build
+/build-e2e
 
 # OS
 .DS_Store
@@ -30,3 +32,8 @@ test-results
 # .NET
 /artifacts
 
+
+# Local tooling and design-review scratch
+/.claude/
+/.impeccable/review/
+/.impeccable/questions/

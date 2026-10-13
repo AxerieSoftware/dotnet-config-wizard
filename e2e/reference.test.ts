@@ -9,7 +9,7 @@ test('the rules index links to a prerendered rule page with how to configure it'
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('CA2007: Consider calling ConfigureAwait on the awaited task');
 	await expect(page.getByText('dotnet_diagnostic.CA2007.severity = warning')).toBeVisible();
-	await expect(page.getByText('ConfigureAwait is also checked by MA0004, RCS1090')).toBeVisible();
+	await expect(page.getByText('ConfigureAwait is also checked by MA0004, VSTHRD111')).toBeVisible();
 });
 
 test('an option page shows its values, example and attribution', async ({ page }) => {

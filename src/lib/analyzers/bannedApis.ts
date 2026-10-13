@@ -43,6 +43,70 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 		]
 	},
 	{
+		title: 'Regular expressions without a timeout',
+		projectKinds: ['library', 'service'],
+		apis: [
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.#ctor(System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.#ctor(System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.IsMatch(System.String,System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.IsMatch(System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.Match(System.String,System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Match(System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.Matches(System.String,System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Matches(System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.Split(System.String,System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Split(System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{ symbol: 'M:System.Text.RegularExpressions.Regex.Count(System.String,System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Count(System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Replace(System.String,System.String,System.String)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Replace(System.String,System.String,System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Replace(System.String,System.String,System.Text.RegularExpressions.MatchEvaluator)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.Regex.Replace(System.String,System.String,System.Text.RegularExpressions.MatchEvaluator,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.GeneratedRegexAttribute.#ctor(System.String)',
+				message: 'Pass matchTimeoutMilliseconds; without a timeout, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.GeneratedRegexAttribute.#ctor(System.String,System.Text.RegularExpressions.RegexOptions)',
+				message: 'Pass matchTimeoutMilliseconds; without a timeout, crafted input can make the regex run for minutes.'
+			},
+			{
+				symbol: 'M:System.Text.RegularExpressions.GeneratedRegexAttribute.#ctor(System.String,System.Text.RegularExpressions.RegexOptions,System.String)',
+				message: 'Pass matchTimeoutMilliseconds; without a timeout, crafted input can make the regex run for minutes.'
+			}
+		]
+	},
+	{
 		title: 'Legacy networking: use HttpClient',
 		projectKinds: ['library', 'service'],
 		apis: [

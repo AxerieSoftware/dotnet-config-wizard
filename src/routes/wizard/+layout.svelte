@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { getBrowserStorage, loadInitialState } from '#lib/config/initialState.ts';
+	import AppHeader from '#lib/ui/AppHeader.svelte';
 	import WizardShell from '#lib/ui/WizardShell.svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -11,12 +12,15 @@
 
 {#if initialState}
 	{#await initialState}
+		<AppHeader />
 		<p class="status">Loading rules and options…</p>
 	{:then loaded}
 		<WizardShell initialState={loaded}>{@render children()}</WizardShell>
 	{:catch error}
-		<p class="status warning" role="alert">The rule catalog didn't load: {error.message}</p>
+		<AppHeader />
+		<p class="status" role="alert">The rule catalog didn't load: {error.message}</p>
 	{/await}
 {:else}
+	<AppHeader />
 	<p class="status">Loading rules and options…</p>
 {/if}

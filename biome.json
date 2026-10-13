@@ -63,13 +63,24 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/lib/analyzers/RuleBrowser.svelte", "src/lib/export/GeneratedFiles.svelte"],
+			"includes": ["src/lib/analyzers/RuleBrowser.svelte", "src/lib/export/CodeView.svelte", "src/lib/export/FileExplorer.svelte", "src/lib/ui/PaneResizer.svelte"],
 			"linter": {
 				"rules": {
 					"a11y": {
 						"useSemanticElements": "off",
 						"useFocusableInteractive": "off",
-						"noNoninteractiveTabindex": "off"
+						"noNoninteractiveTabindex": "off",
+						"noNoninteractiveElementToInteractiveRole": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/app.css"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDescendingSpecificity": "off"
 					}
 				}
 			}

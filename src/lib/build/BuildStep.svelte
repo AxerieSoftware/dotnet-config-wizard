@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ProjectsCard from '../config/ProjectsCard.svelte';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import { BUILD_PROPERTIES } from './buildProperties.ts';
 	import PropertyEditor from './PropertyEditor.svelte';
@@ -14,13 +15,19 @@
 	);
 </script>
 
-<h1>Build</h1>
-<p class="lead">
-	MSBuild properties for <code>Directory.Build.props</code>. LangVersion, WarningLevel and NoWarn aren't offered: the C# version and warning waves follow the target framework and AnalysisLevel, and
-	suppressions belong in .editorconfig.
-</p>
-{#if projectKind}
-	<p class="note">Showing properties for {projectKind} projects. Change the project kind on the Start step to see others.</p>
-{/if}
+<header class="step-header">
+	<h1>Build</h1>
+	<p>MSBuild properties for <code>Directory.Build.props</code>.</p>
+</header>
+
+<ul class="note">
+	<li>LangVersion and WarningLevel aren't offered: they follow the target framework and AnalysisLevel.</li>
+	<li>NoWarn isn't offered: suppressions go in .editorconfig as severity <code>none</code>.</li>
+	{#if projectKind}
+		<li>Showing properties for {projectKind} projects. Change the project kind below.</li>
+	{/if}
+</ul>
+
+<ProjectsCard />
 
 <PropertyEditor {properties} />

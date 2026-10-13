@@ -3,6 +3,7 @@ import { GLOBAL_CONFIG_FILE, toGlobalConfig } from '../analyzers/globalConfig.ts
 import { toSonarLintXml } from '../analyzers/sonarLintXml.ts';
 import { toBuildFiles } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
+import { resolveScope } from '../config/scopes.ts';
 import type { WizardConfig } from '../config/wizardConfig.ts';
 import { toGitAttributes } from '../formatting/gitattributes.ts';
 import { toNuGetConfig } from '../packages/nugetConfig.ts';
@@ -32,7 +33,8 @@ export function toGeneratedOutput(config: WizardConfig, catalog: Catalog, output
 	const analyzerFiles = config.scopes.flatMap(scope => {
 		const files: GeneratedFile[] = [];
 		const directory = scope.path === '' ? '' : `${scope.path}/`;
-		const packages = scope.packages ?? [];
+		// A folder can inherit the analyzer package, as its props file does.
+		const { packages } = resolveScope(config, scope);
 
 		if (packages.includes(BANNED_API_PACKAGE) && (scope.bannedApis ?? []).length > 0) files.push({ path: `${directory}BannedSymbols.txt`, content: toBannedSymbolsText(scope.bannedApis ?? []) });
 		// Sonar reads a single SonarLint.xml, so parameters are repo-wide.

@@ -6,8 +6,8 @@ import { toNextSteps } from './nextSteps.ts';
 
 it('lists only the next steps the generated files need', () => {
 	const catalog = readCatalog('10.0.4xx');
-	const libraryConfig = toPresetConfig('library', catalog);
-	const defaultsConfig = toPresetConfig('microsoft-defaults', catalog);
+	const libraryConfig = toPresetConfig({ level: 'recommended', kind: 'library' }, catalog);
+	const defaultsConfig = toPresetConfig({ level: 'microsoft-defaults', kind: 'any' }, catalog);
 
 	const librarySteps = toNextSteps(libraryConfig, toGeneratedOutput(libraryConfig, catalog, { commentStyle: 'none' }).files).join('\n');
 	const defaultsSteps = toNextSteps(defaultsConfig, toGeneratedOutput(defaultsConfig, catalog, { commentStyle: 'none' }).files).join('\n');

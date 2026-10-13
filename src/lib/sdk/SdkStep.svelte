@@ -21,12 +21,10 @@
 	}
 </script>
 
-<h1>SDK</h1>
-<p class="lead"><code>global.json</code> pins the SDK every machine and CI agent builds with. It's the one place new analyzer rules and warning waves come from, since AnalysisLevel tracks it.</p>
-
-{#if !wizard.isRootActive}
-	<p class="note">global.json applies to the whole repo, whichever folder is selected.</p>
-{/if}
+<header class="step-header">
+	<h1>SDK</h1>
+	<p><code>global.json</code> pins the SDK everywhere. Updating it brings new rules and warning waves.</p>
+</header>
 
 <section class="card">
 	<label class="checkbox">
@@ -35,11 +33,11 @@
 			checked={globalJson !== undefined}
 			onchange={event => wizard.setGlobalJson(event.currentTarget.checked ? { rollForward: 'latestFeature', isTestingPlatformRunner: false, msbuildSdks: {} } : undefined)}
 		>
-		Generate global.json
+		Generate global.json{wizard.isRootActive ? '' : ' (whole repo)'}
 	</label>
 
 	{#if globalJson}
-		<p class="note">Pins SDK {wizard.catalog.band.sdkVersion}{wizard.catalog.band.isPreview ? ', allowing prereleases because this band is a preview' : ''}.</p>
+		<p class="caption">Pins SDK {wizard.catalog.band.sdkVersion}{wizard.catalog.band.isPreview ? ', prereleases allowed.' : '.'}</p>
 		<div class="field-grid">
 			<label class="field">
 				<span>Roll forward</span>
@@ -58,6 +56,9 @@
 			<input type="checkbox" checked={globalJson.isTestingPlatformRunner} onchange={event => update({ isTestingPlatformRunner: event.currentTarget.checked })}>
 			Run <code>dotnet test</code> on Microsoft.Testing.Platform
 		</label>
-		<p class="note"><code>latestFeature</code> lets a newer patch or feature band of the same major build the repo; <code>disable</code> requires exactly this SDK.</p>
+		<ul class="caption">
+			<li><code>latestFeature</code>: a newer patch or feature band of the same major can build the repo.</li>
+			<li><code>disable</code>: only this exact SDK can.</li>
+		</ul>
 	{/if}
 </section>

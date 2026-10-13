@@ -29,7 +29,7 @@ export async function listRules(): Promise<CatalogRule[]> {
 
 export async function listOptions(): Promise<CatalogOption[]> {
 	const [catalog] = await loadReferenceCatalogs();
-	return [...catalog.options.values()].sort((left, right) => left.name.localeCompare(right.name));
+	return [...catalog.options.values()].filter(isCSharpOption).sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export async function findRule(id: string): Promise<RuleReference | undefined> {
@@ -42,8 +42,8 @@ export async function findRule(id: string): Promise<RuleReference | undefined> {
 		rule,
 		bands: catalogs.filter(catalog => catalog.rules.has(id)).map(catalog => catalog.band.band),
 		firstSeen: owningCatalog.history.get(id),
-		options: [...owningCatalog.options.values()].filter(option => option.ruleIds.includes(id)).map(option => ({ name: option.name, groupTitle: option.groupTitle })),
-		duplicateConcerns: OVERLAPS.filter(overlap => overlap.ruleIds.includes(id) || (rule.packageId !== null && (overlap.packageIds ?? []).includes(rule.packageId))).map(overlap => ({
+		options: [...owningCatalog.options.values()].filter(option => isCSharpOption(option) && option.ruleIds.includes(id)).map(option => ({ name: option.name, groupTitle: option.groupTitle })),
+		duplicateConcerns: OVERLAPS.filter(overlap => overlap.ruleIds.includes(id)).map(overlap => ({
 			concern: overlap.concern,
 			otherRuleIds: overlap.ruleIds.filter(otherId => otherId !== id)
 		}))
@@ -53,7 +53,7 @@ export async function findRule(id: string): Promise<RuleReference | undefined> {
 export async function findOption(name: string): Promise<OptionReference | undefined> {
 	const [catalog] = await loadReferenceCatalogs();
 	const option = catalog.options.get(name);
-	if (!option) return undefined;
+	if (!option || !isCSharpOption(option)) return undefined;
 
 	return {
 		option,
@@ -67,4 +67,9 @@ function toDocsUrl(option: CatalogOption, catalog: Catalog): string {
 	const isPage = option.docFile.startsWith('ide') || option.docFile.endsWith('-formatting-options.md');
 	const firstRuleLink = option.ruleIds.map(id => catalog.rules.get(id)?.helpLink).find(link => link);
 	return isPage || !firstRuleLink ? `${STYLE_RULES_URL}/${option.docFile.replace(/\.md$/, '')}` : firstRuleLink;
+}
+
+/** The wizard covers C# only, so options for Visual Basic alone get no page. */
+function isCSharpOption(option: CatalogOption): boolean {
+	return option.languages.includes('csharp');
 }

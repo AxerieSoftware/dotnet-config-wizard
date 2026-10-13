@@ -1,17 +1,22 @@
 import { createContext } from 'svelte';
 import { type AnalysisMode, toAnalysisLevelValue } from '../analyzers/analysisLevel.ts';
 import type { BannedApi } from '../analyzers/bannedApis.ts';
-import type { CommentStyle } from '../analyzers/severityBlocks.ts';
+import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import { loadCatalog } from '../catalog/loadCatalog.ts';
+import { BANDS, DEFAULT_BAND, loadCatalog } from '../catalog/loadCatalog.ts';
+import { toEffectiveFiles } from '../export/effectiveFiles.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
 import { mergeImport } from '../import/mergeImport.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
+import { RepoConnection } from '../repo/repoConnection.svelte.ts';
+import { isConfigFile, type RepoFile } from '../repo/repoFiles.ts';
+import { findPinnedBand, toRepoConfig } from '../repo/repoImport.ts';
+import { SessionValue } from '../ui/sessionValue.svelte.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
 import type { InitialState } from './initialState.ts';
-import { type PresetId, toPresetConfig } from './presets.ts';
+import { DEFAULT_PRESET, type Preset, toPresetConfig } from './presets.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
 import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
@@ -21,20 +26,40 @@ import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity,
  * The config being edited and the files it renders to. Folder settings edit the active scope; repo-wide settings, such as
  * the SDK band, nuget.config and global.json, edit the config. Values set to undefined fall back to what the scope inherits.
  */
+const RULE_FILTER_DEFAULTS = { searchText: '', source: '', category: '', isConfiguredOnly: false, isCodeFixOnly: false, isUnavailableShown: false };
+
 export class WizardState {
 	public catalog: Catalog;
 	public config: WizardConfig;
-	public commentStyle = $state<CommentStyle>('idAndTitle');
-	public activeScopePath = $state('');
 	/** The preset the config started from, which share links store their changes against. */
-	public presetId = $state<PresetId>('microsoft-defaults');
-	/** A message about how the settings were restored, such as from a link made with an older preset. */
+	public preset = $state<Preset>(DEFAULT_PRESET);
+	/** A message about something that went wrong, such as a share link that could not be restored. */
 	public notice = $state<string | undefined>(undefined);
+	/** Whether the settings are saved in this browser; false while untouched or when storage is blocked. */
+	public isSavedInBrowser = $state(false);
+	/** The repo folder open in the wizard, which edits save to. */
+	public repo = $state.raw<RepoConnection | undefined>(undefined);
+	/** The folder a new folder goes inside; the dialog for adding one is open while it's set. */
+	public addFolderParentPath = $state<string | undefined>(undefined);
+	/** The folder files are being imported into; the import dialog is open while it's set. */
+	public importTargetPath = $state<string | undefined>(undefined);
+	/** How many files and folders the last opened repo had, shown until dismissed. */
+	public openedRepoSummary = $state<{ fileCount: number; folderCount: number } | undefined>(undefined);
+	/** An action that would wipe changes, waiting for the user to confirm it. */
+	public pendingConfirmation = $state<Confirmation | undefined>(undefined);
 	public importNotes = $state<(ImportNote & { fileName: string })[]>([]);
 	/** The catalog version an imported `.editorconfig` was made with, when it's older than this catalog. */
 	public importedCatalogVersion = $state<string | undefined>(undefined);
 	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
-	public readonly savedState = $derived.by(() => toSavedState(this.config, this.presetId, this.catalog));
+	public readonly savedState = $derived.by(() => toSavedState(this.config, this.preset, this.catalog));
+	/** What a project in the active folder actually gets, or undefined at the repo root, where the files are already that. */
+	public readonly effectiveFiles = $derived.by(() => (this.isRootActive ? undefined : toEffectiveFiles(this.config, this.activeScope, this.catalog, this.commentStyle, this.output.files)));
+	/** Whether the settings differ from the preset they started from, so replacing them loses work. */
+	public readonly hasChanges = $derived.by(() => Object.keys(this.savedState.changes as object).length > 0);
+	/** Whether the settings are still what a first visit starts with, so there's nothing worth saving or starting over from. */
+	public readonly isUntouched = $derived.by(
+		() => !this.hasChanges && this.preset.level === DEFAULT_PRESET.level && this.preset.kind === DEFAULT_PRESET.kind && this.config.versions.sdkBand === DEFAULT_BAND.band
+	);
 	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
@@ -44,11 +69,35 @@ export class WizardState {
 	});
 	public readonly activeContext = $derived.by(() => toGateContext(this.resolvedActiveScope, this.catalog));
 
+	/** The rule table's filters, which jumping to a rule from the preview sets. */
+	public readonly ruleFilters = $state({ ...RULE_FILTER_DEFAULTS });
+
+	// The folder being edited and the comment style survive a reload of the tab; the config itself is in localStorage.
+	private readonly savedActiveScopePath = new SessionValue('folder', '');
+	private readonly savedCommentStyle = new SessionValue<CommentStyle>('comment-style', 'idAndTitle', { isValid: value => COMMENT_STYLES.includes(value as CommentStyle) });
+
 	public constructor(initialState: InitialState) {
 		this.catalog = $state.raw(initialState.catalog);
-		this.presetId = initialState.restored?.presetId ?? this.presetId;
-		this.config = $state(initialState.restored?.config ?? toPresetConfig(this.presetId, initialState.catalog));
+		this.preset = initialState.restored?.preset ?? this.preset;
+		this.config = $state(initialState.restored?.config ?? toPresetConfig(this.preset, initialState.catalog));
 		this.notice = initialState.notice;
+	}
+
+	/** The folder being edited, or the repo root when the remembered folder no longer exists. */
+	public get activeScopePath(): string {
+		return this.activeScope.path;
+	}
+
+	public set activeScopePath(path: string) {
+		this.savedActiveScopePath.value = path;
+	}
+
+	public get commentStyle(): CommentStyle {
+		return this.savedCommentStyle.value;
+	}
+
+	public set commentStyle(commentStyle: CommentStyle) {
+		this.savedCommentStyle.value = commentStyle;
 	}
 
 	public get rootScope(): ScopeConfig {
@@ -56,23 +105,90 @@ export class WizardState {
 	}
 
 	public get activeScope(): ScopeConfig {
-		return this.config.scopes.find(scope => scope.path === this.activeScopePath) ?? this.rootScope;
+		return this.config.scopes.find(scope => scope.path === this.savedActiveScopePath.value) ?? this.rootScope;
 	}
 
 	public get isRootActive(): boolean {
 		return this.activeScope === this.rootScope;
 	}
 
+	/**
+	 * Switches the SDK band. Folders still on the old band's default framework, such as `net10.0` on SDK 10, move to the
+	 * new band's; frameworks someone picked by hand stay as they are.
+	 */
 	public async selectBand(bandName: string): Promise<void> {
+		const oldDefaultTfm = `net${this.catalog.band.channel}`;
 		this.catalog = await loadCatalog(bandName);
 		this.config.versions.sdkBand = bandName;
+
+		const newDefaultTfm = `net${this.catalog.band.channel}`;
+		for (const scope of this.config.scopes) {
+			if (scope.tfms?.length === 1 && scope.tfms[0] === oldDefaultTfm) scope.tfms = [newDefaultTfm];
+		}
+	}
+
+	/** Filters the rule table down to one rule, so its row is rendered and can take focus. */
+	public showRule(ruleId: string): void {
+		Object.assign(this.ruleFilters, { ...RULE_FILTER_DEFAULTS, searchText: ruleId, isUnavailableShown: true });
+	}
+
+	/** Asks before an action that discards work, and runs it once the user confirms. */
+	public confirm(confirmation: Omit<Confirmation, 'onConfirm'>, action: () => void): void {
+		this.pendingConfirmation = { ...confirmation, onConfirm: action };
+	}
+
+	/** Runs an action that replaces settings, asking first when there are changes it would lose. */
+	public confirmIfChanged(confirmation: Omit<Confirmation, 'onConfirm'>, action: () => void): void {
+		if (this.hasChanges) this.confirm(confirmation, action);
+		else action();
 	}
 
 	/** Replaces the whole config with a preset for the selected SDK band. */
-	public applyPreset(presetId: PresetId): void {
-		this.presetId = presetId;
-		this.config = toPresetConfig(presetId, this.catalog);
+	public applyPreset(preset: Preset): void {
+		this.preset = preset;
+		this.config = toPresetConfig(preset, this.catalog);
 		this.activeScopePath = '';
+	}
+
+	/**
+	 * Replaces the settings with a repo's config files, on the SDK band its global.json pins. Saving starts from the files
+	 * as they are, so nothing is written until a setting changes.
+	 */
+	public async openRepo(name: string, directory: FileSystemDirectoryHandle | undefined, files: readonly RepoFile[]): Promise<void> {
+		const band = findPinnedBand(files, BANDS) ?? this.catalog.band;
+		if (band.band !== this.catalog.band.band) this.catalog = await loadCatalog(band.band);
+
+		const { config, notes } = toRepoConfig(files, this.catalog);
+		this.preset = DEFAULT_PRESET;
+		this.config = config;
+		this.activeScopePath = '';
+		this.importNotes = notes;
+		this.importedCatalogVersion = undefined;
+		this.repo = new RepoConnection(name, directory, files, this.output.files);
+		this.openedRepoSummary = { fileCount: files.filter(file => isConfigFile(file.path)).length, folderCount: config.scopes.length };
+	}
+
+	/** Opens the dialog for adding a folder, inside `parentPath` or at the repo root. */
+	public askToAddFolder(parentPath = ''): void {
+		this.addFolderParentPath = parentPath;
+	}
+
+	/** Removes a folder, asking first when it has settings of its own. */
+	public askToRemoveScope(path: string): void {
+		const scope = this.config.scopes.find(entry => entry.path === path);
+		if (!scope || path === '') return;
+		if (!Object.keys(scope).some(key => key !== 'path')) {
+			this.removeScope(path);
+			return;
+		}
+
+		this.confirm({ title: `Remove ${path}/?`, message: 'Its settings are deleted. Files already on disk stay.', confirmLabel: 'Remove folder' }, () => this.removeScope(path));
+	}
+
+	/** Stops saving to the open repo folder; the settings stay in the browser. */
+	public closeRepo(): void {
+		this.repo = undefined;
+		this.openedRepoSummary = undefined;
 	}
 
 	/** Imports existing files into the active scope, reporting anything changed or dropped. */
@@ -102,7 +218,6 @@ export class WizardState {
 		if (path === '') return;
 
 		this.config.scopes = this.config.scopes.filter(scope => scope.path !== path);
-		if (this.activeScopePath === path) this.activeScopePath = '';
 	}
 
 	/** Sets the active scope's target frameworks; undefined makes a nested scope inherit them again. */
@@ -136,6 +251,12 @@ export class WizardState {
 	/** Sets the severity of many rules at once, such as every rule a filter shows. */
 	public setSeverities(ruleIds: readonly string[], severity: Severity | undefined): void {
 		for (const ruleId of ruleIds) this.setSeverity(ruleId, severity);
+	}
+
+	/** Sets every analyzer rule in a category, such as Performance. A rule's own severity still wins. */
+	public setCategorySeverity(category: string, severity: Severity | undefined): void {
+		this.activeScope.categorySeverities ??= {};
+		setOrDelete(this.activeScope.categorySeverities, category, severity);
 	}
 
 	public setBuildProperty(name: string, value: string | undefined): void {
@@ -218,6 +339,9 @@ export class WizardState {
 		setOrDelete(this.config, 'severityFile', severityFile === 'globalconfig' ? severityFile : undefined);
 	}
 }
+
+/** A question to ask before an action that discards work. */
+export type Confirmation = { title: string; message: string; confirmLabel: string; onConfirm: () => void };
 
 export const [getWizardState, setWizardState] = createContext<WizardState>();
 

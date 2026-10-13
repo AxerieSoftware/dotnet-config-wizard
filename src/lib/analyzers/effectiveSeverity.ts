@@ -4,7 +4,7 @@ import type { Severity } from '../config/wizardConfig.ts';
 import { parseAnalysisLevel } from './analysisLevel.ts';
 
 const NET_ANALYZERS_SOURCE = 'Microsoft.CodeAnalysis.NetAnalyzers';
-const COMPILER_SOURCE = 'Microsoft.CodeAnalysis.CSharp';
+export const COMPILER_SOURCE = 'Microsoft.CodeAnalysis.CSharp';
 
 /**
  * The severity a rule ends up with in a scope: what the scope configures for the rule, then for its category, otherwise

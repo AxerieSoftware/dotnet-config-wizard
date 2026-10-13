@@ -5,7 +5,8 @@ import { FORMATTING_KEYS } from '../formatting/formattingKeys.ts';
 import { CAPITALIZATIONS, type Capitalization, type NamingRule } from '../naming/namingRule.ts';
 import { type ImportNote, type ImportResult, toUnmaintainedNotes } from './importResult.ts';
 
-const FORMATTING_KEY_NAMES = new Set([...FORMATTING_KEYS.map(key => key.key), 'max_line_length']);
+/** The formatting keys the importer reads into a folder's formatting settings. */
+export const FORMATTING_KEY_NAMES: ReadonlySet<string> = new Set([...FORMATTING_KEYS.map(key => key.key), 'max_line_length']);
 const DIAGNOSTIC_KEY = /^dotnet_diagnostic\.(?<id>[^.]+)\.severity$/;
 const CATEGORY_KEY = /^dotnet_analyzer_diagnostic\.category-(?<category>[\w-]+)\.severity$/;
 const NAMING_KEY = /^dotnet_naming_(?<kind>rule|symbols|style)\.(?<name>[\w-]+)\.(?<property>\w+)$/;
@@ -60,22 +61,26 @@ export function importEditorConfig(text: string, catalog: Catalog): ImportResult
 			continue;
 		}
 
+		// Roslyn reads rule IDs and severities in any case.
 		const diagnostic = DIAGNOSTIC_KEY.exec(key)?.groups;
 		if (diagnostic) {
-			if (!isSeverity(value)) continue;
-			if (catalog.rules.has(diagnostic.id)) {
+			const ruleId = diagnostic.id.toUpperCase();
+			const severity = value.toLowerCase();
+			if (!isSeverity(severity)) {
+				unsupportedKeys.add(key);
+			} else if (catalog.rules.has(ruleId)) {
 				settings.severities ??= {};
-				settings.severities[diagnostic.id] = value;
+				settings.severities[ruleId] = severity;
 			} else {
-				droppedRuleIds.push(diagnostic.id);
+				droppedRuleIds.push(ruleId);
 			}
 			continue;
 		}
 
 		const category = CATEGORY_KEY.exec(key)?.groups;
-		if (category && isSeverity(value)) {
+		if (category && isSeverity(value.toLowerCase())) {
 			settings.categorySeverities ??= {};
-			settings.categorySeverities[category.category] = value;
+			settings.categorySeverities[category.category] = value.toLowerCase() as Severity;
 			continue;
 		}
 
@@ -104,8 +109,8 @@ export function importEditorConfig(text: string, catalog: Catalog): ImportResult
 	notes.push(...toUnmaintainedNotes(droppedRuleIds));
 	const otherDroppedIds = droppedRuleIds.filter(id => toUnmaintainedNotes([id]).length === 0);
 	if (otherDroppedIds.length > 0)
-		notes.push({ severity: 'warning', message: `${otherDroppedIds.join(', ')} aren't in SDK ${catalog.band.band} or the supported analyzer packages, so they were dropped.` });
-	if (unsupportedKeys.size > 0) notes.push({ severity: 'info', message: `${[...unsupportedKeys].join(', ')} aren't settings the wizard supports, so they were dropped.` });
+		notes.push({ severity: 'warning', isDropped: true, message: `${otherDroppedIds.join(', ')} aren't in SDK ${catalog.band.band} or the supported analyzer packages, so they were dropped.` });
+	if (unsupportedKeys.size > 0) notes.push({ severity: 'info', isDropped: true, message: `${[...unsupportedKeys].join(', ')} aren't settings the wizard supports, so they were dropped.` });
 	if (trailingCommentCount > 0)
 		notes.push({ severity: 'info', message: `Dropped ${trailingCommentCount} trailing comments. EditorConfig doesn't support inline comments, so they were part of the values.` });
 

@@ -1,6 +1,5 @@
 import type { ScopeConfig } from '../config/wizardConfig.ts';
-
-const ALL_FILES_GLOB = '[*]';
+import { ALL_FILES_GLOB } from './formattingSections.ts';
 
 /**
  * Renders a `.gitattributes` that matches the root scope's line endings, or undefined when `[*]` sets none. Without it,

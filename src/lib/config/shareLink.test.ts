@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readCatalog } from '../../../scripts/readCatalog.ts';
 import { applyMergePatch, toMergePatch } from './mergePatch.ts';
-import { PRESET_VERSION, toPresetConfig } from './presets.ts';
+import { toPresetConfig } from './presets.ts';
 import { decodeSavedState, encodeSavedState, restoreSavedState, SCHEMA_VERSION, toSavedState } from './shareLink.ts';
 
 const catalog = readCatalog('10.0.4xx');
@@ -24,34 +24,27 @@ describe('mergePatch', () => {
 
 describe('share links', () => {
 	it('stores only what changed from the preset and restores the same config', () => {
-		const config = toPresetConfig('recommended', catalog);
-		config.scopes[1].severities = { ...config.scopes[1].severities, CA1822: 'none' };
+		const config = toPresetConfig({ level: 'recommended', kind: 'any' }, catalog);
+		const tests = config.scopes.find(scope => scope.path === 'tests');
+		if (tests) tests.severities = { ...tests.severities, CA1822: 'none' };
 		config.scopes.push({ path: 'src/Legacy', tfms: ['net10.0'] });
 
-		const state = toSavedState(config, 'recommended', catalog);
+		const state = toSavedState(config, { level: 'recommended', kind: 'any' }, catalog);
 		const restored = restoreSavedState(decodeSavedState(encodeSavedState(state)) ?? state, catalog);
 
 		expect(state.changes).toEqual({ scopes: { tests: { severities: { CA1822: 'none' } }, 'src/Legacy': { path: 'src/Legacy', tfms: ['net10.0'] } } });
-		expect(restored).toEqual({ status: 'restored', config, presetId: 'recommended', notice: undefined });
+		expect(restored).toEqual({ status: 'restored', config, preset: { level: 'recommended', kind: 'any' } });
 	});
 
 	it('keeps an unchanged preset to a short link', () => {
-		const state = toSavedState(toPresetConfig('strict', catalog), 'strict', catalog);
+		const state = toSavedState(toPresetConfig({ level: 'strict', kind: 'any' }, catalog), { level: 'strict', kind: 'any' }, catalog);
 
 		expect(state.changes).toEqual({});
 		expect(encodeSavedState(state).length).toBeLessThan(200);
 	});
 
-	it('restores a link from an older preset version with a notice', () => {
-		const state = { ...toSavedState(toPresetConfig('recommended', catalog), 'recommended', catalog), presetVersion: PRESET_VERSION - 1 };
-
-		const restored = restoreSavedState(state, catalog);
-
-		expect(restored.status === 'restored' && restored.notice).toContain('older version of the recommended preset');
-	});
-
 	it('refuses a link from a newer wizard', () => {
-		const state = { ...toSavedState(toPresetConfig('recommended', catalog), 'recommended', catalog), schemaVersion: SCHEMA_VERSION + 1 };
+		const state = { ...toSavedState(toPresetConfig({ level: 'recommended', kind: 'any' }, catalog), { level: 'recommended', kind: 'any' }, catalog), schemaVersion: SCHEMA_VERSION + 1 };
 
 		expect(restoreSavedState(state, catalog)).toEqual({ status: 'invalid', reason: 'This link was made by a newer version of the wizard.' });
 	});

@@ -8,6 +8,11 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	// The File System Access API's folder picker is Chromium-only, so TypeScript's DOM types leave it out.
+	interface Window {
+		showDirectoryPicker?: (options?: { id?: string; mode?: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
+	}
 }
 
 export {};

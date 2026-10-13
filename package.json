@@ -40,7 +40,10 @@
 		"node": ">=26"
 	},
 	"dependencies": {
+		"@fluentui/svg-icons": "1.1.344",
+		"@fontsource/cascadia-code": "5.3.0",
 		"fflate": "0.8.3",
-		"lz-string": "1.5.0"
+		"lz-string": "1.5.0",
+		"shiki": "4.4.3"
 	}
 }

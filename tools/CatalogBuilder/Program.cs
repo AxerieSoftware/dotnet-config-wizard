@@ -75,7 +75,7 @@ foreach (var trackedPackage in trackedPackages)
 	var latestInfo = await nuGetClient.GetVersionInfoAsync(trackedPackage.Id, versions[^1]);
 	var stableVersion = versions.LastOrDefault(version => !version.Contains('-', StringComparison.Ordinal));
 	var stableInfo = stableVersion is null || stableVersion == latestInfo.Version ? latestInfo : await nuGetClient.GetVersionInfoAsync(trackedPackage.Id, stableVersion);
-	// A package that only ships prereleases, such as ErrorProne.NET, is read at its newest prerelease.
+	// A package that only ships prereleases is read at its newest prerelease.
 	var catalogedInfo = stableInfo.Published < staleBefore ? latestInfo : stableInfo;
 	var catalogedVersion = catalogedInfo.Version;
 

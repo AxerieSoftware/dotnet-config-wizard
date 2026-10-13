@@ -1,31 +1,37 @@
 <script lang="ts">
+	import type { CatalogRule } from '../catalog/catalog.ts';
 	import { PACKAGES } from '../catalog/loadCatalog.ts';
 	import { getRuleBlocker } from '../config/versionGates.ts';
 	import { SEVERITIES, type Severity } from '../config/wizardConfig.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
+	import Icon from '../ui/Icon.svelte';
+	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 	import { ANALYSIS_MODES, type AnalysisMode, parseAnalysisLevel } from './analysisLevel.ts';
 	import { BANNED_API_SETS } from './bannedApis.ts';
-	import { getEffectiveSeverity, isReported } from './effectiveSeverity.ts';
-	import { findActiveOverlaps } from './overlaps.ts';
+	import { COMPILER_SOURCE, getEffectiveSeverity, isReported } from './effectiveSeverity.ts';
+	import { findActiveOverlaps, findCoveringRuleIds } from './overlaps.ts';
 	import RuleBrowser, { type RuleRow } from './RuleBrowser.svelte';
 
 	const ALL = '';
+	// The rule table lists the SDK's own analyzers first and ASP.NET Core's, which only web projects run, last.
+	const SOURCE_ORDER = ['Microsoft.CodeAnalysis.NetAnalyzers', 'Microsoft.CodeAnalysis.CSharp.CodeStyle', COMPILER_SOURCE, 'Microsoft.NET.ILLink.Tasks'];
+	const LAST_SOURCE = 'Microsoft.AspNetCore.App.Ref';
+	// Compares the digits in IDs by value, so S107 sorts before S1067.
+	const NATURAL_ORDER = new Intl.Collator(undefined, { numeric: true });
 	const SONAR_PACKAGE = 'SonarAnalyzer.CSharp';
 	const BANNED_API_PACKAGE = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
 
 	const wizard = getWizardState();
+	// Analyzers that come with a framework, such as MSTest's, are never referenced; selecting one only configures its rules.
+	const referencedPackages = PACKAGES.filter(analyzerPackage => !analyzerPackage.includedWith);
+	const frameworkPackages = PACKAGES.filter(analyzerPackage => analyzerPackage.includedWith);
 	const scope = $derived(wizard.resolvedActiveScope);
 	const isInheritingPackages = $derived(!wizard.isRootActive && wizard.activeScope.packages === undefined);
 	const inheritedBannedApis = $derived(wizard.inheritedScope?.bannedApis ?? []);
 	const analysisMode = $derived(parseAnalysisLevel(scope.build.AnalysisLevel, wizard.catalog.band).mode);
 
-	let searchText = $state('');
-	let sourceFilter = $state(ALL);
-	let categoryFilter = $state(ALL);
-	let isConfiguredOnly = $state(false);
-	let isCodeFixOnly = $state(false);
-	let isUnavailableShown = $state(false);
+	const filters = wizard.ruleFilters;
 	let bulkSeverity = $state<Severity>('warning');
 
 	const availableRules = $derived(
@@ -34,35 +40,50 @@
 			.filter(rule => !rule.packageId || scope.packages.includes(rule.packageId))
 			.toArray()
 	);
-	const overlaps = $derived(findActiveOverlaps(wizard.catalog, rule => (!rule.packageId || scope.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, scope, wizard.catalog))));
+	const isActive = (rule: CatalogRule) => (!rule.packageId || scope.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, scope, wizard.catalog));
+	const overlaps = $derived(findActiveOverlaps(wizard.catalog, isActive));
 	const ownerIdsByDuplicate = $derived(new Map(overlaps.flatMap(overlap => overlap.duplicates.map(duplicate => [duplicate.id, overlap.owner.id] as const))));
+	// A duplicate that's off says which rule already covers it, so it doesn't look arbitrary.
+	const coveringIdsByRule = $derived(findCoveringRuleIds(wizard.catalog, isActive));
+	const analyzerCategories = $derived([...new Set(availableRules.filter(rule => rule.source !== COMPILER_SOURCE).map(rule => rule.category))].sort());
 	const sources = $derived([...new Set(availableRules.map(rule => rule.sourceTitle))].sort());
-	const categories = $derived([...new Set(availableRules.filter(rule => sourceFilter === ALL || rule.sourceTitle === sourceFilter).map(rule => rule.category))].sort());
+	const categories = $derived([...new Set(availableRules.filter(rule => filters.source === ALL || rule.sourceTitle === filters.source).map(rule => rule.category))].sort());
 	const sonarRules = $derived(scope.packages.includes(SONAR_PACKAGE) ? availableRules.filter(rule => rule.parameters.length > 0).sort((left, right) => left.id.localeCompare(right.id)) : []);
 
-	const rows: RuleRow[] = $derived(
-		availableRules
-			.map(rule => ({
-				rule,
-				configured: wizard.activeScope.severities?.[rule.id],
-				inherited: wizard.inheritedScope?.severities[rule.id],
-				effective: getEffectiveSeverity(rule, scope, wizard.catalog),
-				blocker: getRuleBlocker(rule, wizard.activeContext),
-				ownerId: ownerIdsByDuplicate.get(rule.id)
-			}))
-			.filter(row => matchesFilters(row))
-			.sort((left, right) => left.rule.id.localeCompare(right.rule.id, undefined, { numeric: true }))
+	// Sorting and each rule's severities don't depend on the filters, so typing in the search only reruns the filter.
+	const sortedRules = $derived(
+		[...availableRules].sort((left, right) => toSourceRank(left) - toSourceRank(right) || NATURAL_ORDER.compare(left.sourceTitle, right.sourceTitle) || NATURAL_ORDER.compare(left.id, right.id))
 	);
+	const allRows: RuleRow[] = $derived(
+		sortedRules.map(rule => ({
+			rule,
+			configured: wizard.activeScope.severities?.[rule.id],
+			inherited: wizard.inheritedScope?.severities[rule.id],
+			effective: getEffectiveSeverity(rule, scope, wizard.catalog),
+			blocker: getRuleBlocker(rule, wizard.activeContext),
+			ownerId: ownerIdsByDuplicate.get(rule.id),
+			coveredById: coveringIdsByRule.get(rule.id)
+		}))
+	);
+	const rows = $derived.by(() => {
+		const search = filters.searchText.trim().toLowerCase();
+		return allRows.filter(row => matchesFilters(row, search));
+	});
 
-	function matchesFilters(row: RuleRow): boolean {
-		const search = searchText.trim().toLowerCase();
+	function matchesFilters(row: RuleRow, search: string): boolean {
 		if (search && !row.rule.id.toLowerCase().includes(search) && !row.rule.title.toLowerCase().includes(search)) return false;
-		if (sourceFilter !== ALL && row.rule.sourceTitle !== sourceFilter) return false;
-		if (categoryFilter !== ALL && row.rule.category !== categoryFilter) return false;
-		if (isConfiguredOnly && !row.configured) return false;
-		if (isCodeFixOnly && !row.rule.hasCodeFix) return false;
-		if (!isUnavailableShown && row.blocker) return false;
+		if (filters.source !== ALL && row.rule.sourceTitle !== filters.source) return false;
+		if (filters.category !== ALL && row.rule.category !== filters.category) return false;
+		if (filters.isConfiguredOnly && !row.configured) return false;
+		if (filters.isCodeFixOnly && !row.rule.hasCodeFix) return false;
+		if (!filters.isUnavailableShown && row.blocker) return false;
 		return true;
+	}
+
+	function toSourceRank(rule: CatalogRule): number {
+		if (rule.source === LAST_SOURCE) return SOURCE_ORDER.length + 1;
+		const index = SOURCE_ORDER.indexOf(rule.source);
+		return index === -1 ? SOURCE_ORDER.length : index;
 	}
 
 	function setBulkSeverity(): void {
@@ -73,45 +94,72 @@
 	}
 </script>
 
-<h1>Analyzers</h1>
-<p class="lead">Pick analyzer packages, how strict the built-in .NET analyzers are, and the severity of any rule. Severities you don't set keep each analyzer's default.</p>
+<header class="step-header">
+	<h1>Analyzers</h1>
+	<p>Packages, analysis mode and rule severities. Unset rules keep their defaults.</p>
+</header>
+
+{#snippet packageRow(
+	analyzerPackage: (typeof PACKAGES)[number]
+)}
+	<label class="package-row">
+		<input
+			type="checkbox"
+			data-package={analyzerPackage.id}
+			disabled={isInheritingPackages}
+			checked={scope.packages.includes(analyzerPackage.id)}
+			onchange={event => wizard.setPackageSelected(analyzerPackage.id, event.currentTarget.checked)}
+		>
+		<span>
+			<strong>{analyzerPackage.title}</strong>
+			<!-- Package IDs come from the catalog; <wbr> lets long IDs wrap at their dots without adding characters when copied. -->
+			<span class="caption mono">{@html analyzerPackage.id.replaceAll('.', '.<wbr>')} {analyzerPackage.version}</span>
+			<span class="caption">{analyzerPackage.ruleCount} rules · released {analyzerPackage.latestPublished}</span>
+			{#if analyzerPackage.includedWith || analyzerPackage.isStale || analyzerPackage.isDeprecated}
+				<span class="badges">
+					{#if analyzerPackage.includedWith}
+						<span class="badge">Comes with {analyzerPackage.includedWith}</span>
+					{/if}
+					{#if analyzerPackage.isStale}
+						<span class="badge warning">No release in 18 months</span>
+					{/if}
+					{#if analyzerPackage.isDeprecated}
+						<span class="badge warning">Deprecated</span>
+					{/if}
+				</span>
+			{/if}
+		</span>
+	</label>
+{/snippet}
 
 <section class="card">
-	<h2>Analyzer packages</h2>
-	<p class="note">
-		The SDK's own analyzers always run, including ASP.NET Core's in web projects. Packages are referenced from every project in this folder; their rules only apply where they're referenced. Analyzers
-		that come with a test framework or EF Core aren't referenced again; selecting them lets you configure their rules.
-	</p>
+	<div class="card-header">
+		<h2>Analyzer packages</h2>
+		<ul class="note">
+			<li>The SDK's analyzers always run, including ASP.NET Core's in web projects.</li>
+			<li>Packages are referenced from every project in this folder.</li>
+		</ul>
+	</div>
 	{#if !wizard.isRootActive}
 		<label class="checkbox">
 			<input type="checkbox" checked={isInheritingPackages} onchange={event => wizard.setInheritsPackages(event.currentTarget.checked)}>
 			Same packages as the folder above
 		</label>
 	{/if}
-	{#each PACKAGES as analyzerPackage (analyzerPackage.id)}
-		<label class="checkbox package-row">
-			<input
-				type="checkbox"
-				disabled={isInheritingPackages}
-				checked={scope.packages.includes(analyzerPackage.id)}
-				onchange={event => wizard.setPackageSelected(analyzerPackage.id, event.currentTarget.checked)}
-			>
-			<span>
-				<strong>{analyzerPackage.title}</strong>
-				<code>{analyzerPackage.id} {analyzerPackage.version}</code>
-				<span class="note">{analyzerPackage.ruleCount} rules, last released {analyzerPackage.latestPublished}</span>
-				{#if analyzerPackage.includedWith}
-					<span class="badge">Comes with {analyzerPackage.includedWith}</span>
-				{/if}
-				{#if analyzerPackage.isStale}
-					<span class="badge warning-badge">No release in 18 months</span>
-				{/if}
-				{#if analyzerPackage.isDeprecated}
-					<span class="badge warning-badge">Deprecated</span>
-				{/if}
-			</span>
-		</label>
-	{/each}
+	<div class="package-list">
+		{#each referencedPackages as analyzerPackage (analyzerPackage.id)}
+			{@render packageRow(analyzerPackage)}
+		{/each}
+	</div>
+	<div class="stack">
+		<h3>Frameworks you use</h3>
+		<p class="note">Their analyzers come with the framework, so nothing is added. Pick yours to configure its rules.</p>
+		<div class="package-list">
+			{#each frameworkPackages as analyzerPackage (analyzerPackage.id)}
+				{@render packageRow(analyzerPackage)}
+			{/each}
+		</div>
+	</div>
 </section>
 
 <section class="card">
@@ -119,65 +167,111 @@
 	<div class="field-grid">
 		<label class="field">
 			<span>Analysis mode</span>
-			<select aria-label="Analysis mode" value={analysisMode} onchange={event => wizard.setAnalysisMode(event.currentTarget.value as AnalysisMode)}>
+			<select aria-label="Analysis mode" data-setting="AnalysisLevel" value={analysisMode} onchange={event => wizard.setAnalysisMode(event.currentTarget.value as AnalysisMode)}>
 				{#each ANALYSIS_MODES as mode (mode)}
 					<option value={mode}>{mode}</option>
 				{/each}
 			</select>
 		</label>
-		<label class="checkbox">
-			<input
-				type="checkbox"
-				checked={scope.build.EnforceCodeStyleInBuild === 'true'}
-				onchange={event => wizard.setBuildProperty('EnforceCodeStyleInBuild', event.currentTarget.checked ? 'true' : undefined)}
-			>
-			Enforce code style on build
-		</label>
+		{#if wizard.isRootActive}
+			<label class="field">
+				<span>Write severities to</span>
+				<select
+					aria-label="Severity file"
+					value={wizard.config.severityFile ?? 'editorconfig'}
+					onchange={event => wizard.setSeverityFile(event.currentTarget.value as 'editorconfig' | 'globalconfig')}
+				>
+					<option value="editorconfig">.editorconfig, by folder</option>
+					<option value="globalconfig">Analyzers.globalconfig, by project</option>
+				</select>
+			</label>
+		{/if}
 	</div>
-	{#if wizard.isRootActive}
-		<label class="field">
-			<span>Write rule severities to (whole repo)</span>
-			<select aria-label="Severity file" value={wizard.config.severityFile ?? 'editorconfig'} onchange={event => wizard.setSeverityFile(event.currentTarget.value as 'editorconfig' | 'globalconfig')}>
-				<option value="editorconfig">.editorconfig, by folder</option>
-				<option value="globalconfig">Analyzers.globalconfig, by project</option>
-			</select>
-		</label>
-	{/if}
-	<p class="note">
-		The mode is written as <code>AnalysisLevel=latest-&lt;mode&gt;</code> so new rules arrive with SDK updates. Without enforcing code style on build, IDE rules only show in the editor.
-	</p>
+	<label class="checkbox">
+		<input
+			type="checkbox"
+			data-setting="EnforceCodeStyleInBuild"
+			checked={scope.build.EnforceCodeStyleInBuild === 'true'}
+			onchange={event => wizard.setBuildProperty('EnforceCodeStyleInBuild', event.currentTarget.checked ? 'true' : undefined)}
+		>
+		Enforce code style on build
+	</label>
+	<ul class="caption">
+		<li>Written as <code>AnalysisLevel=latest-&lt;mode&gt;</code>, so new rules arrive with SDK updates.</li>
+		<li>Without enforcing code style on build, IDE rules only show in the editor.</li>
+	</ul>
+</section>
+
+<section class="card">
+	<div class="card-header">
+		<h2>Category severities</h2>
+		<p class="note">Sets every rule in a category. A rule's own severity still wins.</p>
+	</div>
+	<div class="field-grid">
+		{#each analyzerCategories as category (category)}
+			<label class="field">
+				<span>{category}</span>
+				<ValueSelect
+					label={`${category} category severity`}
+					value={wizard.activeScope.categorySeverities?.[category]}
+					values={SEVERITIES}
+					unsetLabel={toUnsetLabel(wizard.inheritedScope?.categorySeverities[category], 'Default')}
+					fallbackValue={wizard.inheritedScope?.categorySeverities[category]}
+					onchange={severity => wizard.setCategorySeverity(category, severity as Severity | undefined)}
+				/>
+			</label>
+		{/each}
+	</div>
 </section>
 
 {#if overlaps.length > 0}
 	<section class="card" aria-labelledby="overlaps-heading">
-		<h2 id="overlaps-heading">Duplicate rules</h2>
-		<p class="note">These concerns are checked by more than one active rule, so each problem would be reported twice. The first rule listed keeps the concern.</p>
-		{#each overlaps as overlap (overlap.concern)}
-			<div class="rule-row">
-				<span><strong>{overlap.concern}</strong>: {overlap.owner.id} ({overlap.owner.sourceTitle}), also {overlap.duplicates.map(duplicate => duplicate.id).join(', ')}</span>
-				<button
-					type="button"
-					class="secondary"
-					onclick={() =>
-						wizard.setSeverities(
-							overlap.duplicates.map(duplicate => duplicate.id),
-							'none'
-						)}
-				>
-					Turn off duplicates
-				</button>
-			</div>
-		{/each}
+		<div class="card-header">
+			<h2 id="overlaps-heading">Duplicate rules</h2>
+			<button
+				type="button"
+				onclick={() =>
+					wizard.setSeverities(
+						overlaps.flatMap(overlap => overlap.duplicates.map(duplicate => duplicate.id)),
+						'none'
+					)}
+			>
+				Turn off all duplicates
+			</button>
+			<p class="note">Each of these is reported twice. The first rule keeps it.</p>
+		</div>
+		<div class="rows">
+			{#each overlaps as overlap (overlap.concern)}
+				<div class="rule-row plain">
+					<span>
+						<Icon name="warning" />
+						<strong>{overlap.concern}</strong>
+						<span><span class="rule-id">{overlap.owner.id}</span> ({overlap.owner.sourceTitle}), also {overlap.duplicates.map(duplicate => duplicate.id).join(', ')}</span>
+					</span>
+					<button
+						type="button"
+						class="small"
+						onclick={() =>
+							wizard.setSeverities(
+								overlap.duplicates.map(duplicate => duplicate.id),
+								'none'
+							)}
+					>
+						Turn off duplicates
+					</button>
+				</div>
+			{/each}
+		</div>
 	</section>
 {/if}
 
 <section class="card">
 	<h2>Rules</h2>
-	<div class="field-grid">
-		<label class="field"><span>Search</span><input aria-label="Search rules" bind:value={searchText} placeholder="ID or title"></label>
+	<div class="toolbar">
+		<label class="field"><span>Search</span><input aria-label="Search rules" bind:value={filters.searchText} placeholder="ID or title"></label>
 		<label class="field">
 			<span>Source</span>
-			<select aria-label="Source" bind:value={sourceFilter} onchange={() => (categoryFilter = ALL)}>
+			<select aria-label="Source" bind:value={filters.source} onchange={() => (filters.category = ALL)}>
 				<option value={ALL}>All sources</option>
 				{#each sources as source (source)}
 					<option value={source}>{source}</option>
@@ -186,7 +280,7 @@
 		</label>
 		<label class="field">
 			<span>Category</span>
-			<select aria-label="Category" bind:value={categoryFilter}>
+			<select aria-label="Category" bind:value={filters.category}>
 				<option value={ALL}>All categories</option>
 				{#each categories as category (category)}
 					<option value={category}>{category}</option>
@@ -194,13 +288,13 @@
 			</select>
 		</label>
 	</div>
-	<div class="actions wrap">
-		<label class="checkbox"><input type="checkbox" bind:checked={isConfiguredOnly}> Configured only</label>
-		<label class="checkbox"><input type="checkbox" bind:checked={isCodeFixOnly}> Has a code fix</label>
-		<label class="checkbox"><input type="checkbox" bind:checked={isUnavailableShown}> Show rules the C# version can't use</label>
+	<div class="filter-chips">
+		<label class="checkbox"><input type="checkbox" bind:checked={filters.isConfiguredOnly}> Set in this folder</label>
+		<label class="checkbox"><input type="checkbox" bind:checked={filters.isCodeFixOnly}> Has a code fix</label>
+		<label class="checkbox"><input type="checkbox" bind:checked={filters.isUnavailableShown}> Include rules the C# version can't use</label>
 	</div>
-	<div class="actions">
-		<span class="note" data-testid="rule-count">{rows.length} rules</span>
+	<div class="bulk-bar">
+		<span class="count" data-testid="rule-count">{rows.length.toLocaleString('en-US')} {rows.length === 1 ? 'rule' : 'rules'}</span>
 		<ValueSelect
 			label="Severity for every shown rule"
 			value={bulkSeverity}
@@ -208,58 +302,66 @@
 			unsetLabel="Default"
 			onchange={value => (bulkSeverity = (value as Severity | undefined) ?? 'warning')}
 		/>
-		<button type="button" class="secondary" onclick={setBulkSeverity}>Set shown rules</button>
+		<button type="button" onclick={setBulkSeverity}>Set shown rules</button>
 	</div>
 	<RuleBrowser {rows} onSeverityChange={(ruleId, severity) => wizard.setSeverity(ruleId, severity)} />
 </section>
 
 {#if sonarRules.length > 0 && wizard.isRootActive}
 	<section class="card">
-		<h2>Sonar rule parameters</h2>
-		<p class="note">Written to <code>SonarLint.xml</code>, which Sonar reads for the whole repo. Leave a value empty to keep Sonar's default.</p>
-		{#each sonarRules as rule (rule.id)}
-			<div class="option-row">
-				<strong>{rule.id}</strong>
-				{rule.title}
-				<div class="field-grid">
-					{#each rule.parameters as parameter (parameter.key)}
-						<label class="field">
-							<span>{parameter.key}</span>
-							<input
-								aria-label={`${rule.id} ${parameter.key}`}
-								title={parameter.description}
-								value={scope.ruleParameters[rule.id]?.[parameter.key] ?? ''}
-								placeholder={parameter.defaultValue ?? ''}
-								onchange={event => wizard.setRuleParameter(rule.id, parameter.key, event.currentTarget.value.trim() || undefined)}
-							>
-						</label>
-					{/each}
+		<div class="card-header">
+			<h2>Sonar rule parameters</h2>
+			<p class="note">Written to <code>SonarLint.xml</code>. Empty keeps Sonar's default.</p>
+		</div>
+		<div class="rows">
+			{#each sonarRules as rule (rule.id)}
+				<div class="stack param-row">
+					<span><span class="rule-id">{rule.id}</span> {rule.title}</span>
+					<div class="field-grid">
+						{#each rule.parameters as parameter (parameter.key)}
+							<label class="field">
+								<span>{parameter.key}</span>
+								<input
+									aria-label={`${rule.id} ${parameter.key}`}
+									title={parameter.description}
+									class:changed={(scope.ruleParameters[rule.id]?.[parameter.key] ?? parameter.defaultValue) !== parameter.defaultValue}
+									value={scope.ruleParameters[rule.id]?.[parameter.key] ?? ''}
+									placeholder={parameter.defaultValue ?? ''}
+									onchange={event => wizard.setRuleParameter(rule.id, parameter.key, event.currentTarget.value.trim() || undefined)}
+								>
+							</label>
+						{/each}
+					</div>
 				</div>
-			</div>
-		{/each}
+			{/each}
+		</div>
 	</section>
 {/if}
 
 {#if scope.packages.includes(BANNED_API_PACKAGE)}
 	<section class="card">
-		<h2>Banned APIs</h2>
-		<p class="note">Written to <code>BannedSymbols.txt</code>; using one reports RS0030.</p>
-		<div class="actions wrap">
+		<div class="card-header">
+			<h2>Banned APIs</h2>
+			<p class="note">Written to <code>BannedSymbols.txt</code>. Using one reports RS0030.</p>
+		</div>
+		<div class="actions">
 			{#each BANNED_API_SETS as set (set.title)}
-				<button type="button" class="secondary" onclick={() => wizard.addBannedApis(set.apis)}>Add: {set.title}</button>
+				<button type="button" class="small" onclick={() => wizard.addBannedApis(set.apis)}>Add: {set.title}</button>
 			{/each}
 		</div>
-		{#each inheritedBannedApis as api (api.symbol)}
-			<div class="rule-row unavailable">
-				<span><code>{api.symbol}</code> {api.message}</span>
-				<span class="badge">Inherited</span>
-			</div>
-		{/each}
-		{#each wizard.activeScope.bannedApis ?? [] as api (api.symbol)}
-			<div class="rule-row">
-				<span><code>{api.symbol}</code> {api.message}</span>
-				<button type="button" class="secondary" onclick={() => wizard.removeBannedApi(api.symbol)}>Remove</button>
-			</div>
-		{/each}
+		<div class="rows">
+			{#each inheritedBannedApis as api (api.symbol)}
+				<div class="rule-row plain unavailable">
+					<span><code>{api.symbol}</code> {api.message}</span>
+					<span class="badge">Inherited</span>
+				</div>
+			{/each}
+			{#each wizard.activeScope.bannedApis ?? [] as api (api.symbol)}
+				<div class="rule-row plain">
+					<span><code>{api.symbol}</code> {api.message}</span>
+					<button type="button" class="subtle small" onclick={() => wizard.removeBannedApi(api.symbol)}>Remove</button>
+				</div>
+			{/each}
+		</div>
 	</section>
 {/if}

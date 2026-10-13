@@ -2,18 +2,17 @@ import type { ScopeConfig } from '../config/wizardConfig.ts';
 import type { EditorConfigEntry, EditorConfigSection } from '../export/editorConfigDocument.ts';
 
 export const CSHARP_GLOB = '[*.cs]';
+export const ALL_FILES_GLOB = '[*]';
 
 const SECTION_TITLES: Record<string, string> = {
 	'[*]': 'All files',
 	'[*.md]': 'Markdown',
 	'[*.json]': 'JSON',
 	'[*.{yml,yaml}]': 'YAML',
-	'[*.{csproj,props,targets,xml,slnx,config,nuspec,resx}]': 'MSBuild and XML',
-	'[*.sln]': 'Solution files',
+	'[*.{csproj,props,targets,xml,sln,slnx,config,nuspec,resx}]': 'MSBuild, XML and solutions',
 	'[*.sh]': 'Shell scripts',
 	'[*.{cmd,bat}]': 'Windows scripts',
-	'[*.ps1]': 'PowerShell scripts',
-	'[*.vb]': 'Visual Basic files'
+	'[*.ps1]': 'PowerShell scripts'
 };
 
 /** Builds a section for every formatting glob except C#, whose entries lead the C# section instead. */

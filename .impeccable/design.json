@@ -1,0 +1,694 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T00:00:00Z",
+  "title": "Design System: .NET Config Wizard",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#f5f5f5",
+        "dark": "#1f1f1f",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "layer": {
+        "role": "neutral",
+        "displayName": "Layer",
+        "canonical": "#ffffff",
+        "dark": "#292929",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "layer-alt": {
+        "role": "neutral",
+        "displayName": "Layer Alt",
+        "canonical": "#fafafa",
+        "dark": "#242424",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "layer-hover": {
+        "role": "neutral",
+        "displayName": "Layer Hover",
+        "canonical": "#f5f5f5",
+        "dark": "#3d3d3d",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "layer-pressed": {
+        "role": "neutral",
+        "displayName": "Layer Pressed",
+        "canonical": "#e0e0e0",
+        "dark": "#1f1f1f",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "subtle": {
+        "role": "neutral",
+        "displayName": "Subtle",
+        "canonical": "#f0f0f0",
+        "dark": "#333333",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "canonical": "#242424",
+        "dark": "#ffffff",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "text-2": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "canonical": "#424242",
+        "dark": "#d6d6d6",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "text-3": {
+        "role": "neutral",
+        "displayName": "Text Tertiary",
+        "canonical": "#616161",
+        "dark": "#adadad",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "text-disabled": {
+        "role": "neutral",
+        "displayName": "Text Disabled",
+        "canonical": "#bdbdbd",
+        "dark": "#5c5c5c",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "stroke": {
+        "role": "neutral",
+        "displayName": "Stroke",
+        "canonical": "#d1d1d1",
+        "dark": "#666666",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "stroke-2": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "canonical": "#e0e0e0",
+        "dark": "#525252",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "stroke-accessible": {
+        "role": "neutral",
+        "displayName": "Accessible Stroke",
+        "canonical": "#616161",
+        "dark": "#adadad",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "brand": {
+        "role": "primary",
+        "displayName": "Fluent Communication Blue",
+        "canonical": "#0f6cbd",
+        "dark": "#115ea3",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "brand-hover": {
+        "role": "primary",
+        "displayName": "Brand Hover",
+        "canonical": "#115ea3",
+        "dark": "#0f6cbd",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "brand-pressed": {
+        "role": "primary",
+        "displayName": "Brand Pressed",
+        "canonical": "#0c3b5e",
+        "dark": "#0c3b5e",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "brand-text": {
+        "role": "primary",
+        "displayName": "Brand Text",
+        "canonical": "#115ea3",
+        "dark": "#479ef5",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "brand-tint": {
+        "role": "primary",
+        "displayName": "Brand Tint",
+        "canonical": "#ebf3fc",
+        "dark": "#082338",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "brand-tint-stroke": {
+        "role": "primary",
+        "displayName": "Brand Tint Stroke",
+        "canonical": "#b4d6fa",
+        "dark": "#0e4775",
+        "tonalRamp": [
+          "#082338",
+          "#0c3b5e",
+          "#0f548c",
+          "#0f6cbd",
+          "#479ef5",
+          "#96c6fa",
+          "#cfe4fa",
+          "#ebf3fc"
+        ]
+      },
+      "on-brand": {
+        "role": "primary",
+        "displayName": "On Brand",
+        "canonical": "#ffffff",
+        "dark": "#ffffff",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#292929",
+          "#424242",
+          "#616161",
+          "#adadad",
+          "#d1d1d1",
+          "#e0e0e0",
+          "#fafafa"
+        ]
+      },
+      "danger-tint": {
+        "role": "status",
+        "displayName": "Danger Tint",
+        "canonical": "#fdf3f4",
+        "dark": "#3b0509",
+        "tonalRamp": [
+          "#3b0509",
+          "#6e0811",
+          "#b10e1c",
+          "#c50f1f",
+          "#dc626d",
+          "#eeacb2",
+          "#f6d1d5",
+          "#fdf3f4"
+        ]
+      },
+      "danger-stroke": {
+        "role": "status",
+        "displayName": "Danger Stroke",
+        "canonical": "#eeacb2",
+        "dark": "#8c2b33",
+        "tonalRamp": [
+          "#3b0509",
+          "#6e0811",
+          "#b10e1c",
+          "#c50f1f",
+          "#dc626d",
+          "#eeacb2",
+          "#f6d1d5",
+          "#fdf3f4"
+        ]
+      },
+      "danger-text": {
+        "role": "status",
+        "displayName": "Danger Text",
+        "canonical": "#b10e1c",
+        "dark": "#e37d80",
+        "tonalRamp": [
+          "#3b0509",
+          "#6e0811",
+          "#b10e1c",
+          "#c50f1f",
+          "#dc626d",
+          "#eeacb2",
+          "#f6d1d5",
+          "#fdf3f4"
+        ]
+      },
+      "warning-tint": {
+        "role": "status",
+        "displayName": "Warning Tint",
+        "canonical": "#fff9f5",
+        "dark": "#4a1e04",
+        "tonalRamp": [
+          "#4a1e04",
+          "#712d09",
+          "#8a3707",
+          "#bc4b09",
+          "#e9835e",
+          "#fdcfb4",
+          "#fde5d5",
+          "#fff9f5"
+        ]
+      },
+      "warning-stroke": {
+        "role": "status",
+        "displayName": "Warning Stroke",
+        "canonical": "#fdcfb4",
+        "dark": "#8c4a1f",
+        "tonalRamp": [
+          "#4a1e04",
+          "#712d09",
+          "#8a3707",
+          "#bc4b09",
+          "#e9835e",
+          "#fdcfb4",
+          "#fde5d5",
+          "#fff9f5"
+        ]
+      },
+      "warning-text": {
+        "role": "status",
+        "displayName": "Warning Text",
+        "canonical": "#8a3707",
+        "dark": "#faa06b",
+        "tonalRamp": [
+          "#4a1e04",
+          "#712d09",
+          "#8a3707",
+          "#bc4b09",
+          "#e9835e",
+          "#fdcfb4",
+          "#fde5d5",
+          "#fff9f5"
+        ]
+      },
+      "success-tint": {
+        "role": "status",
+        "displayName": "Success Tint",
+        "canonical": "#f1faf1",
+        "dark": "#052505",
+        "tonalRamp": [
+          "#052505",
+          "#094509",
+          "#0e700e",
+          "#107c10",
+          "#54b054",
+          "#9fd89f",
+          "#c9eac9",
+          "#f1faf1"
+        ]
+      },
+      "success-stroke": {
+        "role": "status",
+        "displayName": "Success Stroke",
+        "canonical": "#9fd89f",
+        "dark": "#107c10",
+        "tonalRamp": [
+          "#052505",
+          "#094509",
+          "#0e700e",
+          "#107c10",
+          "#54b054",
+          "#9fd89f",
+          "#c9eac9",
+          "#f1faf1"
+        ]
+      },
+      "success-text": {
+        "role": "status",
+        "displayName": "Success Text",
+        "canonical": "#0e700e",
+        "dark": "#54b054",
+        "tonalRamp": [
+          "#052505",
+          "#094509",
+          "#0e700e",
+          "#107c10",
+          "#54b054",
+          "#9fd89f",
+          "#c9eac9",
+          "#f1faf1"
+        ]
+      },
+      "code-comment": {
+        "role": "neutral",
+        "displayName": "Code Comment",
+        "canonical": "#5c7a5c",
+        "dark": "#8fb08f",
+        "tonalRamp": [
+          "#052505",
+          "#094509",
+          "#0e700e",
+          "#107c10",
+          "#54b054",
+          "#9fd89f",
+          "#c9eac9",
+          "#f1faf1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title-page": {
+        "displayName": "Page title",
+        "purpose": "One h1 per step or reference page."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "Card h2 and the app title."
+      },
+      "body-strong": {
+        "displayName": "Body strong",
+        "purpose": "h3, buttons, field labels, legends."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text and inputs."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Captions, badges, grid header, breadcrumb."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Rule IDs, option keys, inline code, file tabs and file content."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow4",
+        "value": "0 0 2px rgb(0 0 0 / 12%), 0 2px 4px rgb(0 0 0 / 14%)",
+        "dark": "0 0 2px rgb(0 0 0 / 24%), 0 2px 4px rgb(0 0 0 / 28%)",
+        "purpose": "Every card."
+      },
+      {
+        "name": "shadow16",
+        "value": "0 0 2px rgb(0 0 0 / 12%), 0 8px 16px rgb(0 0 0 / 14%)",
+        "dark": "0 0 2px rgb(0 0 0 / 24%), 0 8px 16px rgb(0 0 0 / 28%)",
+        "purpose": "Popovers."
+      }
+    ],
+    "focus": {
+      "value": "outline: 2px solid var(--stroke-accessible); outline-offset: 1px",
+      "purpose": "All focus-visible elements; inputs use a 2px brand bottom border instead."
+    },
+    "motion": [
+      {
+        "name": "ease-fluent",
+        "value": "cubic-bezier(0.33, 0, 0.67, 1)",
+        "purpose": "Button background (100ms), disclosure chevron rotate (150ms)."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack",
+        "value": "1100px",
+        "purpose": "One column; rail becomes a horizontal strip; preview below at 70vh."
+      },
+      {
+        "name": "compact",
+        "value": "640px",
+        "purpose": "Icon-only header actions, 16px page padding, rows stack."
+      }
+    ],
+    "layout": {
+      "headerHeight": "48px",
+      "railWidth": "232px",
+      "previewWidth": "minmax(360px, 34vw)",
+      "stepMaxWidth": "960px",
+      "wideStepMaxWidth": "1200px",
+      "referenceMaxWidth": "1000px"
+    },
+    "icons": {
+      "set": "Fluent UI System Icons (@fluentui/svg-icons)",
+      "size": "20px regular; 16px small",
+      "delivery": "Inlined SVG via src/lib/ui/Icon.svelte"
+    }
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Secondary actions and previous-step navigation.",
+      "html": "<button class=\"ds-btn\">Formatting</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--stroke,#d1d1d1);border-radius:4px;background:var(--layer,#fff);color:var(--text,#242424);font:600 14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;cursor:pointer;transition:background-color 100ms cubic-bezier(0.33,0,0.67,1);} .ds-btn:hover{background:var(--layer-hover,#f5f5f5);} .ds-btn:active{background:var(--layer-pressed,#e0e0e0);} .ds-btn:focus-visible{outline:2px solid var(--stroke-accessible,#616161);outline-offset:1px;}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action per region: Download zip, Next step.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg fill=\"currentColor\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\"><path d=\"M15.5 17a.5.5 0 0 1 .09 1H4.5a.5.5 0 0 1-.09-1H15.5M10 2a.5.5 0 0 1 .5.41V14.3l3.64-3.65a.5.5 0 0 1 .64-.06l.07.06c.17.17.2.44.06.63l-.06.07-4.5 4.5a.5.5 0 0 1-.25.14L10 16a.5.5 0 0 1-.4-.2l-4.46-4.45a.5.5 0 0 1 .64-.76l.07.06 3.65 3.64V2.5c0-.27.22-.5.5-.5\"/></svg><span>Download zip</span></button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--stroke,#d1d1d1);border-radius:4px;background:var(--layer,#fff);color:var(--text,#242424);font:600 14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;cursor:pointer;transition:background-color 100ms cubic-bezier(0.33,0,0.67,1);} .ds-btn:hover{background:var(--layer-hover,#f5f5f5);} .ds-btn:active{background:var(--layer-pressed,#e0e0e0);} .ds-btn:focus-visible{outline:2px solid var(--stroke-accessible,#616161);outline-offset:1px;} .ds-btn-primary{border-color:transparent;background:var(--brand,#0f6cbd);color:var(--on-brand,#fff);} .ds-btn-primary:hover{background:var(--brand-hover,#115ea3);} .ds-btn-primary:active{background:var(--brand-pressed,#0c3b5e);}"
+    },
+    {
+      "name": "Subtle Button",
+      "kind": "button",
+      "refersTo": "button-subtle",
+      "description": "Low-emphasis header actions and dismiss.",
+      "html": "<button class=\"ds-btn ds-btn-subtle\"><svg fill=\"currentColor\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\"><path d=\"M8 6a.5.5 0 0 1 .09 1H6a3 3 0 0 0-.2 6H8a.5.5 0 0 1 .09 1H6a4 4 0 0 1-.22-8H8m6 0a4 4 0 0 1 .22 8H12a.5.5 0 0 1-.09-1H14a3 3 0 0 0 .2-6H12a.5.5 0 0 1-.09-1H14M6 9.5h8a.5.5 0 0 1 .09 1H6a.5.5 0 0 1-.09-1zh8z\"/></svg><span>Copy share link</span></button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--stroke,#d1d1d1);border-radius:4px;background:var(--layer,#fff);color:var(--text,#242424);font:600 14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;cursor:pointer;transition:background-color 100ms cubic-bezier(0.33,0,0.67,1);} .ds-btn:hover{background:var(--layer-hover,#f5f5f5);} .ds-btn:active{background:var(--layer-pressed,#e0e0e0);} .ds-btn:focus-visible{outline:2px solid var(--stroke-accessible,#616161);outline-offset:1px;} .ds-btn-subtle{border-color:transparent;background:transparent;font-weight:400;} .ds-btn-subtle:hover{background:var(--layer-hover,#f5f5f5);}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Fluent input with accessible bottom edge and brand focus underline.",
+      "html": "<label class=\"ds-field\"><span>OutputPath</span><input class=\"ds-input\" placeholder=\"bin/\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:4px;font:14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;color:var(--text,#242424);} .ds-field>span{font-weight:600;} .ds-input{min-height:32px;padding:5px 10px;border:1px solid var(--stroke,#d1d1d1);border-bottom-color:var(--stroke-accessible,#616161);border-radius:4px;background:var(--layer,#fff);color:inherit;font:inherit;} .ds-input::placeholder{color:var(--text-3,#616161);} .ds-input:focus{outline:none;border-bottom:2px solid var(--brand,#0f6cbd);padding-bottom:4px;}"
+    },
+    {
+      "name": "Step Rail Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Wizard step link with icon; current step is brand-tinted.",
+      "html": "<nav class=\"ds-rail\"><a class=\"ds-rail-item\" href=\"#\"><svg fill=\"currentColor\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\"><path d=\"M7.37 3.56a3 3 0 0 1 5.26 0l5.5 10A3 3 0 0 1 15.5 18h-11a3 3 0 0 1-2.63-4.44zm4.38.48a2 2 0 0 0-3.5 0l-5.5 10A2 2 0 0 0 4.5 17h11a2 2 0 0 0 1.75-2.96zM10 12.75a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5m0-6.25c.28 0 .5.22.5.5v4a.5.5 0 0 1-1 0V7c0-.28.22-.5.5-.5\"/></svg>Code style</a><a class=\"ds-rail-item\" aria-current=\"page\" href=\"#\"><svg fill=\"currentColor\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\"><path d=\"M7.37 3.56a3 3 0 0 1 5.26 0l5.5 10A3 3 0 0 1 15.5 18h-11a3 3 0 0 1-2.63-4.44zm4.38.48a2 2 0 0 0-3.5 0l-5.5 10A2 2 0 0 0 4.5 17h11a2 2 0 0 0 1.75-2.96zM10 12.75a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5m0-6.25c.28 0 .5.22.5.5v4a.5.5 0 0 1-1 0V7c0-.28.22-.5.5-.5\"/></svg>Analyzers</a></nav>",
+      "css": ".ds-rail{display:flex;flex-direction:column;gap:2px;padding:12px 8px;width:232px;background:var(--layer-alt,#fafafa);font:14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;} .ds-rail-item{display:flex;align-items:center;gap:10px;min-height:36px;padding:6px 10px;border-radius:4px;color:var(--text-2,#424242);text-decoration:none;} .ds-rail-item:hover{background:var(--layer-hover,#f5f5f5);color:var(--text,#242424);} .ds-rail-item:focus-visible{outline:2px solid var(--stroke-accessible,#616161);outline-offset:1px;} .ds-rail-item[aria-current=page]{background:var(--brand-tint,#ebf3fc);color:var(--brand-text,#115ea3);font-weight:600;}"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Pill status and metadata labels: neutral, brand, warning, danger.",
+      "html": "<span class=\"ds-badge\">Set on the repo root</span> <span class=\"ds-badge ds-badge-brand\">Recommended</span> <span class=\"ds-badge ds-badge-warning\">3</span> <span class=\"ds-badge ds-badge-danger\">Deprecated</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;min-height:20px;padding:0 6px;border:1px solid var(--stroke-2,#e0e0e0);border-radius:999px;background:var(--subtle,#f0f0f0);color:var(--text-2,#424242);font:600 12px/16px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;} .ds-badge-brand{border-color:var(--brand-tint-stroke,#b4d6fa);background:var(--brand-tint,#ebf3fc);color:var(--brand-text,#115ea3);} .ds-badge-warning{border-color:var(--warning-stroke,#fdcfb4);background:var(--warning-tint,#fff9f5);color:var(--warning-text,#8a3707);} .ds-badge-danger{border-color:var(--danger-stroke,#eeacb2);background:var(--danger-tint,#fdf3f4);color:var(--danger-text,#b10e1c);}"
+    },
+    {
+      "name": "Settings Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White shadow4 card holding a group of option rows.",
+      "html": "<section class=\"ds-card\"><div><h2>Preset</h2><p class=\"ds-note\">Replaces every setting.</p></div><div class=\"ds-row\"><code>TreatWarningsAsErrors</code><span>true</span></div><div class=\"ds-row\"><code>Nullable</code><span>enable</span></div></section>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:12px;padding:16px 20px;border-radius:8px;background:var(--layer,#fff);box-shadow:var(--shadow-4,0 0 2px rgb(0 0 0/12%),0 2px 4px rgb(0 0 0/14%));font:14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;color:var(--text,#242424);} .ds-card h2{margin:0;font-size:16px;line-height:22px;font-weight:600;} .ds-note{margin:0;color:var(--text-3,#616161);} .ds-row{display:grid;grid-template-columns:1fr 200px;gap:24px;padding:10px 0;border-top:1px solid var(--stroke-2,#e0e0e0);} .ds-row code{font:600 13px/20px 'Cascadia Code',Consolas,monospace;}"
+    },
+    {
+      "name": "Message Bar",
+      "kind": "custom",
+      "refersTo": "message",
+      "description": "Inline status with a tinted fill, stroke and status icon.",
+      "html": "<p class=\"ds-msg ds-msg-warning\"><svg fill=\"currentColor\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\"><path d=\"M7.37 3.56a3 3 0 0 1 5.26 0l5.5 10A3 3 0 0 1 15.5 18h-11a3 3 0 0 1-2.63-4.44zm4.38.48a2 2 0 0 0-3.5 0l-5.5 10A2 2 0 0 0 4.5 17h11a2 2 0 0 0 1.75-2.96zM10 12.75a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5m0-6.25c.28 0 .5.22.5.5v4a.5.5 0 0 1-1 0V7c0-.28.22-.5.5-.5\"/></svg><span>Imported file uses keys this SDK ignores.</span></p>",
+      "css": ".ds-msg{display:flex;align-items:flex-start;gap:8px;margin:0;padding:8px 12px;border:1px solid var(--stroke-2,#e0e0e0);border-radius:4px;background:var(--layer-alt,#fafafa);color:var(--text,#242424);font:14px/20px 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;} .ds-msg svg{flex:none;color:var(--brand-text,#115ea3);} .ds-msg-warning{border-color:var(--warning-stroke,#fdcfb4);background:var(--warning-tint,#fff9f5);} .ds-msg-warning svg{color:var(--warning-text,#8a3707);}"
+    },
+    {
+      "name": "File Preview",
+      "kind": "custom",
+      "refersTo": "file-tab",
+      "description": "Signature: mono file tabs over the exact generated file content.",
+      "html": "<div class=\"ds-files\"><div class=\"ds-tabs\"><button aria-selected=\"true\">.editorconfig</button><button>Directory.Build.props</button></div><pre class=\"ds-file\"><span class=\"ds-cmt\"># Formatting</span>\n[*.cs]\nindent_style = tab</pre></div>",
+      "css": ".ds-files{background:var(--layer,#fff);border:1px solid var(--stroke-2,#e0e0e0);} .ds-tabs{display:flex;gap:2px;padding:4px 8px 0;border-bottom:1px solid var(--stroke-2,#e0e0e0);} .ds-tabs button{min-height:40px;padding:8px 10px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--text-2,#424242);font:400 13px/20px 'Cascadia Code',Consolas,monospace;cursor:pointer;} .ds-tabs button:hover{color:var(--text,#242424);border-bottom-color:var(--stroke,#d1d1d1);} .ds-tabs button:focus-visible{outline:2px solid var(--stroke-accessible,#616161);outline-offset:-2px;} .ds-tabs button[aria-selected=true]{color:var(--text,#242424);font-weight:600;border-bottom-color:var(--brand,#0f6cbd);} .ds-file{margin:0;padding:12px 16px;color:var(--text,#242424);font:12.5px/19px 'Cascadia Code',Consolas,monospace;font-variant-ligatures:none;} .ds-cmt{color:var(--code-comment,#5c7a5c);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Fluent 2, as Microsoft ships it",
+    "overview": "The category standard, executed at Microsoft Learn and Azure portal craft. No distinctive identity: fidelity is the identity. Dense, quiet product UI for experienced developers. Labels and bullets, not paragraphs. Gray canvas, white layers, one brand blue. Real IDs, keys and file content are shown in Cascadia Code. Light and dark follow the system setting (prefers-color-scheme). No manual theme toggle. All tokens live as custom properties on :root in src/app.css. There are no component-scoped <style> blocks.",
+    "keyCharacteristics": [
+      "Neutral canvas with white cards on Fluent shadow4",
+      "Brand blue only for primary action, selection and the active item",
+      "Fluent type ramp (12/14/16/28), weight 400 or 600 only",
+      "4px control radius, 8px surface radius",
+      "Fluent UI System Icons, 20px regular, inline SVG",
+      "Three-pane wizard: step rail, settings, live file preview"
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Brand blue marks the primary action, selection and the current location. Nothing decorative.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tint Not Fill Rule",
+        "body": "Status is tint background + stroke + darker text. No solid red, amber or green fills.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Means Literal Rule",
+        "body": "Cascadia Code is for IDs, keys, file names and file content. Never for labels or headings.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Weights Rule",
+        "body": "400 and 600 only.",
+        "section": "typography"
+      },
+      {
+        "name": "The Cards Float, Panes Don't Rule",
+        "body": "Shadows go on cards and popovers. Header, rail and preview use borders.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the :root custom properties in src/app.css; add a token there before using a new value.",
+      "Do use Fluent UI System Icons from @fluentui/svg-icons, 20px regular (16px small), through Icon.svelte.",
+      "Do show real IDs, keys and file content in Cascadia Code.",
+      "Do keep the focus ring: 2px stroke-accessible outline, 1px offset.",
+      "Do underline links inside running text (p, dd, .note, .caption).",
+      "Do write copy as short labels, one-line purposes and bullets."
+    ],
+    "donts": [
+      "Don't use brand blue for decoration, headings or large fills.",
+      "Don't use solid status fills; use the tint trio.",
+      "Don't add shadows to panes, rows or the header.",
+      "Don't add a second UI typeface or self-host a UI face.",
+      "Don't use icons outside the Fluent System Icons set or emoji as icons.",
+      "Don't add a manual theme switch; follow prefers-color-scheme."
+    ]
+  }
+}

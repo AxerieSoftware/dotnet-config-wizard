@@ -81,6 +81,13 @@ describe('importEditorConfig', () => {
 	it('reads a global AnalyzerConfig, which has no sections', () => {
 		expect(importFile('Analyzers.globalconfig', 'is_global = true\nglobal_level = 100\ndotnet_diagnostic.CA1822.severity = error', catalog)?.settings.severities).toEqual({ CA1822: 'error' });
 	});
+
+	it("reads rule IDs and severities in any case, and reports a severity it can't read", () => {
+		const result = importEditorConfig('[*.cs]\ndotnet_diagnostic.ca1822.severity = Warning\ndotnet_diagnostic.CA2007.severity = loud', catalog);
+
+		expect(result.settings.severities).toEqual({ CA1822: 'warning' });
+		expect(result.notes.some(note => note.message.includes('dotnet_diagnostic.CA2007.severity'))).toBe(true);
+	});
 });
 
 describe('importMsBuildFile', () => {
@@ -118,6 +125,25 @@ describe('importMsBuildFile', () => {
 		expect(result.notes.map(note => note.severity)).toEqual(['info', 'warning', 'info', 'info', 'warning', 'info']);
 	});
 
+	it('skips a property with its own condition unless the condition limits it to CI', () => {
+		const result = importMsBuildFile(
+			`<Project><PropertyGroup>
+				<TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
+				<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+			</PropertyGroup></Project>`,
+			catalog
+		);
+
+		expect(result.settings).toEqual({ ciBuild: { TreatWarningsAsErrors: 'true' } });
+	});
+
+	it('keeps NuGet warnings in NoWarn, since .editorconfig cannot suppress them', () => {
+		const result = importMsBuildFile('<Project><PropertyGroup><NoWarn>$(NoWarn);NU1603;CA1707</NoWarn></PropertyGroup></Project>', catalog);
+
+		expect(result.settings.severities).toEqual({ CA1707: 'none' });
+		expect(result.notes).toContainEqual(expect.objectContaining({ isDropped: true, message: expect.stringContaining('NU1603') }));
+	});
+
 	it('flags deprecated package properties as errors', () => {
 		const result = importMsBuildFile('<Project><PropertyGroup><PackageLicenseUrl>https://example.com</PackageLicenseUrl></PropertyGroup></Project>', catalog);
 
@@ -132,7 +158,7 @@ it('converts a rule set into severities', () => {
 });
 
 it('round-trips a generated config through the importers unchanged', () => {
-	const original = toPresetConfig('recommended', catalog);
+	const original = toPresetConfig({ level: 'recommended', kind: 'any' }, catalog);
 	const files = toGeneratedOutput(original, catalog, { commentStyle: 'idAndTitle' }).files;
 	const rootFiles = ['.editorconfig', 'Directory.Build.props', 'Directory.Packages.props'];
 	const imported: WizardConfig = { versions: original.versions, scopes: [{ path: '', tfms: original.scopes[0].tfms }] };

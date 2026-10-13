@@ -35,5 +35,5 @@ export function toProjectDocument(blocks: readonly (readonly XmlLine[])[]): stri
 
 /** Imports the same file from the folder above, so a nested file adds to its parent instead of replacing it. */
 export function toParentImport(fileName: string): XmlLine[] {
-	return [`<Import Project="$([MSBuild]::GetPathOfFileAbove('${fileName}', '$(MSBuildThisFileDirectory)../'))" />`];
+	return [`<!-- Explicitly import the parent ${fileName} -->`, `<Import Project="$([MSBuild]::GetPathOfFileAbove('${fileName}', '$(MSBuildThisFileDirectory)../'))" />`];
 }

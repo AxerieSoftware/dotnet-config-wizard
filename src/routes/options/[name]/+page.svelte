@@ -11,31 +11,25 @@
 </svelte:head>
 
 <main class="reference">
-	<p><a href="/options">All options</a></p>
-	<h1><code>{option.name}</code></h1>
-	<dl class="facts">
-		<dt>Group</dt>
-		<dd>{option.groupTitle}</dd>
-		<dt>Default</dt>
-		<dd><code>{option.defaultValue ?? 'none'}</code></dd>
-		<dt>Languages</dt>
-		<dd>{option.languages.map(language => (language === 'csharp' ? 'C#' : 'Visual Basic')).join(', ')}</dd>
+	<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/options">Options</a><span aria-hidden="true">/</span><span>{option.groupTitle}</span></nav>
+	<header class="reference-header">
+		<h1 class="mono">{option.name}</h1>
 		{#if option.minimumCSharpVersion}
-			<dt>Needs</dt>
-			<dd>C# {option.minimumCSharpVersion}</dd>
+			<p>Needs C# {option.minimumCSharpVersion}</p>
 		{/if}
-	</dl>
+	</header>
 
 	<section class="card">
-		<h2>Values</h2>
-		<ul class="reference-list">
+		<div class="card-header">
+			<h2>Values</h2>
+			<span class="caption">Default: <code>{option.defaultValue ?? 'none'}</code>{option.allowsMultipleValues ? ' · combine values with commas' : ''}</span>
+		</div>
+		<dl class="facts">
 			{#each option.values as value (value.value)}
-				<li><code>{value.value}</code> {value.description}</li>
+				<dt><code>{value.value}</code></dt>
+				<dd>{value.description}</dd>
 			{/each}
-		</ul>
-		{#if option.allowsMultipleValues}
-			<p class="note">Combine values with commas.</p>
-		{/if}
+		</dl>
 	</section>
 
 	{#if option.example}
@@ -50,12 +44,12 @@
 			<h2>Rules that use it</h2>
 			<ul class="reference-list">
 				{#each data.rules as rule (rule.id)}
-					<li><a href={`/rules/${rule.id}`}>{rule.id}</a> {rule.title}</li>
+					<li><a class="rule-id" href={`/rules/${rule.id}`}>{rule.id}</a> <span>{rule.title}</span></li>
 				{/each}
 			</ul>
 		</section>
 	{/if}
 
 	<p><a href={data.docsUrl} rel="noreferrer">Documentation</a></p>
-	<p class="note">From <a href="https://github.com/dotnet/docs">dotnet/docs</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+	<p class="attribution">From <a href="https://github.com/dotnet/docs">dotnet/docs</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
 </main>

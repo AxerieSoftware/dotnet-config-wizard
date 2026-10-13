@@ -11,28 +11,6 @@
 		"ruleCount": 456
 	},
 	{
-		"id": "Roslynator.Analyzers",
-		"title": "Roslynator",
-		"includedWith": null,
-		"version": "5.0.1",
-		"latestVersion": "5.0.1",
-		"latestPublished": "2026-10-04",
-		"isDeprecated": false,
-		"isStale": false,
-		"ruleCount": 197
-	},
-	{
-		"id": "Roslynator.Formatting.Analyzers",
-		"title": "Roslynator formatting",
-		"includedWith": null,
-		"version": "5.0.1",
-		"latestVersion": "5.0.1",
-		"latestPublished": "2026-10-04",
-		"isDeprecated": false,
-		"isStale": false,
-		"ruleCount": 51
-	},
-	{
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
 		"includedWith": null,
@@ -75,17 +53,6 @@
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 24
-	},
-	{
-		"id": "ErrorProne.NET.CoreAnalyzers",
-		"title": "ErrorProne.NET",
-		"includedWith": null,
-		"version": "0.9.0-beta.4",
-		"latestVersion": "0.9.0-beta.4",
-		"latestPublished": "2026-06-05",
-		"isDeprecated": false,
-		"isStale": false,
-		"ruleCount": 34
 	},
 	{
 		"id": "NUnit.Analyzers",

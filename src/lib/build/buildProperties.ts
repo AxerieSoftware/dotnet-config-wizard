@@ -90,9 +90,26 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 		projectKinds: ['library']
 	},
 	{ name: 'EmbedUntrackedSources', group: 'Source Link and symbols', description: "Embeds generated sources Source Link can't fetch.", values: BOOLEAN, file: 'props', projectKinds: ['library'] },
+	{
+		name: 'EmbedAllSources',
+		group: 'Source Link and symbols',
+		description: "Embeds every source file in the symbols, so debugging works offline and for private repos the debugger can't reach.",
+		values: BOOLEAN,
+		file: 'props',
+		projectKinds: ['library']
+	},
 	{ name: 'IncludeSymbols', group: 'Source Link and symbols', description: 'Publishes a symbol package next to the package.', values: BOOLEAN, file: 'props', projectKinds: ['library'] },
 	{ name: 'SymbolPackageFormat', group: 'Source Link and symbols', description: 'The symbol package format nuget.org accepts.', values: ['snupkg'], file: 'props', projectKinds: ['library'] },
 
+	{
+		name: 'VersionPrefix',
+		group: 'Package metadata',
+		description: 'The version every package here shares, such as `1.4.0`. CI can add a `VersionSuffix` for prereleases.',
+		values: [],
+		file: 'props',
+		projectKinds: ['library'],
+		example: '1.0.0'
+	},
 	{ name: 'Authors', group: 'Package metadata', description: "Your or your organization's display name.", values: [], file: 'props', projectKinds: ['library'], example: 'Contoso' },
 	{ name: 'Company', group: 'Package metadata', description: 'The company that owns the code.', values: [], file: 'props', projectKinds: ['library'], example: 'Contoso' },
 	{
@@ -175,8 +192,15 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 		projectKinds: ['library']
 	},
 	{ name: 'PublishAot', group: 'Trimming and AOT', description: 'Publishes a service as a Native AOT executable.', values: BOOLEAN, file: 'props', projectKinds: ['service'] },
-	{ name: 'EnableTrimAnalyzer', group: 'Trimming and AOT', description: 'Runs the trim analyzer without publishing trimmed.', values: BOOLEAN, file: 'props', projectKinds: ['service'] },
-	{ name: 'EnableAotAnalyzer', group: 'Trimming and AOT', description: 'Runs the AOT analyzer without publishing as Native AOT.', values: BOOLEAN, file: 'props', projectKinds: ['service'] },
+	{ name: 'EnableTrimAnalyzer', group: 'Trimming and AOT', description: 'Runs the trim analyzer without publishing trimmed.', values: BOOLEAN, file: 'props', projectKinds: ['library', 'service'] },
+	{
+		name: 'EnableAotAnalyzer',
+		group: 'Trimming and AOT',
+		description: 'Runs the AOT analyzer without publishing as Native AOT.',
+		values: BOOLEAN,
+		file: 'props',
+		projectKinds: ['library', 'service']
+	},
 
 	{ name: 'IsPackable', group: 'Projects', description: 'Whether `dotnet pack` packs these projects.', values: BOOLEAN, file: 'props' },
 

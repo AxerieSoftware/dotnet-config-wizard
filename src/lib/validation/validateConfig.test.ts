@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readCatalog } from '../../../scripts/readCatalog.ts';
-import { PRESET_IDS, toPresetConfig } from '../config/presets.ts';
+import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { validateConfig } from './validateConfig.ts';
@@ -20,8 +20,12 @@ function messagesFor(config: WizardConfig) {
 }
 
 describe('validateConfig', () => {
-	it.each(PRESET_IDS)('finds no errors or warnings in the %s preset', presetId => {
-		expect(issuesFor(toPresetConfig(presetId, catalog)).filter(issue => issue.severity !== 'info')).toEqual([]);
+	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('finds no errors or warnings in the $name preset', ({ preset }) => {
+		expect(issuesFor(toPresetConfig(preset, catalog)).filter(issue => issue.severity !== 'info')).toEqual([]);
+	});
+
+	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('finds no folder settings that repeat what they inherit in the $name preset', ({ preset }) => {
+		expect(issuesFor(toPresetConfig(preset, catalog)).filter(issue => issue.message.includes('repeat what this folder already inherits'))).toEqual([]);
 	});
 
 	it('errors when locked restore has no lock files to check', () => {
@@ -55,6 +59,22 @@ describe('validateConfig', () => {
 
 	it('warns about a computed copyright year', () => {
 		expect(messagesFor(toConfig({ path: '', build: { Copyright: 'Copyright (c) Contoso $([System.DateTime]::Now.Year)' } })).join('\n')).toContain('A computed Copyright');
+	});
+
+	it('reports duplicates a folder inherits only on the folder they come from', () => {
+		const config = toConfig({ path: '', packages: ['SonarAnalyzer.CSharp'], severities: { CA1822: 'warning', S2325: 'warning' } }, { path: 'tests' });
+
+		const overlapIssues = issuesFor(config).filter(issue => issue.message.startsWith('Static members'));
+
+		expect(overlapIssues.map(issue => issue.scopePath)).toEqual(['']);
+	});
+
+	it('notes library package metadata that nuget.org expects', () => {
+		const withoutMetadata = issuesFor(toConfig({ path: '', projectKind: 'library' }));
+		const withMetadata = issuesFor(toConfig({ path: '', projectKind: 'library', build: { PackageLicenseExpression: 'MIT', PackageReadmeFile: 'README.md', Authors: 'Contoso' } }));
+
+		expect(withoutMetadata.map(issue => issue.message)).toContainEqual(expect.stringContaining('no PackageLicenseExpression, PackageReadmeFile, Authors'));
+		expect(withMetadata.map(issue => issue.message)).not.toContainEqual(expect.stringContaining('Library packages here'));
 	});
 
 	it('warns about duplicate active rules', () => {

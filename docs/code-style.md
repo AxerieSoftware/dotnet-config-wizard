@@ -102,7 +102,8 @@ How code in this repo should read, beyond what Biome and the .editorconfig enfor
 - Internal implementations behind public interfaces. A small internal interface can sit in the same file as its class.
 - Split large classes into partial files by verb or variant: `HttpClientExtensions.Get.cs`, `Repository.Memory.cs`.
 - Folders: public API at the project root, implementation in `Internal/`, plus `Models/`, `Options/`, `Extensions/` and `Mappers/` as needed.
-- `IServiceCollection` extensions are named `Add<Feature>` and return the collection for chaining.
+- Namespaces follow what consumers do, not folders: public types use the root namespace wherever their folder is, so one `using` covers the package. Code under `Internal/` can match its folders.
+- `IServiceCollection` extensions are named `Add<Feature>`, return the collection for chaining, and live in the `Microsoft.Extensions.DependencyInjection` namespace so they need no `using`.
 - Options classes initialize collections (`= new();`), and their doc comments start with "(Required)" when a value must be set.
 - Wrap dispose boilerplate in `#region IDisposable`, following the standard `Dispose(bool)` and `DisposeAsyncCore` pattern.
 
