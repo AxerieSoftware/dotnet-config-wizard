@@ -29,6 +29,8 @@ const SETTING_LABELS: Readonly<Record<string, string>> = {
 	bannedApis: 'Banned APIs',
 	isIgnored: 'Ignored',
 	isTargetFrameworkShared: 'Shared TargetFramework',
+	areInternalsVisibleToTests: 'Internals visible to tests',
+	projectNamePrefix: 'Project name prefix',
 	severityFile: 'Severities file'
 };
 

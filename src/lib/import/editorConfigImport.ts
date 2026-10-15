@@ -6,7 +6,7 @@ import { CAPITALIZATIONS, type Capitalization, type NamingRule } from '../naming
 import { type ImportNote, type ImportResult, toUnmaintainedNotes } from './importResult.ts';
 
 /** The formatting keys the importer reads into a folder's formatting settings. */
-export const FORMATTING_KEY_NAMES: ReadonlySet<string> = new Set([...FORMATTING_KEYS.map(key => key.key), 'max_line_length']);
+export const FORMATTING_KEY_NAMES: ReadonlySet<string> = new Set(FORMATTING_KEYS.map(key => key.key));
 const DIAGNOSTIC_KEY = /^dotnet_diagnostic\.(?<id>[^.]+)\.severity$/;
 const CATEGORY_KEY = /^dotnet_analyzer_diagnostic\.category-(?<category>[\w-]+)\.severity$/;
 const NAMING_KEY = /^dotnet_naming_(?<kind>rule|symbols|style)\.(?<name>[\w-]+)\.(?<property>\w+)$/;

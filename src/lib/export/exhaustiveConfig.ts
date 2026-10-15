@@ -47,6 +47,7 @@ export function toExhaustiveConfig(catalog: Catalog): WizardConfig {
 				ruleParameters: toDefaultRuleParameters(catalog),
 				bannedApis: BANNED_API_SETS.flatMap(set => set.apis),
 				build: toExhaustiveBuild(),
+				projectNamePrefix: 'Contoso',
 				ciBuild: { TreatWarningsAsErrors: 'true' }
 			},
 			{ path: 'tests', projectKind: 'test', severities: { CA1707: 'none' } }

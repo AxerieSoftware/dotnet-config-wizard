@@ -16,6 +16,8 @@ export function mergeImport(scope: ScopeConfig, settings: ImportResult['settings
 	if (settings.tfms && settings.tfms.length > 0) scope.tfms = settings.tfms;
 	if (settings.isIgnored) scope.isIgnored = true;
 	if (settings.isTargetFrameworkShared) scope.isTargetFrameworkShared = true;
+	if (settings.projectNamePrefix) scope.projectNamePrefix = settings.projectNamePrefix;
+	if (settings.areInternalsVisibleToTests !== undefined) scope.areInternalsVisibleToTests = settings.areInternalsVisibleToTests;
 	if (settings.packages) scope.packages = [...new Set([...(scope.packages ?? []), ...settings.packages])];
 	if (settings.naming) {
 		const importedSymbols = new Set(settings.naming.map(rule => rule.symbols));

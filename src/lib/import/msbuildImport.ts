@@ -1,4 +1,4 @@
-import { BUILD_PROPERTIES_BY_NAME } from '../build/buildProperties.ts';
+import { BUILD_PROPERTIES_BY_NAME, PROJECT_NAME_CONDITION } from '../build/buildProperties.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { isSupportedTargetFramework } from '../config/targetFrameworks.ts';
 import type { Severity } from '../config/wizardConfig.ts';
@@ -10,6 +10,7 @@ const CONDITION = /Condition="(?<condition>[^"]*)"/;
 // Compiler warnings can be written as bare numbers in NoWarn, such as 1591 for CS1591.
 const COMPILER_WARNING = /^(?:CS)?\d+$/;
 const PACKAGE_ITEM = /<(?:Global)?Package(?:Reference|Version)\s[^>]*Include="(?<id>[^"]+)"/g;
+const TEST_ACCESS_ITEM = /<InternalsVisibleTo\s[^>]*(?<action>Include|Remove)="\$\(AssemblyName\)\.Tests"/;
 /** A condition that limits a group to CI builds. */
 export const CI_CONDITION = /ContinuousIntegrationBuild|\$\(CI\)|TF_BUILD|GITHUB_ACTIONS/;
 const UNMAINTAINED_PACKAGES = ['StyleCop.Analyzers', 'SecurityCodeScan', 'SecurityCodeScan.VS2019', 'IDisposableAnalyzers', 'AsyncFixer'];
@@ -34,6 +35,12 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 
 	for (const group of text.matchAll(PROPERTY_GROUP)) {
 		const condition = CONDITION.exec(group.groups?.attributes ?? '')?.groups?.condition;
+		const projectNamePrefix = condition === undefined ? undefined : PROJECT_NAME_CONDITION.exec(condition)?.groups?.prefix;
+		if (projectNamePrefix) {
+			settings.projectNamePrefix = projectNamePrefix;
+			continue;
+		}
+
 		const isCiOnly = condition !== undefined && CI_CONDITION.test(condition);
 		if (condition && !isCiOnly) {
 			skippedConditionCount++;
@@ -54,6 +61,9 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 			notes.push(...importProperty(name, value, isCiOnly || isPropertyCiOnly, catalog, settings, unsupported));
 		}
 	}
+
+	const testAccess = TEST_ACCESS_ITEM.exec(text)?.groups?.action;
+	if (testAccess) settings.areInternalsVisibleToTests = testAccess === 'Include';
 
 	const packageIds = [...text.matchAll(PACKAGE_ITEM)].map(match => match.groups?.id ?? '');
 	const analyzerPackages = packageIds.filter(id => catalog.packages.has(id));

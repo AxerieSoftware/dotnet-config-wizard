@@ -24,11 +24,12 @@ Follow [docs/code-style.md](docs/code-style.md). In short:
 - **Generators are plain functions** from the config model to file text. No plugin systems or generic generator abstractions.
 - **No over-implementation.** Handle what users can hit. No speculative options, guards or abstractions. This limits app code and UI toggles, not the catalog: every cataloged rule and option stays configurable.
 - **US English** in UI copy, comments and docs.
-- **Greenfield.** No compatibility shims or leftovers from earlier iterations, except share-link migrations, which exist so old links keep their meaning.
+- **Greenfield.** No compatibility shims or leftovers from earlier iterations. The one planned exception is saved-state migrations when `SCHEMA_VERSION` is bumped; none exist yet.
 
 ## Presets and saved state
 
-- Share links and autosaved state hold only what differs from the preset, so changing a preset changes what old links mean. Bump `PRESET_VERSION` in `src/lib/config/presets.ts` whenever a preset's output changes; links from an older version open with a notice.
+- Share links and autosaved state are `{schemaVersion, sdkBand, preset, changes}`: the preset name plus only what differs from it. Changing a preset's output changes what old links mean, with no notice.
+- The root `.editorconfig` header records the preset (`# Settings for .NET SDK X, catalog D, preset NAME`), and repo import reads it back. Keep `HEADER_PATTERN` in `src/lib/export/editorConfigFiles.ts` in sync with the header.
 - Bump `SCHEMA_VERSION` in `src/lib/config/shareLink.ts` when the config shape changes in a way old saved state can't be read as, and add the migration in the same change.
 - `catalog/generated/rule-history.json` only grows: CatalogBuilder adds new rule IDs with the run date and never rewrites old dates. Don't edit it by hand.
 
@@ -39,7 +40,8 @@ Follow [docs/code-style.md](docs/code-style.md). In short:
 - `.editorconfig` comments always sit on their own line above the setting. EditorConfig has no inline comments.
 - Generated files carry no site attribution.
 - Never emit a key the selected SDK band or the target frameworks' C# version doesn't support.
-- MSBuild properties come from `src/lib/build/buildProperties.ts`. Shared props never set `TargetFramework`, `LangVersion`, `WarningLevel` or `NoWarn`.
+- MSBuild properties come from `src/lib/build/buildProperties.ts`. Shared props never set `LangVersion`, `WarningLevel` or `NoWarn`.
+- Shared props set `TargetFramework` or `TargetFrameworks` only when a folder opts in with "Set the target frameworks for every project here" (`isTargetFrameworkShared`). `toTargetFrameworkLines` in `src/lib/build/buildPropsFiles.ts` also clears an inherited value that would conflict.
 
 ## Tests
 

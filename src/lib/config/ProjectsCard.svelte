@@ -89,4 +89,30 @@
 			onchange={value => wizard.setProjectKind(value as ProjectKind | undefined)}
 		/>
 	</label>
+	{#if wizard.isRootActive}
+		<label class="field" style:max-width="320px">
+			<span>Project name prefix</span>
+			<input
+				aria-label="Project name prefix"
+				data-setting="ProjectNamePrefix"
+				value={wizard.rootScope.projectNamePrefix ?? ''}
+				placeholder="Contoso"
+				onchange={event => wizard.setProjectNamePrefix(event.currentTarget.value.trim().replace(/\.+$/, '') || undefined)}
+			>
+		</label>
+		<p class="caption">
+			Builds <code>Billing</code> as <code>{wizard.rootScope.projectNamePrefix ?? 'Contoso'}.Billing</code> and its tests as
+			<code>{wizard.rootScope.projectNamePrefix ?? 'Contoso'}.Billing.Tests</code>, so short project names need no renaming. Projects already named with the prefix are left alone.
+		</p>
+	{/if}
+	<label class="checkbox">
+		<input
+			type="checkbox"
+			aria-label="Let tests use internal types"
+			data-setting="InternalsVisibleTo"
+			checked={wizard.resolvedActiveScope.areInternalsVisibleToTests}
+			onchange={event => wizard.setInternalsVisibleToTests(event.currentTarget.checked)}
+		>
+		<span>Let each project's tests use its internal types. The test project must be named after it with <code>.Tests</code> on the end.</span>
+	</label>
 </section>

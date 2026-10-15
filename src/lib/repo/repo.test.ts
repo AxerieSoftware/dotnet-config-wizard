@@ -30,7 +30,7 @@ const BUILD_PROPS = `<Project>
 		<Optimize>true</Optimize>
 	</PropertyGroup>
 	<ItemGroup>
-		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
 	</ItemGroup>
 	<Target Name="Stamp" BeforeTargets="Build" />
 </Project>
@@ -143,10 +143,35 @@ describe('saving over existing files', () => {
 		expect(editorConfig).toContain('dotnet_diagnostic.SA1101.severity = none');
 		expect(buildProps).toContain('<LangVersion>preview</LangVersion>');
 		expect(buildProps).toContain(`<PropertyGroup Condition="'$(Configuration)' == 'Release'">`);
-		expect(buildProps).toContain('<InternalsVisibleTo Include="$(AssemblyName).Tests" />');
+		expect(buildProps).toContain('<InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />');
 		expect(buildProps).toContain('<Target Name="Stamp" BeforeTargets="Build" />');
 		expect(buildProps.match(/<Nullable>/g)).toHaveLength(1);
 		expect(packagesProps).toContain('<PackageVersion Include="Serilog" Version="4.0.0" />');
 		expect(globalJson.sdk).toEqual({ version: catalog.band.sdkVersion, rollForward: 'latestPatch', allowPrerelease: false, paths: ['.dotnet'] });
+	});
+
+	it('leaves unmanaged settings beside the line they followed instead of moving them into a block of their own', () => {
+		const editorConfig = toSavedText('.editorconfig', generated('.editorconfig'), existing('.editorconfig'), catalog);
+		const buildProps = toSavedText('Directory.Build.props', generated('Directory.Build.props'), existing('Directory.Build.props'), catalog);
+
+		expect(editorConfig).toContain("[*.cs]\n# Rider's own setting\nresharper_braces_for_ifelse = required\n");
+		expect(buildProps).toMatch(/<Nullable>enable<\/Nullable>\n\t\t<LangVersion>preview<\/LangVersion>\n\t<\/PropertyGroup>/);
+		expect(buildProps.indexOf('<Optimize>')).toBeLessThan(buildProps.indexOf('Benchmarks'));
+		expect(buildProps.indexOf('Benchmarks')).toBeLessThan(buildProps.indexOf('<Target Name="Stamp"'));
+		expect(buildProps).not.toContain('Kept');
+	});
+
+	it('replaces the project name prefix group rather than keeping the old one beside it', () => {
+		const prefixed = toRepoConfig([{ path: 'Directory.Build.props', text: BUILD_PROPS }], catalog).config;
+		prefixed.scopes[0].projectNamePrefix = 'Contoso';
+		const first = toGeneratedOutput(prefixed, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Build.props')?.content ?? '';
+		prefixed.scopes[0].projectNamePrefix = 'Fabrikam';
+		const second = toGeneratedOutput(prefixed, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Build.props')?.content ?? '';
+
+		const saved = toSavedText('Directory.Build.props', second, toSavedText('Directory.Build.props', first, BUILD_PROPS, catalog), catalog);
+
+		expect(saved).toContain(`<PropertyGroup Label="Project names" Condition="!$(MSBuildProjectName.StartsWith('Fabrikam.'))">`);
+		expect(saved).not.toContain('Contoso');
+		expect(toRepoConfig([{ path: 'Directory.Build.props', text: saved }], catalog).config.scopes[0].projectNamePrefix).toBe('Fabrikam');
 	});
 });

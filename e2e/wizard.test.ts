@@ -438,6 +438,23 @@ test('a single framework can be set for every project from shared props', async 
 	await expect(page.locator('.line.linked')).toContainText('<TargetFramework>net');
 });
 
+test('letting tests use internal types adds the .Tests InternalsVisibleTo item', async ({ page }) => {
+	await page.goto('/wizard/build');
+	await page.getByRole('checkbox', { name: 'Let tests use internal types' }).check();
+
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<InternalsVisibleTo Include="$(AssemblyName).Tests" />');
+	await expect(page.locator('.line.linked')).toContainText('InternalsVisibleTo');
+});
+
+test('a project name prefix names every project and its tests', async ({ page }) => {
+	await page.goto('/wizard/build');
+	await page.getByRole('textbox', { name: 'Project name prefix' }).fill('Contoso');
+	await page.getByRole('textbox', { name: 'Project name prefix' }).press('Tab');
+
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<AssemblyName>Contoso.$(MSBuildProjectName)</AssemblyName>');
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<RootNamespace>Contoso.$(MSBuildProjectName)</RootNamespace>');
+});
+
 test('the folder being edited survives a reload', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');

@@ -143,6 +143,14 @@ describe('importMsBuildFile', () => {
 		expect(result.settings).toEqual({ tfms: ['net10.0'], isTargetFrameworkShared: true });
 	});
 
+	it('reads the .Tests InternalsVisibleTo item as letting tests see internals, and its removal as hiding them', () => {
+		const included = importMsBuildFile('<Project><ItemGroup><InternalsVisibleTo Include="$(AssemblyName).Tests" /></ItemGroup></Project>', catalog);
+		const removed = importMsBuildFile('<Project><ItemGroup><InternalsVisibleTo Remove="$(AssemblyName).Tests" /></ItemGroup></Project>', catalog);
+
+		expect(included.settings).toEqual({ areInternalsVisibleToTests: true });
+		expect(removed.settings).toEqual({ areInternalsVisibleToTests: false });
+	});
+
 	it('skips a property with its own condition unless the condition limits it to CI', () => {
 		const result = importMsBuildFile(
 			`<Project><PropertyGroup>

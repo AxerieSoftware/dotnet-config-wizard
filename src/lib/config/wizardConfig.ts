@@ -35,6 +35,10 @@ export type ScopeConfig = {
 	isIgnored?: boolean;
 	/** Whether this folder's Directory.Build.props sets the target frameworks for every project in it. */
 	isTargetFrameworkShared?: boolean;
+	/** A prefix the repo root adds to every project's assembly name and root namespace, such as `Contoso`. */
+	projectNamePrefix?: string;
+	/** Whether each project's internal types are visible to its test project, named `<project>.Tests`. */
+	areInternalsVisibleToTests?: boolean;
 };
 
 export type NuGetSource = { key: string; url: string; patterns: string[] };
@@ -99,6 +103,8 @@ function findScopeProblem(scope: unknown): string | undefined {
 		return 'bannedApis must be an array of { symbol, message } objects.';
 	if (scope.isIgnored !== undefined && typeof scope.isIgnored !== 'boolean') return 'isIgnored must be true or false.';
 	if (scope.isTargetFrameworkShared !== undefined && typeof scope.isTargetFrameworkShared !== 'boolean') return 'isTargetFrameworkShared must be true or false.';
+	if (scope.projectNamePrefix !== undefined && typeof scope.projectNamePrefix !== 'string') return 'projectNamePrefix must be a string.';
+	if (scope.areInternalsVisibleToTests !== undefined && typeof scope.areInternalsVisibleToTests !== 'boolean') return 'areInternalsVisibleToTests must be true or false.';
 
 	return undefined;
 }

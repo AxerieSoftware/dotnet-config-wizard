@@ -27,6 +27,7 @@ const CATEGORY_SEVERITY = /^dotnet_analyzer_diagnostic\.category-(\w+)\.severity
 const NAMING_PART = /^dotnet_naming_(rule|symbols|style)\.(\w+)\.(\w+)$/;
 const MSBUILD_PROPERTY = /^<(\w+)>([^<]*)<\/\1>$/;
 const PACKAGE_ITEM = /^<(GlobalPackageReference|PackageReference|PackageVersion) (Include|Remove)="([^"]+)"/;
+const TEST_ACCESS_ITEM = /^<InternalsVisibleTo (Include|Remove)="\$\(AssemblyName\)\.Tests"/;
 const JSON_PROPERTY = /^"([\w-]+)":\s*(.+?),?$/;
 const BANNED_SYMBOL = /^([TMPFEN]):([^;]+);(.*)$/;
 
@@ -174,6 +175,15 @@ function describeRule(ruleId: string, severity: string, catalog: Catalog): LineI
 
 function describeMsBuildLine(text: string, catalog: Catalog): LineInfo | undefined {
 	const property = MSBUILD_PROPERTY.exec(text);
+	if (property?.[1] === 'AssemblyName' || property?.[1] === 'RootNamespace') {
+		const prefix = property[2].replace('.$(MSBuildProjectName)', '');
+		return {
+			title: `${property[1]} = ${property[2]}`,
+			details: [`Adds ${prefix} to the front of each project's ${property[1] === 'AssemblyName' ? 'assembly name' : 'root namespace'}, unless its name already starts with it.`],
+			target: { path: STEP_PATHS.build, selector: '[data-setting="ProjectNamePrefix"]' }
+		};
+	}
+
 	if (property?.[1] === 'TargetFramework' || property?.[1] === 'TargetFrameworks') {
 		return {
 			title: `${property[1]} = ${property[2] || '(cleared)'}`,
@@ -195,6 +205,19 @@ function describeMsBuildLine(text: string, catalog: Catalog): LineInfo | undefin
 			const step = PACKAGES_STEP_GROUPS.includes(known.group) ? STEP_PATHS.packages : STEP_PATHS.build;
 			return { title: `${known.name} = ${property[2]}`, details, target: { path: step, selector: `[aria-label="${known.name}"]` } };
 		}
+	}
+
+	const testAccess = TEST_ACCESS_ITEM.exec(text);
+	if (testAccess) {
+		return {
+			title: testAccess[1] === 'Include' ? 'Internals visible to tests' : 'Internals hidden from tests',
+			details: [
+				testAccess[1] === 'Include'
+					? "Lets each project's test project, named after it with .Tests on the end, use its internal types."
+					: 'Stops projects in this folder sharing their internal types with their test projects.'
+			],
+			target: { path: STEP_PATHS.build, selector: '[data-setting="InternalsVisibleTo"]' }
+		};
 	}
 
 	const packageItem = PACKAGE_ITEM.exec(text);

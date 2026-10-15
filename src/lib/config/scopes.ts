@@ -18,6 +18,7 @@ export type ResolvedScope = {
 	ruleParameters: Record<string, Record<string, string>>;
 	bannedApis: BannedApi[];
 	isTargetFrameworkShared: boolean;
+	areInternalsVisibleToTests: boolean;
 };
 
 /** The closest scope whose folder contains this one; the root scope contains every other scope. */
@@ -47,7 +48,8 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		packages: scope.packages ?? inherited?.packages ?? [],
 		ruleParameters: mergeNested(inherited?.ruleParameters ?? {}, scope.ruleParameters ?? {}),
 		bannedApis: [...(inherited?.bannedApis ?? []), ...(scope.bannedApis ?? [])],
-		isTargetFrameworkShared: scope.isTargetFrameworkShared ?? inherited?.isTargetFrameworkShared ?? false
+		isTargetFrameworkShared: scope.isTargetFrameworkShared ?? inherited?.isTargetFrameworkShared ?? false,
+		areInternalsVisibleToTests: scope.areInternalsVisibleToTests ?? inherited?.areInternalsVisibleToTests ?? false
 	};
 }
 

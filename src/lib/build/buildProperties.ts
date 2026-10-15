@@ -251,3 +251,14 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 ];
 
 export const BUILD_PROPERTIES_BY_NAME: ReadonlyMap<string, BuildProperty> = new Map(BUILD_PROPERTIES.map(property => [property.name, property]));
+
+/** A prefix the wizard can add to project names: one or more dot-separated identifiers, such as `Contoso` or `Contoso.Tools`. */
+export const PROJECT_NAME_PREFIX = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/;
+
+/** The group condition that adds the prefix only to projects not already named with it, so none get it twice. */
+export function toProjectNameCondition(prefix: string): string {
+	return `!$(MSBuildProjectName.StartsWith('${prefix}.'))`;
+}
+
+/** Reads the prefix back from a group condition written by `toProjectNameCondition`. */
+export const PROJECT_NAME_CONDITION = /^!\$\(MSBuildProjectName\.StartsWith\('(?<prefix>[\w.]+)\.'\)\)$/;

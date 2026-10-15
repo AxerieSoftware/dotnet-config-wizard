@@ -246,6 +246,18 @@ export class WizardState {
 		setOrDelete(this.activeScope, 'isTargetFrameworkShared', isShared === isInherited ? undefined : isShared);
 	}
 
+	/** Sets the prefix the repo root adds to every project's assembly name and root namespace. */
+	public setProjectNamePrefix(prefix: string | undefined): void {
+		setOrDelete(this.rootScope, 'projectNamePrefix', prefix);
+	}
+
+	/** Lets each project's test project see its internal types, or stops it. */
+	public setInternalsVisibleToTests(isVisible: boolean): void {
+		// Turning it off below a folder that turns it on needs an explicit false.
+		const isInherited = this.inheritedScope?.areInternalsVisibleToTests ?? false;
+		setOrDelete(this.activeScope, 'areInternalsVisibleToTests', isVisible === isInherited ? undefined : isVisible);
+	}
+
 	public setProjectKind(projectKind: ProjectKind | undefined): void {
 		setOrDelete(this.activeScope, 'projectKind', projectKind);
 	}

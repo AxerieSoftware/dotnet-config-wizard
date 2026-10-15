@@ -227,7 +227,8 @@ const OPINIONATED_ANALYZER_RULES = [
 	'MA0223',
 	'MA0224',
 	'MA0225',
-	// Sonar: cognitive complexity and DateTimeOffset.
+	// Sonar: nesting depth, cognitive complexity and DateTimeOffset.
+	'S134',
 	'S3776',
 	'S6566'
 ];
@@ -264,6 +265,8 @@ const LIBRARY_BUILD: Record<string, string> = {
 // One house style, enforced: tabs, `this.` on fields, properties and events, `var` everywhere, and pattern matching.
 const OPINIONATED_FORMATTING: Record<string, Record<string, string>> = {
 	'[*]': { charset: 'utf-8', end_of_line: 'lf', indent_style: 'tab', indent_size: '4', tab_width: '4', insert_final_newline: 'true', trim_trailing_whitespace: 'true' },
+	// The .NET formatter doesn't wrap at this width; editors and MA0177 read it.
+	'[*.cs]': { max_line_length: '200' },
 	// YAML doesn't allow tabs.
 	'[*.{yml,yaml}]': { indent_style: 'space', indent_size: '2' },
 	'[*.md]': { trim_trailing_whitespace: 'false' },
@@ -272,6 +275,8 @@ const OPINIONATED_FORMATTING: Record<string, Record<string, string>> = {
 
 const OPINIONATED_OPTIONS: Record<string, string> = {
 	dotnet_separate_import_directive_groups: 'false',
+	// A one-statement body may skip braces; IDE2001 keeps it on its own line.
+	csharp_prefer_braces: 'when_multiline',
 	dotnet_style_qualification_for_field: 'true',
 	dotnet_style_qualification_for_property: 'true',
 	dotnet_style_qualification_for_event: 'true',
@@ -295,6 +300,8 @@ const OPINIONATED_OPTIONS: Record<string, string> = {
 };
 
 const OPINIONATED_SEVERITIES: Record<string, Severity> = {
+	// Trailing commas after the last value are left to taste.
+	MA0007: 'none',
 	IDE0003: 'warning',
 	IDE0009: 'warning',
 	IDE0007: 'warning',
@@ -416,6 +423,9 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 		root.formatting = structuredClone(OPINIONATED_FORMATTING);
 		root.options = { ...root.options, ...OPINIONATED_OPTIONS };
 		root.severities = { ...root.severities, ...OPINIONATED_SEVERITIES, ...toWarnings(OPINIONATED_ANALYZER_RULES) };
+		// S134 caps nesting at its default of three levels; cognitive complexity is a backstop high enough that a long, flat
+		// sequence of guarded steps passes.
+		root.ruleParameters = { ...root.ruleParameters, S3776: { threshold: '25' } };
 		root.naming = toOpinionatedNaming();
 		root.build.UseArtifactsOutput = 'true';
 		root.build.DebugType = 'embedded';
@@ -442,7 +452,13 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 
 	// Opinionated shows what would block trimming and Native AOT without claiming compatibility: the analyzers run, their
 	// findings are suggestions so they never fail the build, and libraries don't declare IsAotCompatible.
+	// Libraries can't rely on the app's culture, so string interpolation and sorting must name theirs too. Services run with
+	// invariant globalization, where neither can vary.
+	if (preset.level === 'opinionated' && projectKind === 'library') src.severities = { ...src.severities, MA0076: 'warning' };
+	if (preset.level === 'opinionated' && projectKind === 'service') src.severities = { ...src.severities, MA0002: 'none', MA0076: 'none' };
+
 	if (preset.level === 'opinionated') {
+		src.areInternalsVisibleToTests = true;
 		const { IsAotCompatible: _isAotCompatible, ...build } = src.build ?? {};
 		src.build = { ...build, EnableTrimAnalyzer: 'true', EnableAotAnalyzer: 'true' };
 		src.categorySeverities = { Trimming: 'suggestion', AOT: 'suggestion' };

@@ -9,7 +9,8 @@ export const FORMATTING_KEYS: readonly FormattingKey[] = [
 	{ key: 'indent_size', label: 'Indent size', values: ['2', '4', '8', 'tab'] },
 	{ key: 'tab_width', label: 'Tab width', values: ['2', '4', '8'] },
 	{ key: 'insert_final_newline', label: 'Final newline', values: ['true', 'false'] },
-	{ key: 'trim_trailing_whitespace', label: 'Trim trailing whitespace', values: ['true', 'false'] }
+	{ key: 'trim_trailing_whitespace', label: 'Trim trailing whitespace', values: ['true', 'false'] },
+	{ key: 'max_line_length', label: 'Max line length', values: ['80', '100', '120', '150', '200', 'off'] }
 ];
 
 export const FORMATTING_GLOBS: readonly { glob: string; title: string }[] = [

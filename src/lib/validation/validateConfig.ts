@@ -1,6 +1,7 @@
 import { parseAnalysisLevel } from '../analyzers/analysisLevel.ts';
 import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity.ts';
 import { type ActiveOverlap, findActiveOverlaps } from '../analyzers/overlaps.ts';
+import { PROJECT_NAME_PREFIX } from '../build/buildProperties.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
@@ -38,6 +39,10 @@ export function validateConfig(config: WizardConfig, catalog: Catalog, skippedKe
 
 // Checks about building, restoring and packing, which apply to every folder.
 const SCOPE_CHECKS: readonly ScopeCheck[] = [
+	({ scope }) => {
+		if (scope.projectNamePrefix === undefined || PROJECT_NAME_PREFIX.test(scope.projectNamePrefix)) return [];
+		return [{ severity: 'error', message: `The project name prefix "${scope.projectNamePrefix}" isn't a valid namespace. Use names like Contoso or Contoso.Tools.` }];
+	},
 	({ scope, catalog }) => {
 		if (scope.build?.EnablePreviewFeatures !== 'true' || catalog.band.isPreview) return [];
 		return [{ severity: 'warning', message: `EnablePreviewFeatures is for preview SDKs, and SDK ${catalog.band.band} is released, so leave it off.` }];

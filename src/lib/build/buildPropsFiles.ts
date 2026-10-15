@@ -4,7 +4,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import type { GeneratedFile, SkippedKey } from '../export/generatedFile.ts';
-import { BUILD_PROPERTIES, BUILD_PROPERTIES_BY_NAME, type PropertyFile } from './buildProperties.ts';
+import { BUILD_PROPERTIES, BUILD_PROPERTIES_BY_NAME, type PropertyFile, toProjectNameCondition } from './buildProperties.ts';
 import { toElement, toGroup, toItem, toParentImport, toProjectDocument, type XmlLine } from './msbuildXml.ts';
 
 const BUILD_PROPS = 'Directory.Build.props';
@@ -43,6 +43,9 @@ export function toBuildFiles(config: WizardConfig, catalog: Catalog, commentStyl
 	return output;
 }
 
+/** The test project that can see a project's internal types: the project's name plus `.Tests`. */
+export const TEST_ASSEMBLY_NAME = '$(AssemblyName).Tests';
+
 /** Every property the generated props can write, so saving to a repo replaces them rather than keeping the old lines. */
 export const WRITTEN_PROPERTY_NAMES: ReadonlySet<string> = new Set([...BUILD_PROPERTIES_BY_NAME.keys(), 'ContinuousIntegrationBuild', 'TargetFramework', 'TargetFrameworks']);
 
@@ -51,12 +54,14 @@ function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog
 	const resolved = resolveScope(config, scope);
 	const blocks: XmlLine[][] = [
 		toGroup('PropertyGroup', 'Target framework', toTargetFrameworkLines(config, scope, resolved)),
+		isRoot ? toProjectNameGroup(scope.projectNamePrefix) : [],
 		...toPropertyGroups(scope.build ?? {}, 'props', commentStyle),
 		isRoot && hasCiSettings(config) ? toGroup('PropertyGroup', 'Continuous integration', [toElement('ContinuousIntegrationBuild', 'true')], CI_CONDITION) : [],
 		toGroup('PropertyGroup', 'CI builds only', toPropertyLines(scope.ciBuild ?? {}, 'props', commentStyle), CI_ONLY_CONDITION),
 		isCentrallyManaged ? [] : toGroup('ItemGroup', 'Analyzer packages', toPackageItems(config, scope, catalog, 'PackageReference')),
 		toGroup('ItemGroup', 'Analyzer files', toAnalyzerFileItems(config, scope, resolved.packages)),
-		toGroup('ItemGroup', 'Package files', toPackFileItems(scope.build ?? {}))
+		toGroup('ItemGroup', 'Package files', toPackFileItems(scope.build ?? {})),
+		toGroup('ItemGroup', 'Test access', toTestAccessItems(config, scope))
 	];
 
 	if (blocks.every(block => block.length === 0)) return undefined;
@@ -78,6 +83,14 @@ function toTargetFrameworkLines(config: WizardConfig, scope: ScopeConfig, resolv
 	const line = toElement(property, tfms.join(';'));
 	if (property === 'TargetFrameworks' && inheritedProperty === 'TargetFramework') return [toElement('TargetFramework', ''), line];
 	return [line];
+}
+
+/** Prefixes every project's assembly name and root namespace, except projects already named with the prefix. */
+function toProjectNameGroup(prefix: string | undefined): XmlLine[] {
+	if (!prefix) return [];
+
+	const name = `${prefix}.$(MSBuildProjectName)`;
+	return toGroup('PropertyGroup', 'Project names', [toElement('AssemblyName', name), toElement('RootNamespace', name)], toProjectNameCondition(prefix));
 }
 
 /** The property a folder's frameworks go in: TargetFramework for one, TargetFrameworks for several. */
@@ -154,6 +167,16 @@ function toPackFileItems(build: Record<string, string>): XmlLine[] {
 	return [build.PackageReadmeFile, build.PackageIcon]
 		.filter(fileName => fileName !== undefined)
 		.map(fileName => toItem('None', { Include: `$(MSBuildThisFileDirectory)${fileName}`, Pack: 'true', PackagePath: '/', Visible: 'false' }));
+}
+
+/** Lets tests see internals where a folder turns it on, and removes the inherited item where a folder turns it off. */
+function toTestAccessItems(config: WizardConfig, scope: ScopeConfig): XmlLine[] {
+	if (scope.areInternalsVisibleToTests === undefined) return [];
+
+	const parent = getParentScope(config, scope);
+	const isInherited = parent ? resolveScope(config, parent).areInternalsVisibleToTests : false;
+	if (scope.areInternalsVisibleToTests === isInherited) return [];
+	return [toItem('InternalsVisibleTo', scope.areInternalsVisibleToTests ? { Include: TEST_ASSEMBLY_NAME } : { Remove: TEST_ASSEMBLY_NAME })];
 }
 
 function getParentScopePackages(config: WizardConfig, scope: ScopeConfig): string[] {

@@ -16,6 +16,8 @@ export const OVERLAPS: readonly { concern: string; ruleIds: string[] }[] = [
 	{ concern: 'Rethrowing exceptions', ruleIds: ['CA2200', 'S3445'] },
 	{ concern: 'Braces', ruleIds: ['IDE0011', 'S121'] },
 	{ concern: 'StringComparison', ruleIds: ['CA1307', 'CA1310', 'MA0001'] },
+	{ concern: 'IFormatProvider and CultureInfo', ruleIds: ['CA1304', 'CA1305', 'MA0011'] },
+	{ concern: 'Culture-sensitive string comparison', ruleIds: ['CA1309', 'CA1310', 'CA1311', 'MA0074'] },
 	{ concern: 'Unused private members', ruleIds: ['IDE0051', 'IDE0052', 'S1144'] },
 	{ concern: 'Unused parameters', ruleIds: ['IDE0060', 'S1172'] },
 	{ concern: 'Unused assignments', ruleIds: ['IDE0059', 'S1854'] },
