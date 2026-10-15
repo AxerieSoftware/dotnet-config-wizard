@@ -91,8 +91,9 @@ function importProperty(name: string, value: string, isCiOnly: boolean, catalog:
 		const tfms = toListEntries(value, name);
 		settings.tfms = tfms.filter(isSupportedTargetFramework);
 		const unsupportedTfms = tfms.filter(tfm => !isSupportedTargetFramework(tfm));
+		settings.isTargetFrameworkShared = true;
 		return [
-			{ severity: 'info', message: `${name} became this folder's target frameworks; shared props don't set it, so each project keeps its own.` },
+			{ severity: 'info', message: `${name} is set for every project in this folder.` },
 			...(unsupportedTfms.length > 0 ? [{ severity: 'warning' as const, isDropped: true, message: `${unsupportedTfms.join(', ')} were dropped; the wizard supports .NET 10 and later only.` }] : [])
 		];
 	}

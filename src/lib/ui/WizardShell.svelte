@@ -1,12 +1,15 @@
 <script lang="ts">
-	import { type Snippet, untrack } from 'svelte';
+	import { type Snippet, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import type { InitialState } from '../config/initialState.ts';
 	import { getBrowserStorage, restoreReplaced, saveState, startOver } from '../config/initialState.ts';
 	import { setWizardState, WizardState } from '../config/wizardState.svelte.ts';
 	import ExportActions from '../export/ExportActions.svelte';
 	import FileExplorer from '../export/FileExplorer.svelte';
+	import { toFolderPath } from '../export/fileTree.ts';
+	import { findSettingLine } from '../export/lineInfo.ts';
 	import ImportDialog from '../import/ImportDialog.svelte';
+	import { toReadOnlyReason } from '../repo/openRepo.ts';
 	import RepoButton from '../repo/RepoButton.svelte';
 	import AddFolderDialog from './AddFolderDialog.svelte';
 	import AppHeader from './AppHeader.svelte';
@@ -60,6 +63,20 @@
 		previewWidth.value = Math.round(Math.max(PREVIEW_MIN_WIDTH, Math.min(width, window.innerWidth * PREVIEW_MAX_SHARE)));
 	}
 
+	/**
+	 * Points the preview at the line a setting writes when its control is focused or changed. A change can add the line,
+	 * so the files are read again once they've updated.
+	 */
+	async function linkSetting(event: Event): Promise<void> {
+		const control = event.target;
+		if (!(control instanceof Element) || !control.matches('select, input, textarea')) return;
+
+		if (event.type === 'change') await tick();
+		const folderFiles = wizard.output.files.filter(file => toFolderPath(file.path) === wizard.activeScopePath);
+		const linked = findSettingLine(folderFiles, control, wizard.catalog);
+		if (linked) wizard.linkedLine = linked;
+	}
+
 	function askToStartOver(): void {
 		wizard.confirmIfChanged({ title: 'Start over?', message: 'Clears every setting and returns to Microsoft defaults.', confirmLabel: 'Start over' }, () => startOver(location, storage));
 	}
@@ -106,13 +123,13 @@
 		</div>
 	</nav>
 
-	<main class="step-main">
+	<main class="step-main" onfocusin={linkSetting} onchange={linkSetting}>
 		{#if wizard.repo && wizard.openedRepoSummary}
 			<div class="message" role="status">
 				<Icon name="folderOpen" />
 				<span>
 					Opened {wizard.repo.name}: {wizard.openedRepoSummary.fileCount} config files in {wizard.openedRepoSummary.folderCount}
-					{wizard.openedRepoSummary.folderCount === 1 ? 'folder' : 'folders'}.{wizard.repo.status === 'read-only' ? '' : ' Edits save automatically.'}
+					{wizard.openedRepoSummary.folderCount === 1 ? 'folder' : 'folders'}.{wizard.repo.status === 'read-only' ? ` ${toReadOnlyReason()}` : ' Edits save automatically.'}
 					{#if wizard.importNotes.length > 0}
 						<details class="repo-notes">
 							<summary>{wizard.importNotes.length} notes about what was loaded</summary>

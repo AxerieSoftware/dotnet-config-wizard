@@ -25,6 +25,8 @@ export function toNextSteps(config: WizardConfig, files: readonly GeneratedFile[
 		steps.push('Add the README and icon that PackageReadmeFile and PackageIcon name, next to their props file. Packing fails without them.');
 	if (isAnyScope(scope => scope.build.UseArtifactsOutput === 'true'))
 		steps.push('Build output now goes to one artifacts folder at the repo root. Add `artifacts/` to .gitignore, and update CI paths that read bin/ or obj/.');
+	if (isAnyScope(scope => scope.build.IsPackable === 'true' && scope.build.VersionPrefix === undefined))
+		steps.push("Set `<VersionPrefix>` in each package's project file, such as `1.0.0`, so each package has its own version. A package without one is versioned 1.0.0.");
 	if (hasFile('global.json')) steps.push('Install the SDK that global.json pins on every machine and CI agent. New analyzer rules and warning waves arrive when you update the pin.');
 	if (hasFile('nuget.config')) steps.push('nuget.config clears other package sources. Add private feeds to it with the package patterns they serve.');
 

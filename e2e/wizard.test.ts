@@ -422,6 +422,22 @@ test('an ignored folder has analyzers skip its code until it is no longer ignore
 	await expect(page.getByTestId('file-legacy/.editorconfig')).toHaveCount(0);
 });
 
+test('editing a setting opens the file it writes and highlights its line', async ({ page }) => {
+	await page.goto('/wizard/build');
+	await page.getByRole('combobox', { name: 'Nullable', exact: true }).selectOption('enable');
+
+	await expect(page.locator('.viewer-path')).toHaveText('Directory.Build.props');
+	await expect(page.locator('.line.linked')).toHaveText('<Nullable>enable</Nullable>');
+});
+
+test('a single framework can be set for every project from shared props', async ({ page }) => {
+	await page.goto('/wizard/build');
+	await page.getByRole('checkbox', { name: 'Set the target frameworks for every project here' }).check();
+
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<TargetFramework>net');
+	await expect(page.locator('.line.linked')).toContainText('<TargetFramework>net');
+});
+
 test('the folder being edited survives a reload', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');

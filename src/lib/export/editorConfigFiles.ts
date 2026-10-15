@@ -12,10 +12,11 @@ import type { GeneratedFile, GeneratedOutput, SkippedKey } from './generatedFile
 
 const FILE_NAME = '.editorconfig';
 
-/** Read back by the importer to list rules added since a config was made. */
-export const HEADER_PATTERN = /^# Settings for \.NET SDK (?<band>\S+), catalog (?<catalogVersion>\d{4}-\d{2}-\d{2})$/m;
+/** Read back by the importer to list rules added since a config was made, and to restore the preset it started from. */
+export const HEADER_PATTERN = /^# Settings for \.NET SDK (?<band>\S+), catalog (?<catalogVersion>\d{4}-\d{2}-\d{2})(?:, preset (?<preset>.+))?$/m;
 
-export type EditorConfigOutputOptions = { commentStyle: CommentStyle };
+/** How files are written; `presetName` records the preset the settings started from in the root file's header. */
+export type EditorConfigOutputOptions = { commentStyle: CommentStyle; presetName?: string };
 
 /**
  * One `.editorconfig` per scope: the root file holds `root = true`, and nested files hold only what their scope
@@ -69,11 +70,11 @@ function toEditorConfigFile(
 
 	const file = {
 		path: isRoot ? FILE_NAME : `${scope.path}/${FILE_NAME}`,
-		content: renderEditorConfig({ headerComment: isRoot ? toHeaderComment(catalog) : undefined, isRoot, sections })
+		content: renderEditorConfig({ headerComment: isRoot ? toHeaderComment(catalog, outputOptions.presetName) : undefined, isRoot, sections })
 	};
 	return { file, skippedKeys, globalConfigBlocks };
 }
 
-function toHeaderComment(catalog: Catalog): string {
-	return `Settings for .NET SDK ${catalog.band.band}, catalog ${catalog.version}`;
+function toHeaderComment(catalog: Catalog, presetName: string | undefined): string {
+	return `Settings for .NET SDK ${catalog.band.band}, catalog ${catalog.version}${presetName ? `, preset ${presetName}` : ''}`;
 }

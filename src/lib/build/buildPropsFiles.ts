@@ -1,7 +1,7 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import { getParentScope, resolveScope } from '../config/scopes.ts';
+import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import type { GeneratedFile, SkippedKey } from '../export/generatedFile.ts';
 import { BUILD_PROPERTIES, BUILD_PROPERTIES_BY_NAME, type PropertyFile } from './buildProperties.ts';
@@ -43,10 +43,14 @@ export function toBuildFiles(config: WizardConfig, catalog: Catalog, commentStyl
 	return output;
 }
 
+/** Every property the generated props can write, so saving to a repo replaces them rather than keeping the old lines. */
+export const WRITTEN_PROPERTY_NAMES: ReadonlySet<string> = new Set([...BUILD_PROPERTIES_BY_NAME.keys(), 'ContinuousIntegrationBuild', 'TargetFramework', 'TargetFrameworks']);
+
 function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog, commentStyle: CommentStyle, isCentrallyManaged: boolean): string | undefined {
 	const isRoot = scope.path === '';
 	const resolved = resolveScope(config, scope);
 	const blocks: XmlLine[][] = [
+		toGroup('PropertyGroup', 'Target framework', toTargetFrameworkLines(config, scope, resolved)),
 		...toPropertyGroups(scope.build ?? {}, 'props', commentStyle),
 		isRoot && hasCiSettings(config) ? toGroup('PropertyGroup', 'Continuous integration', [toElement('ContinuousIntegrationBuild', 'true')], CI_CONDITION) : [],
 		toGroup('PropertyGroup', 'CI builds only', toPropertyLines(scope.ciBuild ?? {}, 'props', commentStyle), CI_ONLY_CONDITION),
@@ -57,6 +61,28 @@ function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog
 
 	if (blocks.every(block => block.length === 0)) return undefined;
 	return toProjectDocument([isRoot ? [] : toParentImport(BUILD_PROPS), ...blocks]);
+}
+
+/** The frameworks a folder sets for its projects, clearing an inherited value that would conflict, such as a single TargetFramework that breaks multi-targeting. */
+function toTargetFrameworkLines(config: WizardConfig, scope: ScopeConfig, resolved: ResolvedScope): XmlLine[] {
+	const parent = getParentScope(config, scope);
+	const inherited = parent ? resolveScope(config, parent) : undefined;
+	const inheritedProperty = inherited?.isTargetFrameworkShared ? toFrameworkProperty(inherited.tfms) : undefined;
+	if (scope.isTargetFrameworkShared === false && inheritedProperty) return [toElement(inheritedProperty, '')];
+	if (!resolved.isTargetFrameworkShared || resolved.tfms.length === 0) return [];
+	if (scope.isTargetFrameworkShared === undefined && scope.tfms === undefined) return [];
+
+	const property = toFrameworkProperty(resolved.tfms);
+	// Oldest first, the way multi-target lists are usually written, whatever order they were picked in.
+	const tfms = [...resolved.tfms].sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+	const line = toElement(property, tfms.join(';'));
+	if (property === 'TargetFrameworks' && inheritedProperty === 'TargetFramework') return [toElement('TargetFramework', ''), line];
+	return [line];
+}
+
+/** The property a folder's frameworks go in: TargetFramework for one, TargetFrameworks for several. */
+export function toFrameworkProperty(tfms: readonly string[]): 'TargetFramework' | 'TargetFrameworks' {
+	return tfms.length === 1 ? 'TargetFramework' : 'TargetFrameworks';
 }
 
 function toPackagesProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog, commentStyle: CommentStyle): string | undefined {

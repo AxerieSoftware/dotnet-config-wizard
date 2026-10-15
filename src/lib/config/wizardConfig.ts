@@ -33,6 +33,8 @@ export type ScopeConfig = {
 	bannedApis?: BannedApi[];
 	/** Whether analyzers skip this folder's C# as if it were generated, such as for legacy code nobody maintains. */
 	isIgnored?: boolean;
+	/** Whether this folder's Directory.Build.props sets the target frameworks for every project in it. */
+	isTargetFrameworkShared?: boolean;
 };
 
 export type NuGetSource = { key: string; url: string; patterns: string[] };
@@ -96,6 +98,7 @@ function findScopeProblem(scope: unknown): string | undefined {
 	if (scope.bannedApis !== undefined && !(Array.isArray(scope.bannedApis) && scope.bannedApis.every(api => isRecord(api) && typeof api.symbol === 'string' && typeof api.message === 'string')))
 		return 'bannedApis must be an array of { symbol, message } objects.';
 	if (scope.isIgnored !== undefined && typeof scope.isIgnored !== 'boolean') return 'isIgnored must be true or false.';
+	if (scope.isTargetFrameworkShared !== undefined && typeof scope.isTargetFrameworkShared !== 'boolean') return 'isTargetFrameworkShared must be true or false.';
 
 	return undefined;
 }

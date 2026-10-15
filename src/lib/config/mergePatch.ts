@@ -35,7 +35,7 @@ export function applyMergePatch(target: unknown, patch: unknown): unknown {
 	return result;
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
+export function isObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 

@@ -3,6 +3,7 @@ import type { Catalog, CatalogOption } from '../catalog/catalog.ts';
 import { FORMATTING_GLOBS, FORMATTING_KEYS } from '../formatting/formattingKeys.ts';
 import { STEP_PATHS } from '../ui/wizardSteps.ts';
 import { toFileName } from './fileTree.ts';
+import type { GeneratedFile } from './generatedFile.ts';
 import { toCodeLanguage } from './highlighter.ts';
 
 /**
@@ -12,11 +13,15 @@ import { toCodeLanguage } from './highlighter.ts';
 export type LineTarget = { path: string; selector?: string; ruleSearch?: string };
 
 /** What a line of a generated file does, shown when hovering it. `href` points at the rule or option page. */
+/** Where a generated line is: the file's path and the line's index in it. */
+export type SettingLine = { path: string; index: number };
+
 export type LineInfo = { title: string; details: string[]; href?: string; target?: LineTarget; option?: { option: CatalogOption; value: string } };
 
 const PACKAGES_STEP_GROUPS = ['Central package management', 'NuGet audit and lock files'];
 
 const EDITORCONFIG_LINE = /^([\w.-]+)\s*=\s*(.*)$/;
+const SECTION_LINE = /^\[.+\]$/;
 const RULE_SEVERITY = /^dotnet_diagnostic\.(\w+)\.severity$/;
 const CATEGORY_SEVERITY = /^dotnet_analyzer_diagnostic\.category-(\w+)\.severity$/;
 const NAMING_PART = /^dotnet_naming_(rule|symbols|style)\.(\w+)\.(\w+)$/;
@@ -37,6 +42,30 @@ const GLOBAL_JSON_KEYS: Readonly<Record<string, { description: string; target: L
 	allowPrerelease: { description: 'Whether preview SDKs may build the repo. True only for a preview band.', target: { path: STEP_PATHS.start, selector: '[aria-label="SDK band"]' } },
 	runner: { description: 'Runs dotnet test on Microsoft.Testing.Platform instead of VSTest.', target: { path: STEP_PATHS.sdk } }
 };
+
+/** The `.editorconfig` section each line is in, such as `[*.cs]`, so formatting keys know which file type they set. */
+export function toLineSections(lines: readonly string[]): (string | undefined)[] {
+	let section: string | undefined;
+	return lines.map(line => {
+		if (SECTION_LINE.test(line.trim())) section = line.trim();
+		return section;
+	});
+}
+
+/** The line a control sets, found by matching the control against what each line's explanation points to. */
+export function findSettingLine(files: readonly GeneratedFile[], control: Element, catalog: Catalog): SettingLine | undefined {
+	for (const file of files) {
+		const lines = file.content.split('\n');
+		const sections = toLineSections(lines);
+		const index = lines.findIndex((line, lineIndex) => {
+			const selector = describeLine(file.path, line, sections[lineIndex], catalog)?.target?.selector;
+			return selector !== undefined && control.matches(selector);
+		});
+		if (index !== -1) return { path: file.path, index };
+	}
+
+	return undefined;
+}
 
 /**
  * Explains one line of a generated file, or returns undefined for comments, blank lines and structure. `section` is the
@@ -145,6 +174,17 @@ function describeRule(ruleId: string, severity: string, catalog: Catalog): LineI
 
 function describeMsBuildLine(text: string, catalog: Catalog): LineInfo | undefined {
 	const property = MSBUILD_PROPERTY.exec(text);
+	if (property?.[1] === 'TargetFramework' || property?.[1] === 'TargetFrameworks') {
+		return {
+			title: `${property[1]} = ${property[2] || '(cleared)'}`,
+			details: [
+				property[2]
+					? 'Sets the frameworks for every project in this folder, so project files can leave them out.'
+					: 'Clears the value from the folder above, so each project here sets its own frameworks.'
+			],
+			target: { path: STEP_PATHS.build, selector: '[data-setting="TargetFramework"]' }
+		};
+	}
 	if (property) {
 		const known = BUILD_PROPERTIES_BY_NAME.get(property[1]);
 		if (known) {

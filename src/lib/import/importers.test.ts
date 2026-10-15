@@ -128,12 +128,19 @@ describe('importMsBuildFile', () => {
 
 		expect(result.settings).toEqual({
 			tfms: ['net10.0'],
+			isTargetFrameworkShared: true,
 			build: { Nullable: 'enable', WarningsAsErrors: 'nullable' },
 			severities: { CS1591: 'none', CA1707: 'none' },
 			ciBuild: { TreatWarningsAsErrors: 'true' },
 			packages: ['Meziantou.Analyzer']
 		});
 		expect(result.notes.map(note => note.severity)).toEqual(['info', 'warning', 'info', 'info', 'warning', 'info']);
+	});
+
+	it('reads a single TargetFramework in shared props as set for every project', () => {
+		const result = importMsBuildFile('<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>', catalog);
+
+		expect(result.settings).toEqual({ tfms: ['net10.0'], isTargetFrameworkShared: true });
 	});
 
 	it('skips a property with its own condition unless the condition limits it to CI', () => {

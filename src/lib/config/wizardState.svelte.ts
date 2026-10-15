@@ -6,6 +6,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { BANDS, DEFAULT_BAND, loadCatalog } from '../catalog/loadCatalog.ts';
 import { toEffectiveFiles } from '../export/effectiveFiles.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
+import type { SettingLine } from '../export/lineInfo.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
 import { mergeImport } from '../import/mergeImport.ts';
@@ -16,7 +17,7 @@ import { findPinnedBand, toRepoConfig } from '../repo/repoImport.ts';
 import { SessionValue } from '../ui/sessionValue.svelte.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
 import type { InitialState } from './initialState.ts';
-import { DEFAULT_PRESET, type Preset, toPresetConfig } from './presets.ts';
+import { DEFAULT_PRESET, type Preset, toPresetConfig, toPresetName } from './presets.ts';
 import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
 import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
@@ -50,7 +51,7 @@ export class WizardState {
 	public importNotes = $state<(ImportNote & { fileName: string })[]>([]);
 	/** The catalog version an imported `.editorconfig` was made with, when it's older than this catalog. */
 	public importedCatalogVersion = $state<string | undefined>(undefined);
-	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle }));
+	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle, presetName: toPresetName(this.preset) }));
 	public readonly savedState = $derived.by(() => toSavedState(this.config, this.preset, this.catalog));
 	/** What a project in the active folder actually gets, or undefined at the repo root, where the files are already that. */
 	public readonly effectiveFiles = $derived.by(() => (this.isRootActive ? undefined : toEffectiveFiles(this.config, this.activeScope, this.catalog, this.commentStyle, this.output.files)));
@@ -69,6 +70,8 @@ export class WizardState {
 	});
 	public readonly activeContext = $derived.by(() => toGateContext(this.resolvedActiveScope, this.catalog));
 
+	/** The generated line the setting being edited writes, which the preview opens and highlights. */
+	public linkedLine = $state<SettingLine | undefined>(undefined);
 	/** The rule table's filters, which jumping to a rule from the preview sets. */
 	public readonly ruleFilters = $state({ ...RULE_FILTER_DEFAULTS });
 
@@ -158,8 +161,8 @@ export class WizardState {
 		const band = findPinnedBand(files, BANDS) ?? this.catalog.band;
 		if (band.band !== this.catalog.band.band) this.catalog = await loadCatalog(band.band);
 
-		const { config, notes } = toRepoConfig(files, this.catalog);
-		this.preset = DEFAULT_PRESET;
+		const { config, notes, preset } = toRepoConfig(files, this.catalog);
+		this.preset = preset ?? DEFAULT_PRESET;
 		this.config = config;
 		this.activeScopePath = '';
 		this.importNotes = notes;
@@ -234,6 +237,13 @@ export class WizardState {
 	/** Sets the active scope's target frameworks; undefined makes a nested scope inherit them again. */
 	public setTargetFrameworks(tfms: string[] | undefined): void {
 		setOrDelete(this.activeScope, 'tfms', tfms);
+	}
+
+	/** Sets TargetFramework for every project in the active folder, or leaves it to each project file. */
+	public setTargetFrameworkShared(isShared: boolean): void {
+		// Turning it off below a folder that turns it on needs an explicit false.
+		const isInherited = this.inheritedScope?.isTargetFrameworkShared ?? false;
+		setOrDelete(this.activeScope, 'isTargetFrameworkShared', isShared === isInherited ? undefined : isShared);
 	}
 
 	public setProjectKind(projectKind: ProjectKind | undefined): void {

@@ -15,6 +15,8 @@ it('lists only the next steps the generated files need', () => {
 	expect(librarySteps).toContain('dotnet format --verify-no-changes');
 	expect(librarySteps).toContain('packages.lock.json');
 	expect(librarySteps).toContain('PublicAPI.Shipped.txt');
+	expect(librarySteps).toContain('<VersionPrefix>');
 	expect(defaultsSteps).not.toContain('packages.lock.json');
 	expect(defaultsSteps).not.toContain('PublicAPI');
+	expect(defaultsSteps).not.toContain('VersionPrefix');
 });

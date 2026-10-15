@@ -1013,6 +1013,28 @@ button.danger:hover {
 	margin-top: 4px;
 }
 
+/* The settings that differ from the preset, one row each. */
+.preset-changes {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.preset-changes th {
+	padding: 4px 8px;
+	text-align: left;
+	color: var(--text-3);
+	font-weight: 600;
+	font-size: 12px;
+}
+
+.preset-changes td {
+	padding: 6px 8px;
+	border-top: 1px solid var(--stroke-2);
+	vertical-align: top;
+	overflow-wrap: anywhere;
+}
+
 .repo-notes .issues {
 	margin-top: 8px;
 }
@@ -1382,6 +1404,12 @@ button.danger:hover {
 
 .line.clickable {
 	cursor: pointer;
+}
+
+/* The line the setting being edited writes. An inset bar marks it without shifting the code. */
+.line.linked {
+	background: var(--brand-tint);
+	box-shadow: inset 3px 0 0 var(--brand);
 }
 
 .line-info {

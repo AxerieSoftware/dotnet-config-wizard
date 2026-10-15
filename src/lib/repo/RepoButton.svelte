@@ -2,7 +2,7 @@
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ContextMenu from '../ui/ContextMenu.svelte';
 	import Icon from '../ui/Icon.svelte';
-	import { askToOpenRepo, openFolderFromList } from './openRepo.ts';
+	import { askToOpenRepo, openFolderFromList, toReadOnlyReason } from './openRepo.ts';
 
 	const STATUS_TEXT = { saved: 'Saved', saving: 'Saving…', failed: "Couldn't save", 'read-only': 'Read-only' } as const;
 
@@ -12,7 +12,7 @@
 
 	// One button says where the settings live, in this browser or a repo folder, and opens, reconnects or closes it.
 	const title = $derived.by(() => {
-		if (wizard.repo?.status === 'read-only') return 'This browser can only read folders. Download the zip to save.';
+		if (wizard.repo?.status === 'read-only') return toReadOnlyReason();
 		if (wizard.repo) return wizard.repo.failure ?? `Edits save to ${wizard.repo.name}.`;
 		const saved = wizard.isSavedInBrowser ? 'Settings are saved in this browser.' : 'Nothing saved yet; changes save in this browser.';
 		return `${saved} Open a repo folder to load its config files and save straight to them.`;

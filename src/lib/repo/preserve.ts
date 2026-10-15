@@ -1,4 +1,4 @@
-import { BUILD_PROPERTIES_BY_NAME } from '../build/buildProperties.ts';
+import { WRITTEN_PROPERTY_NAMES } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { toFileName } from '../export/fileTree.ts';
 import { FORMATTING_KEY_NAMES } from '../import/editorConfigImport.ts';
@@ -157,8 +157,7 @@ function keepMsBuildNode(node: XmlNode, catalog: Catalog): string | undefined {
 	if (node.name === 'Import') return node.attributes.includes('GetPathOfFileAbove') ? undefined : node.raw;
 	if ((node.name !== 'PropertyGroup' && node.name !== 'ItemGroup') || (condition && !CI_CONDITION.test(condition))) return node.raw;
 
-	const isManaged =
-		node.name === 'PropertyGroup' ? (child: XmlNode) => BUILD_PROPERTIES_BY_NAME.has(child.name) || child.name === 'ContinuousIntegrationBuild' : (child: XmlNode) => isManagedItem(child, catalog);
+	const isManaged = node.name === 'PropertyGroup' ? (child: XmlNode) => WRITTEN_PROPERTY_NAMES.has(child.name) : (child: XmlNode) => isManagedItem(child, catalog);
 	const kept: string[] = [];
 	let comments: string[] = [];
 	for (const child of toXmlNodes(node.body)) {

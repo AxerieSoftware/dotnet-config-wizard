@@ -17,6 +17,7 @@ export type ResolvedScope = {
 	packages: string[];
 	ruleParameters: Record<string, Record<string, string>>;
 	bannedApis: BannedApi[];
+	isTargetFrameworkShared: boolean;
 };
 
 /** The closest scope whose folder contains this one; the root scope contains every other scope. */
@@ -45,7 +46,8 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		naming: mergeNaming(inherited?.naming ?? [], scope.naming ?? []),
 		packages: scope.packages ?? inherited?.packages ?? [],
 		ruleParameters: mergeNested(inherited?.ruleParameters ?? {}, scope.ruleParameters ?? {}),
-		bannedApis: [...(inherited?.bannedApis ?? []), ...(scope.bannedApis ?? [])]
+		bannedApis: [...(inherited?.bannedApis ?? []), ...(scope.bannedApis ?? [])],
+		isTargetFrameworkShared: scope.isTargetFrameworkShared ?? inherited?.isTargetFrameworkShared ?? false
 	};
 }
 

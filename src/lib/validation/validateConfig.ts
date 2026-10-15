@@ -38,6 +38,10 @@ export function validateConfig(config: WizardConfig, catalog: Catalog, skippedKe
 
 // Checks about building, restoring and packing, which apply to every folder.
 const SCOPE_CHECKS: readonly ScopeCheck[] = [
+	({ scope, catalog }) => {
+		if (scope.build?.EnablePreviewFeatures !== 'true' || catalog.band.isPreview) return [];
+		return [{ severity: 'warning', message: `EnablePreviewFeatures is for preview SDKs, and SDK ${catalog.band.band} is released, so leave it off.` }];
+	},
 	({ scope, resolved }) => {
 		const hasLockedMode = resolved.build.RestoreLockedMode === 'true' || resolved.ciBuild.RestoreLockedMode === 'true';
 		const isSetHere = scope.build?.RestoreLockedMode !== undefined || scope.ciBuild?.RestoreLockedMode !== undefined;

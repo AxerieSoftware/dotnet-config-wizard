@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toFrameworkProperty } from '../build/buildPropsFiles.ts';
 	import Icon from '../ui/Icon.svelte';
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
@@ -56,6 +57,20 @@
 			placeholder="net10.0-windows;net10.0-android"
 			onchange={event => setOtherTfms(event.currentTarget.value)}
 		>
+	</label>
+	<label class="checkbox">
+		<input
+			type="checkbox"
+			aria-label="Set the target frameworks for every project here"
+			data-setting="TargetFramework"
+			disabled={tfms.length === 0}
+			checked={wizard.resolvedActiveScope.isTargetFrameworkShared}
+			onchange={event => wizard.setTargetFrameworkShared(event.currentTarget.checked)}
+		>
+		<span>
+			Set <code>{toFrameworkProperty(tfms)}</code> for every project here, so project files can leave it out. A project can still set its own
+			<code>TargetFramework</code>.
+		</span>
 	</label>
 	<p class="caption" data-testid="effective-csharp">Compiles as C# {wizard.activeContext.csharpVersion}, the oldest framework's default.</p>
 	{#if unsupportedTfms.length > 0}

@@ -2,6 +2,8 @@ import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 
+const OUTPUT_FOLDERS = ['build', 'build-e2e', '.svelte-kit-e2e', 'test-results', 'playwright-report', '.cache'];
+
 // The e2e build gets its own folders, so building for tests never rewrites the files a running dev server is serving.
 const isE2e = process.env.E2E_BUILD === 'true';
 
@@ -17,8 +19,9 @@ export default defineConfig({
 		})
 	],
 	server: {
-		// The static build writes thousands of pages; watching them floods the dev server with reloads.
-		watch: { ignored: ['**/build/**', '**/build-e2e/**', '**/.svelte-kit-e2e/**', '**/test-results/**', '**/playwright-report/**', '**/.cache/**'] }
+		// The static build writes thousands of pages; watching them floods the dev server with reloads. The folders are
+		// anchored to the repo root, so source folders with the same name, such as src/lib/build, are still watched.
+		watch: { ignored: OUTPUT_FOLDERS.map(folder => `${import.meta.dirname}/${folder}/**`) }
 	},
 	test: {
 		expect: { requireAssertions: true },

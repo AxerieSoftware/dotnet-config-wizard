@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readBands, readCatalog } from '../../../scripts/readCatalog.ts';
+import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
+import { toSavedState } from '../config/shareLink.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { toSavedText } from './preserve.ts';
 import { findPinnedBand, toRepoConfig } from './repoImport.ts';
@@ -72,6 +74,20 @@ describe('loading a repo', () => {
 		expect(messages).toContainEqual(expect.stringMatching(/^\.editorconfig: Kept as is: .*resharper_braces_for_ifelse.*SA1101/));
 		expect(messages).toContainEqual(expect.stringMatching(/^Directory\.Build\.props: Kept as is: .*LangVersion.*Optimize.*InternalsVisibleTo.*Target/));
 		expect(messages.some(message => message.includes('dropped'))).toBe(false);
+	});
+});
+
+describe('reopening generated files', () => {
+	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('restores $name with nothing changed from it', ({ preset }) => {
+		const files = toGeneratedOutput(toPresetConfig(preset, catalog), catalog, { commentStyle: 'idAndTitle', presetName: toPresetName(preset) }).files.map(file => ({
+			path: file.path,
+			text: file.content
+		}));
+
+		const reopened = toRepoConfig(files, catalog);
+
+		expect(reopened.preset).toEqual(preset);
+		expect(toSavedState(reopened.config, preset, catalog).changes).toEqual({});
 	});
 });
 

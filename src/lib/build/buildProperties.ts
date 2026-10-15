@@ -34,6 +34,13 @@ const BOOLEAN = ['true', 'false'] as const;
 export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 	{ name: 'Nullable', group: 'Language', description: 'Nullable reference types.', values: ['enable', 'warnings', 'annotations', 'disable'], file: 'props' },
 	{ name: 'ImplicitUsings', group: 'Language', description: 'Global usings for common namespaces.', values: ['enable', 'disable'], file: 'props' },
+	{
+		name: 'EnablePreviewFeatures',
+		group: 'Language',
+		description: 'Allows preview APIs and runtime features a preview SDK ships behind RequiresPreviewFeatures. Leave it off on a released SDK.',
+		values: BOOLEAN,
+		file: 'props'
+	},
 
 	{ name: 'AnalysisLevel', group: 'Analysis', description: 'Which .NET analyzer rules are on; `latest-<mode>` tracks the SDK.', values: [], file: 'props', isOnAnalyzersStep: true },
 	{ name: 'EnforceCodeStyleInBuild', group: 'Analysis', description: 'Runs IDE code-style rules on build, not just in the editor.', values: BOOLEAN, file: 'props', isOnAnalyzersStep: true },
@@ -104,7 +111,7 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 	{
 		name: 'VersionPrefix',
 		group: 'Package metadata',
-		description: 'The version every package here shares, such as `1.4.0`. CI can add a `VersionSuffix` for prereleases.',
+		description: 'One version every package here shares, such as `1.4.0`. Leave it unset to version each package in its own project file. CI can add a `VersionSuffix` for prereleases.',
 		values: [],
 		file: 'props',
 		projectKinds: ['library'],

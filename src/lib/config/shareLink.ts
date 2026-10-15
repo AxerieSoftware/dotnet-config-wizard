@@ -54,7 +54,8 @@ function isPreset(value: unknown): value is Preset {
 	return PRESET_LEVELS.includes(preset?.level as PresetLevel) && PRESET_KINDS.includes(preset?.kind as PresetKind);
 }
 
-function toKeyed(config: WizardConfig): KeyedConfig {
+/** The config with scopes keyed by path, which diffs compare folder by folder. */
+export function toKeyed(config: WizardConfig): KeyedConfig {
 	return { ...config, scopes: Object.fromEntries(config.scopes.map(scope => [scope.path, scope])) };
 }
 

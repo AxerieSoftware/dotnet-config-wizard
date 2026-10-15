@@ -1,8 +1,10 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import type { BandEntry } from '../catalog/catalogFiles.ts';
+import { ALL_PRESETS, type Preset, toPresetConfig, toPresetName } from '../config/presets.ts';
 import { getParentScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
+import { HEADER_PATTERN } from '../export/editorConfigFiles.ts';
 import { toFileName, toFolderPath } from '../export/fileTree.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
@@ -11,7 +13,8 @@ import { importBannedSymbols, importGlobalJson, importNuGetConfig, importSonarLi
 import { findUnmanaged } from './preserve.ts';
 import { isConfigFile, type RepoFile } from './repoFiles.ts';
 
-export type RepoImport = { config: WizardConfig; notes: (ImportNote & { fileName: string })[] };
+/** A repo's settings, the notes about loading them, and the preset its root `.editorconfig` says they started from. */
+export type RepoImport = { config: WizardConfig; notes: (ImportNote & { fileName: string })[]; preset?: Preset };
 
 /** The SDK band a repo's `global.json` pins, such as `10.0.4xx` for `10.0.401`, when the catalog covers it. */
 export function findPinnedBand(files: readonly RepoFile[], bands: readonly BandEntry[]): BandEntry | undefined {
@@ -43,10 +46,30 @@ export function toRepoConfig(repoFiles: readonly RepoFile[], catalog: Catalog): 
 	}
 
 	addInheritedAndFrameworkPackages(config, catalog);
+	const preset = findHeaderPreset(files);
+	if (preset) addPresetFolders(config, preset, catalog);
 
 	// Every folder needs target frameworks to gate options by C# version; the root falls back to the band's own.
 	scopes[0].tfms ??= [`net${catalog.band.channel}`];
-	return { config, notes };
+	return { config, notes, preset };
+}
+
+/** The preset named in the root `.editorconfig` header, which the wizard writes so a reopened repo keeps its preset. */
+function findHeaderPreset(files: readonly RepoFile[]): Preset | undefined {
+	const presetName = HEADER_PATTERN.exec(files.find(file => file.path === '.editorconfig')?.text ?? '')?.groups?.preset;
+	return ALL_PRESETS.find(preset => toPresetName(preset) === presetName);
+}
+
+/**
+ * Project kinds and folders without settings leave nothing on disk, so they come back from the preset: a folder keeps its
+ * preset kind, and a preset folder the repo has no files for is added.
+ */
+function addPresetFolders(config: WizardConfig, preset: Preset, catalog: Catalog): void {
+	for (const presetScope of toPresetConfig(preset, catalog).scopes) {
+		const scope = config.scopes.find(entry => entry.path === presetScope.path);
+		if (!scope) config.scopes.push({ path: presetScope.path, projectKind: presetScope.projectKind });
+		else if (presetScope.projectKind) scope.projectKind ??= presetScope.projectKind;
+	}
 }
 
 function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig, catalog: Catalog): ImportNote[] {

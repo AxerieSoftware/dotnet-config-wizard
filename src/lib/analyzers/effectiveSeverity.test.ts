@@ -21,6 +21,7 @@ function toScope(overrides: Partial<ResolvedScope>): ResolvedScope {
 		packages: [],
 		ruleParameters: {},
 		bannedApis: [],
+		isTargetFrameworkShared: false,
 		...overrides
 	};
 }

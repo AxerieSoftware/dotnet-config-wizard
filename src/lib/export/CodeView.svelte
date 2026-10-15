@@ -7,11 +7,10 @@
 	import type { EffectiveFile } from './effectiveFiles.ts';
 	import type { GeneratedFile } from './generatedFile.ts';
 	import { type CodeToken, loadHighlighter, toCodeLanguage, toCodeTokens } from './highlighter.ts';
-	import { describeLine, type LineInfo, type LineTarget } from './lineInfo.ts';
+	import { describeLine, type LineInfo, type LineTarget, toLineSections } from './lineInfo.ts';
 
 	const HOVER_DELAY_MS = 250;
 	const FLASH_MS = 1600;
-	const SECTION_LINE = /^\[.+\]$/;
 	const COMMENT_LINE = /^\s*(#|<!--)/;
 	const LINE_STEPS: Partial<Record<string, number>> = { ArrowDown: 1, ArrowUp: -1 };
 
@@ -21,22 +20,18 @@
 		folderPath: string;
 		testId: string;
 		isVisible: boolean;
+		/** The line the setting being edited writes, highlighted and scrolled to. */
+		linkedIndex?: number;
 	};
 
-	let { file, folderPath, testId, isVisible }: Props = $props();
+	let { file, folderPath, testId, isVisible, linkedIndex }: Props = $props();
 
 	const wizard = getWizardState();
 	const language = $derived(toCodeLanguage(file.path));
 	const lines = $derived(file.content.split('\n'));
 	const ownLines = $derived('ownLines' in file ? file.ownLines : undefined);
 	// The .editorconfig section each line is in, so formatting keys know which file type they configure.
-	const sections = $derived.by(() => {
-		let section: string | undefined;
-		return lines.map(line => {
-			if (SECTION_LINE.test(line.trim())) section = line.trim();
-			return section;
-		});
-	});
+	const sections = $derived(toLineSections(lines));
 
 	// Tokens are kept with the content they were made from, so a file that just changed never shows stale text.
 	let highlighted = $state<{ content: string; tokens: (CodeToken[] | undefined)[] } | undefined>(undefined);
@@ -65,6 +60,17 @@
 		return () => {
 			isCurrent = false;
 		};
+	});
+
+	// Centers the linked line in the file's own scroll area, without scrolling the page the setting is on.
+	$effect(() => {
+		const index = linkedIndex;
+		if (index === undefined || !isVisible) return;
+
+		void tick().then(() => {
+			const line = panel?.querySelector<HTMLElement>(`[data-line="${index}"]`);
+			if (panel && line) panel.scrollTop = line.offsetTop - panel.clientHeight / 2;
+		});
 	});
 
 	function hover(event: MouseEvent): void {
@@ -178,6 +184,7 @@
 					class="line"
 					class:own={ownLines?.has(text.trim())}
 					class:active={hovered?.index === index}
+					class:linked={linkedIndex === index}
 					class:clickable={hovered?.index === index && hovered.info.target}
 					data-line={index}
 					>{#if tokens?.[index]}{#each tokens[index] as token, tokenIndex (tokenIndex)}<span style={token.style}>{token.content}</span>{/each}{:else if COMMENT_LINE.test(text)}<span

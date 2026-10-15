@@ -31,6 +31,15 @@ export async function openFolderFromList(wizard: WizardState, fileList: FileList
 	});
 }
 
+/**
+ * Why an open folder is read-only. Browsers only offer folder saving on secure pages, so plain HTTP on a network address,
+ * such as a dev server opened from another machine, loses it even in Chrome or Edge.
+ */
+export function toReadOnlyReason(): string {
+	if (!window.isSecureContext) return 'Saving to a folder needs HTTPS or localhost, and this page is plain HTTP. Download the zip to save for now.';
+	return 'This browser can only read folders. Use Chrome or Edge to save to them, or download the zip.';
+}
+
 /** Whether this browser can save to a folder on disk; Firefox and Safari can only read one. */
 function canSaveToDisk(): boolean {
 	return typeof window !== 'undefined' && window.showDirectoryPicker !== undefined;

@@ -57,6 +57,30 @@ describe('Directory.Build.props', () => {
 	});
 });
 
+describe('shared TargetFramework', () => {
+	it('sets TargetFramework for every project in a folder with one framework', () => {
+		expect(fileContent(toConfig({ path: '', tfms: ['net10.0'], isTargetFrameworkShared: true }), 'Directory.Build.props')).toContain('<TargetFramework>net10.0</TargetFramework>');
+	});
+
+	it('overrides it in a folder with its own framework, and clears it in a folder that turns it off', () => {
+		const config = toConfig({ path: '', tfms: ['net10.0'], isTargetFrameworkShared: true }, { path: 'tools', tfms: ['net11.0'] }, { path: 'tests', isTargetFrameworkShared: false });
+
+		expect(fileContent(config, 'tools/Directory.Build.props')).toContain('<TargetFramework>net11.0</TargetFramework>');
+		expect(fileContent(config, 'tests/Directory.Build.props')).toContain('<TargetFramework></TargetFramework>');
+	});
+
+	it('sets TargetFrameworks for a folder with several frameworks', () => {
+		expect(fileContent(toConfig({ path: '', tfms: ['net11.0', 'net10.0'], isTargetFrameworkShared: true }), 'Directory.Build.props')).toContain('<TargetFrameworks>net10.0;net11.0</TargetFrameworks>');
+	});
+
+	it('clears an inherited single TargetFramework in a folder that multi-targets, so its builds still multi-target', () => {
+		const content = fileContent(toConfig({ path: '', tfms: ['net10.0'], isTargetFrameworkShared: true }, { path: 'src', tfms: ['net10.0', 'net11.0'] }), 'src/Directory.Build.props');
+
+		expect(content).toContain('<TargetFramework></TargetFramework>');
+		expect(content).toContain('<TargetFrameworks>net10.0;net11.0</TargetFrameworks>');
+	});
+});
+
 describe('analyzer packages', () => {
 	it('uses GlobalPackageReference under central package management', () => {
 		const content = fileContent(toConfig({ path: '', build: { ManagePackageVersionsCentrally: 'true' }, packages: ['Meziantou.Analyzer'] }), 'Directory.Packages.props');

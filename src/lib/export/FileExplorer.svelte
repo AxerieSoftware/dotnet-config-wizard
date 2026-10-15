@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ContextMenu, { type MenuItem } from '../ui/ContextMenu.svelte';
 	import Icon from '../ui/Icon.svelte';
@@ -20,7 +21,8 @@
 	const wizard = getWizardState();
 	let selectedPath = $state('');
 	let viewMode = $state<'file' | 'effective'>('file');
-	let collapsedPaths = $state<string[]>([]);
+	// Folders toggled away from their default: ignored folders start collapsed, every other folder starts open.
+	let toggledPaths = $state<string[]>([]);
 	let focusedPath = $state('');
 	let isCopied = $state(false);
 	let menu = $state<{ x: number; y: number; node: TreeNode } | undefined>(undefined);
@@ -43,8 +45,19 @@
 	const shownContent = $derived(isEffectiveShown ? shownEffective?.content : selectedFile?.content);
 	const visibleNodes = $derived(toVisibleNodes(tree));
 
+	// Editing a setting opens the file it's written to.
+	$effect(() => {
+		const linked = wizard.linkedLine;
+		if (!linked) return;
+
+		untrack(() => {
+			selectedPath = linked.path;
+			viewMode = 'file';
+		});
+	});
+
 	function toVisibleNodes(folder: FolderNode): TreeNode[] {
-		const children = collapsedPaths.includes(folder.path) ? [] : folder.children.flatMap(node => (node.kind === 'folder' ? toVisibleNodes(node) : [node]));
+		const children = isCollapsedFolder(folder.path) ? [] : folder.children.flatMap(node => (node.kind === 'folder' ? toVisibleNodes(node) : [node]));
 		return [folder, ...children];
 	}
 
@@ -70,7 +83,7 @@
 	}
 
 	function toggle(folder: FolderNode): void {
-		collapsedPaths = collapsedPaths.includes(folder.path) ? collapsedPaths.filter(path => path !== folder.path) : [...collapsedPaths, folder.path];
+		toggledPaths = toggledPaths.includes(folder.path) ? toggledPaths.filter(path => path !== folder.path) : [...toggledPaths, folder.path];
 	}
 
 	// Tree items nest, so each handler only acts for the item the event started in.
@@ -99,8 +112,8 @@
 		else if (event.key === 'ArrowUp') next = visibleNodes[Math.max(index - 1, 0)];
 		else if (event.key === 'Home') next = visibleNodes[0];
 		else if (event.key === 'End') next = visibleNodes.at(-1);
-		else if (event.key === 'ArrowRight' && node.kind === 'folder' && collapsedPaths.includes(node.path)) toggle(node);
-		else if (event.key === 'ArrowLeft' && node.kind === 'folder' && !collapsedPaths.includes(node.path)) toggle(node);
+		else if (event.key === 'ArrowRight' && node.kind === 'folder' && isCollapsedFolder(node.path)) toggle(node);
+		else if (event.key === 'ArrowLeft' && node.kind === 'folder' && !isCollapsedFolder(node.path)) toggle(node);
 		else if (event.key === 'Enter' || event.key === ' ') open(node);
 		else if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
 			const row = (event.currentTarget as HTMLElement).querySelector('.tree-row')?.getBoundingClientRect();
@@ -171,6 +184,10 @@
 		];
 	}
 
+	function isCollapsedFolder(path: string): boolean {
+		return toggledPaths.includes(path) !== isIgnoredFolder(path);
+	}
+
 	function isIgnoredFolder(path: string): boolean {
 		return wizard.config.scopes.some(scope => scope.path === path && scope.isIgnored);
 	}
@@ -194,7 +211,7 @@
 	depth: number
 )}
 	{#if node.kind === 'folder'}
-		{@const isCollapsed = collapsedPaths.includes(node.path)}
+		{@const isCollapsed = isCollapsedFolder(node.path)}
 		{@const isEditing = node.isScope && node.path === folderPath}
 		<li
 			role="treeitem"
@@ -287,7 +304,13 @@
 			<p class="viewer-note caption">Merged with every {effectiveName} above. <span class="own-sample">Highlighted</span> lines are set in {folderPath}/.</p>
 		{/if}
 		{#each files as file (file.path)}
-			<CodeView {file} folderPath={toFolderPath(file.path)} testId={`file-${file.path}`} isVisible={!isEffectiveShown && file === selectedFile} />
+			<CodeView
+				{file}
+				folderPath={toFolderPath(file.path)}
+				testId={`file-${file.path}`}
+				isVisible={!isEffectiveShown && file === selectedFile}
+				linkedIndex={wizard.linkedLine?.path === file.path ? wizard.linkedLine.index : undefined}
+			/>
 		{/each}
 		{#if isEffectiveShown && shownEffective}
 			<CodeView file={shownEffective} {folderPath} testId={`effective-${shownEffective.path}`} isVisible />
