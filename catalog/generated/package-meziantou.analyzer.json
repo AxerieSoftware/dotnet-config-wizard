@@ -1,6 +1,6 @@
 {
 	"id": "Meziantou.Analyzer",
-	"version": "3.0.299",
+	"version": "3.0.315",
 	"rules": [
 		{
 			"id": "MA0001",
@@ -3380,6 +3380,20 @@
 			"defaultSeverity": "suggestion",
 			"isEnabledByDefault": true,
 			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0242.md",
+			"description": null,
+			"tags": [],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "MA0243",
+			"source": "Meziantou.Analyzer",
+			"title": "Use an escape sequence for invisible characters",
+			"category": "Usage",
+			"defaultSeverity": "suggestion",
+			"isEnabledByDefault": false,
+			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0243.md",
 			"description": null,
 			"tags": [],
 			"hasCodeFix": true,
