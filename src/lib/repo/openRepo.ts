@@ -1,17 +1,17 @@
 import type { WizardState } from '../config/wizardState.svelte.ts';
-import { readConfigFiles, readConfigFilesFromList } from './repoFiles.ts';
+import { readRepoFiles, readRepoFilesFromList } from './repoFiles.ts';
 
 /**
  * Asks to back up the repo, then lets the user pick its folder. Must run from a click, since browsers only open the
  * folder picker for one. Browsers without folder writing use `fallbackInput`, an `<input webkitdirectory>`.
  */
 export function askToOpenRepo(wizard: WizardState, fallbackInput: HTMLInputElement | undefined): void {
-	const saving = canSaveToDisk() ? ' and saves edits back to them' : '';
+	const saving = canSaveToDisk() ? ', saves edits back to the config files, and changes project files only when you apply changes on the Review step' : '';
 	const replacing = wizard.hasChanges ? ' This replaces the current settings.' : '';
 	wizard.confirm(
 		{
 			title: 'Back up your repo first',
-			message: `The wizard reads the folder's config files${saving}. Unmanaged settings are kept, but commit your work in git first so you can undo any change.${replacing}`,
+			message: `The wizard reads the folder's config and project files${saving}. Unmanaged settings are kept, but commit your work in git first so you can undo any change.${replacing}`,
 			confirmLabel: 'Choose folder'
 		},
 		() => {
@@ -26,7 +26,7 @@ export async function openFolderFromList(wizard: WizardState, fileList: FileList
 	if (!fileList || fileList.length === 0) return;
 
 	await openWithNotice(wizard, async () => {
-		const { name, files } = await readConfigFilesFromList(fileList);
+		const { name, files } = await readRepoFilesFromList(fileList);
 		await wizard.openRepo(name, undefined, files);
 	});
 }
@@ -56,7 +56,7 @@ async function pickFolder(wizard: WizardState): Promise<void> {
 		return;
 	}
 
-	await openWithNotice(wizard, async () => wizard.openRepo(directory.name, directory, await readConfigFiles(directory)));
+	await openWithNotice(wizard, async () => wizard.openRepo(directory.name, directory, await readRepoFiles(directory)));
 }
 
 /** Runs an open, turning a failure such as an unreadable file into a notice. */

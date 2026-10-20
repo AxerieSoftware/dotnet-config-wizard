@@ -3,6 +3,7 @@
 	import { toPresetChanges } from '../config/presetChanges.ts';
 	import { toPresetName } from '../config/presets.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
+	import ProjectCleanupCard from '../projects/ProjectCleanupCard.svelte';
 	import ValidationList from '../validation/ValidationList.svelte';
 	import FileExplorer from './FileExplorer.svelte';
 	import { toFolderName } from './fileTree.ts';
@@ -57,6 +58,10 @@
 		</table>
 	{/if}
 </section>
+
+{#if wizard.repo && wizard.repo.projectFiles.length > 0}
+	<ProjectCleanupCard repo={wizard.repo} />
+{/if}
 
 <section class="card" aria-labelledby="next-steps-heading">
 	<div class="card-header">
