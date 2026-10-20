@@ -1,0 +1,22 @@
+name: Bug report
+description: The wizard or a file it generates is wrong, missing or broken.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead. For a build or analyzer error from a generated file, include the error and the setting that causes it.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Share link
+      description: Use **Copy share link** in the wizard and paste it here.
+      placeholder: https://dotnetconfig.axerie.com/#…
+  - type: input
+    id: versions
+    attributes:
+      label: .NET SDK and browser
+      placeholder: .NET SDK 10.0.100, Edge 154

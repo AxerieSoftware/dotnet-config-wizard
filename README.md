@@ -26,3 +26,11 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 - `e2e/` — Playwright tests.
 
 Rule and option descriptions come from [dotnet/docs](https://github.com/dotnet/docs), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+## Contributing
+
+Bugs go in [Issues](https://github.com/AxerieSoftware/dotnet-config-wizard/issues/new/choose) and ideas in [Discussions](https://github.com/AxerieSoftware/dotnet-config-wizard/discussions/new?category=ideas). See [CONTRIBUTING.md](CONTRIBUTING.md) to get started, and report security issues through [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE) © Axerie Software
