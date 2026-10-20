@@ -2,7 +2,7 @@ import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import type { BandEntry } from '../catalog/catalogFiles.ts';
 import { ALL_PRESETS, type Preset, toPresetConfig, toPresetName } from '../config/presets.ts';
-import { getParentScope, resolveScope } from '../config/scopes.ts';
+import { resolveInheritedScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import { HEADER_PATTERN } from '../export/editorConfigFiles.ts';
 import { toFileName, toFolderPath } from '../export/fileTree.ts';
@@ -100,7 +100,7 @@ function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig
 	const result = importFile(fileName, file.text, catalog);
 	if (!result) return [];
 
-	mergeImport(scope, result.settings);
+	mergeImport(config, scope, result);
 	// What the importers report as dropped stays in the file, so only the other notes apply here.
 	return result.notes.filter(note => !note.isDropped);
 }
@@ -111,8 +111,7 @@ function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig
  */
 function addInheritedAndFrameworkPackages(config: WizardConfig, catalog: Catalog): void {
 	for (const scope of config.scopes) {
-		const parent = getParentScope(config, scope);
-		const inherited = parent ? resolveScope(config, parent).packages : [];
+		const inherited = resolveInheritedScope(config, scope)?.packages ?? [];
 		const known = new Set([...inherited, ...(scope.packages ?? [])]);
 		const frameworks = Object.keys(scope.severities ?? {})
 			.map(id => catalog.rules.get(id)?.packageId)

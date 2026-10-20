@@ -18,7 +18,7 @@ import { SessionValue } from '../ui/sessionValue.svelte.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
 import type { InitialState } from './initialState.ts';
 import { DEFAULT_PRESET, type Preset, toPresetConfig, toPresetName } from './presets.ts';
-import { getParentScope, type ResolvedScope, resolveScope } from './scopes.ts';
+import { type ResolvedScope, resolveInheritedScope, resolveScope } from './scopes.ts';
 import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
 import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
@@ -64,10 +64,7 @@ export class WizardState {
 	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
-	public readonly inheritedScope: ResolvedScope | undefined = $derived.by(() => {
-		const parent = getParentScope(this.config, this.activeScope);
-		return parent ? resolveScope(this.config, parent) : undefined;
-	});
+	public readonly inheritedScope: ResolvedScope | undefined = $derived.by(() => resolveInheritedScope(this.config, this.activeScope));
 	public readonly activeContext = $derived.by(() => toGateContext(this.resolvedActiveScope, this.catalog));
 
 	/** The generated line the setting being edited writes, which the preview opens and highlights. */
@@ -204,7 +201,7 @@ export class WizardState {
 				continue;
 			}
 
-			mergeImport(this.activeScope, result.settings);
+			mergeImport(this.config, this.activeScope, result);
 			notes.push(...result.notes.map(note => ({ ...note, fileName: file.name })));
 			if (result.catalogVersion && result.catalogVersion < this.catalog.version) this.importedCatalogVersion = result.catalogVersion;
 		}
@@ -241,21 +238,22 @@ export class WizardState {
 
 	/** Sets TargetFramework for every project in the active folder, or leaves it to each project file. */
 	public setTargetFrameworkShared(isShared: boolean): void {
-		// Turning it off below a folder that turns it on needs an explicit false.
-		const isInherited = this.inheritedScope?.isTargetFrameworkShared ?? false;
-		setOrDelete(this.activeScope, 'isTargetFrameworkShared', isShared === isInherited ? undefined : isShared);
+		this.setInheritedSwitch('isTargetFrameworkShared', isShared);
 	}
 
-	/** Sets the prefix the repo root adds to every project's assembly name and root namespace. */
-	public setProjectNamePrefix(prefix: string | undefined): void {
-		setOrDelete(this.rootScope, 'projectNamePrefix', prefix);
+	/** Sets the prefix the repo root adds to every project's assembly name and root namespace, ignoring surrounding spaces and trailing dots. */
+	public setProjectNamePrefix(text: string): void {
+		setOrDelete(this.config, 'projectNamePrefix', text.trim().replace(/\.+$/, '') || undefined);
 	}
 
 	/** Lets each project's test project see its internal types, or stops it. */
 	public setInternalsVisibleToTests(isVisible: boolean): void {
-		// Turning it off below a folder that turns it on needs an explicit false.
-		const isInherited = this.inheritedScope?.areInternalsVisibleToTests ?? false;
-		setOrDelete(this.activeScope, 'areInternalsVisibleToTests', isVisible === isInherited ? undefined : isVisible);
+		this.setInheritedSwitch('areInternalsVisibleToTests', isVisible);
+	}
+
+	/** Has each test project reference the project it tests, or stops it. */
+	public setProjectUnderTestReferenced(isReferenced: boolean): void {
+		this.setInheritedSwitch('isProjectUnderTestReferenced', isReferenced);
 	}
 
 	public setProjectKind(projectKind: ProjectKind | undefined): void {
@@ -370,6 +368,12 @@ export class WizardState {
 
 	public setSeverityFile(severityFile: 'editorconfig' | 'globalconfig'): void {
 		setOrDelete(this.config, 'severityFile', severityFile === 'globalconfig' ? severityFile : undefined);
+	}
+
+	private setInheritedSwitch(key: 'isTargetFrameworkShared' | 'areInternalsVisibleToTests' | 'isProjectUnderTestReferenced', isOn: boolean): void {
+		// Turning one off below a folder that turns it on needs an explicit false.
+		const isInherited = this.inheritedScope?.[key] ?? false;
+		setOrDelete(this.activeScope, key, isOn === isInherited ? undefined : isOn);
 	}
 }
 

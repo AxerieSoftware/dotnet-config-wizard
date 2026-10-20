@@ -3,7 +3,7 @@ import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity
 import { type ActiveOverlap, findActiveOverlaps } from '../analyzers/overlaps.ts';
 import { PROJECT_NAME_PREFIX } from '../build/buildProperties.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
+import { type ResolvedScope, resolveInheritedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import type { SkippedKey } from '../export/generatedFile.ts';
 
@@ -33,16 +33,12 @@ export function validateConfig(config: WizardConfig, catalog: Catalog, skippedKe
 		for (const check of checks) issues.push(...check({ config, scope, resolved, catalog }).map(issue => ({ ...issue, scopePath: scope.path })));
 	}
 
-	issues.push(...checkNuGetConfig(config));
+	issues.push(...checkProjectNamePrefix(config), ...checkNuGetConfig(config));
 	return issues;
 }
 
 // Checks about building, restoring and packing, which apply to every folder.
 const SCOPE_CHECKS: readonly ScopeCheck[] = [
-	({ scope }) => {
-		if (scope.projectNamePrefix === undefined || PROJECT_NAME_PREFIX.test(scope.projectNamePrefix)) return [];
-		return [{ severity: 'error', message: `The project name prefix "${scope.projectNamePrefix}" isn't a valid namespace. Use names like Contoso or Contoso.Tools.` }];
-	},
 	({ scope, catalog }) => {
 		if (scope.build?.EnablePreviewFeatures !== 'true' || catalog.band.isPreview) return [];
 		return [{ severity: 'warning', message: `EnablePreviewFeatures is for preview SDKs, and SDK ${catalog.band.band} is released, so leave it off.` }];
@@ -125,8 +121,8 @@ const ANALYSIS_CHECKS: readonly ScopeCheck[] = [
 	},
 	({ config, scope, resolved, catalog }) => {
 		// A folder that inherits the same duplicates as its parent is fixed by fixing the parent, so only new ones are reported.
-		const parent = getParentScope(config, scope);
-		const parentOverlapKeys = new Set(parent ? findScopeOverlaps(resolveScope(config, parent), catalog).map(toOverlapKey) : []);
+		const inherited = resolveInheritedScope(config, scope);
+		const parentOverlapKeys = new Set(inherited ? findScopeOverlaps(inherited, catalog).map(toOverlapKey) : []);
 		return findScopeOverlaps(resolved, catalog)
 			.filter(overlap => !parentOverlapKeys.has(toOverlapKey(overlap)))
 			.map(overlap => ({
@@ -135,10 +131,9 @@ const ANALYSIS_CHECKS: readonly ScopeCheck[] = [
 			}));
 	},
 	({ config, scope }) => {
-		const parent = getParentScope(config, scope);
-		if (!parent) return [];
+		const inherited = resolveInheritedScope(config, scope);
+		if (!inherited) return [];
 
-		const inherited = resolveScope(config, parent);
 		const repeated = [
 			...Object.entries(scope.options ?? {})
 				.filter(([name, value]) => inherited.options[name] === value)
@@ -166,6 +161,11 @@ function findScopeOverlaps(resolved: ResolvedScope, catalog: Catalog): ActiveOve
 
 function toOverlapKey(overlap: ActiveOverlap): string {
 	return [overlap.concern, overlap.owner.id, ...overlap.duplicates.map(rule => rule.id)].join(' ');
+}
+
+function checkProjectNamePrefix(config: WizardConfig): ValidationIssue[] {
+	if (config.projectNamePrefix === undefined || PROJECT_NAME_PREFIX.test(config.projectNamePrefix)) return [];
+	return [{ severity: 'error', scopePath: '', message: `The project name prefix "${config.projectNamePrefix}" isn't a valid namespace. Use names like Contoso or Contoso.Tools.` }];
 }
 
 function checkNuGetConfig(config: WizardConfig): ValidationIssue[] {

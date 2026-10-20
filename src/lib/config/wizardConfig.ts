@@ -35,10 +35,10 @@ export type ScopeConfig = {
 	isIgnored?: boolean;
 	/** Whether this folder's Directory.Build.props sets the target frameworks for every project in it. */
 	isTargetFrameworkShared?: boolean;
-	/** A prefix the repo root adds to every project's assembly name and root namespace, such as `Contoso`. */
-	projectNamePrefix?: string;
 	/** Whether each project's internal types are visible to its test project, named `<project>.Tests`. */
 	areInternalsVisibleToTests?: boolean;
+	/** Whether each test project here references the project it tests, found by name: `Billing.Tests` references `src/Billing/Billing.csproj`. */
+	isProjectUnderTestReferenced?: boolean;
 };
 
 export type NuGetSource = { key: string; url: string; patterns: string[] };
@@ -59,6 +59,8 @@ export type WizardConfig = {
 	globalJson?: GlobalJsonConfig;
 	/** Where the root scope's rule severities go: `.editorconfig` by default, or a global AnalyzerConfig file. */
 	severityFile?: 'editorconfig' | 'globalconfig';
+	/** A prefix the root Directory.Build.props adds to every project's assembly name and root namespace, such as `Contoso`. */
+	projectNamePrefix?: string;
 };
 
 export type ParseResult = { status: 'valid'; config: WizardConfig } | { status: 'invalid'; reason: string };
@@ -78,6 +80,7 @@ export function parseWizardConfig(value: unknown): ParseResult {
 	if (value.nuget !== undefined && !isNuGetConfig(value.nuget)) return invalid('nuget must have sources and an auditSourceUrl.');
 	if (value.globalJson !== undefined && !isGlobalJsonConfig(value.globalJson)) return invalid('globalJson must have rollForward, isTestingPlatformRunner and msbuildSdks.');
 	if (value.severityFile !== undefined && value.severityFile !== 'editorconfig' && value.severityFile !== 'globalconfig') return invalid('severityFile must be editorconfig or globalconfig.');
+	if (value.projectNamePrefix !== undefined && typeof value.projectNamePrefix !== 'string') return invalid('projectNamePrefix must be a string.');
 
 	return { status: 'valid', config: value as WizardConfig };
 }
@@ -103,8 +106,8 @@ function findScopeProblem(scope: unknown): string | undefined {
 		return 'bannedApis must be an array of { symbol, message } objects.';
 	if (scope.isIgnored !== undefined && typeof scope.isIgnored !== 'boolean') return 'isIgnored must be true or false.';
 	if (scope.isTargetFrameworkShared !== undefined && typeof scope.isTargetFrameworkShared !== 'boolean') return 'isTargetFrameworkShared must be true or false.';
-	if (scope.projectNamePrefix !== undefined && typeof scope.projectNamePrefix !== 'string') return 'projectNamePrefix must be a string.';
 	if (scope.areInternalsVisibleToTests !== undefined && typeof scope.areInternalsVisibleToTests !== 'boolean') return 'areInternalsVisibleToTests must be true or false.';
+	if (scope.isProjectUnderTestReferenced !== undefined && typeof scope.isProjectUnderTestReferenced !== 'boolean') return 'isProjectUnderTestReferenced must be true or false.';
 
 	return undefined;
 }

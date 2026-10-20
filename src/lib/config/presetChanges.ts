@@ -20,7 +20,7 @@ const GROUP_LABELS: Readonly<Record<string, string>> = {
 	versions: 'SDK'
 };
 
-// Folder settings that are a single value or a list, rather than a group of keyed settings.
+// Settings that are a single value or a list, rather than a group of keyed settings.
 const SETTING_LABELS: Readonly<Record<string, string>> = {
 	projectKind: 'Project kind',
 	tfms: 'Target frameworks',
@@ -30,6 +30,7 @@ const SETTING_LABELS: Readonly<Record<string, string>> = {
 	isIgnored: 'Ignored',
 	isTargetFrameworkShared: 'Shared TargetFramework',
 	areInternalsVisibleToTests: 'Internals visible to tests',
+	isProjectUnderTestReferenced: 'Project under test referenced',
 	projectNamePrefix: 'Project name prefix',
 	severityFile: 'Severities file'
 };

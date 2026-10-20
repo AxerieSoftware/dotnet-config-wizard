@@ -81,6 +81,31 @@ describe('shared TargetFramework', () => {
 	});
 });
 
+describe('project under test', () => {
+	it('points each folder at src from its own depth, and removes the inherited reference where a folder turns it off', () => {
+		const config = toConfig(
+			{ path: '' },
+			{ path: 'tests', isProjectUnderTestReferenced: true },
+			{ path: 'tests/legacy', isProjectUnderTestReferenced: false },
+			{ path: 'tests/legacy/modern', isProjectUnderTestReferenced: true }
+		);
+
+		expect(fileContent(config, 'tests/Directory.Build.props')).toContain(
+			'<ProjectUnderTestPath>$(MSBuildThisFileDirectory)../src/$(ProjectUnderTest)/$(ProjectUnderTest).csproj</ProjectUnderTestPath>'
+		);
+		expect(fileContent(config, 'tests/Directory.Build.props')).toContain(`<ProjectReference Include="$(ProjectUnderTestPath)" Condition="Exists('$(ProjectUnderTestPath)')" />`);
+		expect(fileContent(config, 'tests/legacy/Directory.Build.props')).toContain('<ProjectReference Remove="$(ProjectUnderTestPath)" />');
+		expect(fileContent(config, 'tests/legacy/Directory.Build.props')).not.toContain('<ProjectUnderTestPath>');
+		expect(fileContent(config, 'tests/legacy/modern/Directory.Build.props')).toContain('$(MSBuildThisFileDirectory)../../../src/$(ProjectUnderTest)');
+	});
+
+	it('writes nothing for a folder that only repeats what it inherits', () => {
+		const config = toConfig({ path: '' }, { path: 'tests', isProjectUnderTestReferenced: true }, { path: 'tests/unit', isProjectUnderTestReferenced: true });
+
+		expect(fileContent(config, 'tests/unit/Directory.Build.props')).toBeUndefined();
+	});
+});
+
 describe('analyzer packages', () => {
 	it('uses GlobalPackageReference under central package management', () => {
 		const content = fileContent(toConfig({ path: '', build: { ManagePackageVersionsCentrally: 'true' }, packages: ['Meziantou.Analyzer'] }), 'Directory.Packages.props');

@@ -35,6 +35,7 @@ export function toExhaustiveConfig(catalog: Catalog): WizardConfig {
 	return {
 		versions: { sdkBand: catalog.band.band },
 		nuget: { sources: [{ ...NUGET_ORG, patterns: ['*'] }], auditSourceUrl: NUGET_ORG.url },
+		projectNamePrefix: 'Contoso',
 		scopes: [
 			{
 				path: '',
@@ -47,10 +48,9 @@ export function toExhaustiveConfig(catalog: Catalog): WizardConfig {
 				ruleParameters: toDefaultRuleParameters(catalog),
 				bannedApis: BANNED_API_SETS.flatMap(set => set.apis),
 				build: toExhaustiveBuild(),
-				projectNamePrefix: 'Contoso',
 				ciBuild: { TreatWarningsAsErrors: 'true' }
 			},
-			{ path: 'tests', projectKind: 'test', severities: { CA1707: 'none' } }
+			{ path: 'tests', projectKind: 'test', severities: { CA1707: 'none' }, isProjectUnderTestReferenced: true }
 		]
 	};
 }

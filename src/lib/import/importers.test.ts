@@ -143,6 +143,18 @@ describe('importMsBuildFile', () => {
 		expect(result.settings).toEqual({ tfms: ['net10.0'], isTargetFrameworkShared: true });
 	});
 
+	it('reads the project under test reference as on and its removal as off, without reporting its properties as dropped', () => {
+		const included = importMsBuildFile(
+			`<Project><PropertyGroup><ProjectUnderTest>$([System.Text.RegularExpressions.Regex]::Replace($(MSBuildProjectName), '\\.Tests$', ''))</ProjectUnderTest><ProjectUnderTestPath>$(MSBuildThisFileDirectory)../src/$(ProjectUnderTest)/$(ProjectUnderTest).csproj</ProjectUnderTestPath></PropertyGroup><ItemGroup><ProjectReference Include="$(ProjectUnderTestPath)" Condition="Exists('$(ProjectUnderTestPath)')" /></ItemGroup></Project>`,
+			catalog
+		);
+		const removed = importMsBuildFile('<Project><ItemGroup><ProjectReference Remove="$(ProjectUnderTestPath)" /></ItemGroup></Project>', catalog);
+
+		expect(included.settings).toEqual({ isProjectUnderTestReferenced: true });
+		expect(included.notes).toEqual([]);
+		expect(removed.settings).toEqual({ isProjectUnderTestReferenced: false });
+	});
+
 	it('reads the .Tests InternalsVisibleTo item as letting tests see internals, and its removal as hiding them', () => {
 		const included = importMsBuildFile('<Project><ItemGroup><InternalsVisibleTo Include="$(AssemblyName).Tests" /></ItemGroup></Project>', catalog);
 		const removed = importMsBuildFile('<Project><ItemGroup><InternalsVisibleTo Remove="$(AssemblyName).Tests" /></ItemGroup></Project>', catalog);
@@ -190,7 +202,7 @@ it('round-trips a generated config through the importers unchanged', () => {
 	const imported: WizardConfig = { versions: original.versions, scopes: [{ path: '', tfms: original.scopes[0].tfms }] };
 	for (const path of rootFiles) {
 		const result = importFile(path, files.find(file => file.path === path)?.content ?? '', catalog);
-		if (result) mergeImport(imported.scopes[0], result.settings);
+		if (result) mergeImport(imported, imported.scopes[0], result);
 	}
 	imported.scopes[0].bannedApis = original.scopes[0].bannedApis;
 
