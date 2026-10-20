@@ -176,6 +176,10 @@ describe('findProjectCleanup safety', () => {
 		expect(kept([app])).toEqual(['<PackageReference Include="Meziantou.Analyzer" NoWarn="NU1608" />']);
 	});
 
+	it('leaves projects in other languages alone, where settings such as LangVersion mean something else', () => {
+		expect(offered([project('src/App/App.fsproj', '\t<PropertyGroup>\n\t\t<Nullable>enable</Nullable>\n\t</PropertyGroup>')])).toEqual([]);
+	});
+
 	it('ignores settings inside comments', () => {
 		const app = project(
 			'src/App/App.csproj',

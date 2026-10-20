@@ -4,6 +4,7 @@
 	import { toPresetName } from '../config/presets.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ProjectCleanupCard from '../projects/ProjectCleanupCard.svelte';
+	import RepeatedSettingsCard from '../projects/RepeatedSettingsCard.svelte';
 	import ValidationList from '../validation/ValidationList.svelte';
 	import FileExplorer from './FileExplorer.svelte';
 	import { toFolderName } from './fileTree.ts';
@@ -60,6 +61,7 @@
 </section>
 
 {#if wizard.repo && wizard.repo.projectFiles.length > 0}
+	<RepeatedSettingsCard repo={wizard.repo} />
 	<ProjectCleanupCard repo={wizard.repo} />
 {/if}
 

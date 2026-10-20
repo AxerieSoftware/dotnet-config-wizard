@@ -30,9 +30,12 @@ export function getParentScope(config: WizardConfig, scope: ScopeConfig): ScopeC
 
 /** The scope whose folder holds a repo folder, such as `src/Billing`: the closest one, or the root scope. */
 export function findScopeForFolder(config: WizardConfig, folderPath: string): ScopeConfig {
-	return config.scopes
-		.filter(scope => scope.path === '' || folderPath === scope.path || folderPath.startsWith(`${scope.path}/`))
-		.reduce((closest, scope) => (scope.path.length > closest.path.length ? scope : closest), config.scopes[0]);
+	return config.scopes.filter(scope => isInFolder(folderPath, scope.path)).reduce((closest, scope) => (scope.path.length > closest.path.length ? scope : closest), config.scopes[0]);
+}
+
+/** Whether a repo folder, such as `src/Billing`, is `parentPath` or inside it; everything is inside the repo root. */
+export function isInFolder(folderPath: string, parentPath: string): boolean {
+	return parentPath === '' || folderPath === parentPath || folderPath.startsWith(`${parentPath}/`);
 }
 
 /** What a scope inherits from the folders above it, or undefined for the root scope. */

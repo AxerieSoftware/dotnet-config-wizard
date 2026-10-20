@@ -15,6 +15,15 @@ const PROJECT_REPO_FILES: Record<string, string> = {
 		'<Project Sdk="Microsoft.NET.Sdk">\n\t<PropertyGroup>\n\t\t<TargetFramework>net10.0</TargetFramework>\n\t\t<OutputType>Exe</OutputType>\n\t\t<Nullable>enable</Nullable>\n\t\t<LangVersion>14</LangVersion>\n\t</PropertyGroup>\n\t<ItemGroup>\n\t\t<PackageReference Include="Serilog" Version="4.0.0" />\n\t</ItemGroup>\n</Project>\n'
 };
 
+const REPEATED_REPO_FILES: Record<string, string> = {
+	'Directory.Build.props': '<Project>\n\t<PropertyGroup>\n\t\t<Deterministic>true</Deterministic>\n\t</PropertyGroup>\n</Project>\n',
+	'src/Billing/Billing.csproj':
+		'<Project Sdk="Microsoft.NET.Sdk">\n\t<PropertyGroup>\n\t\t<TargetFramework>net10.0</TargetFramework>\n\t\t<Nullable>enable</Nullable>\n\t</PropertyGroup>\n</Project>\n',
+	'src/Shipping/Shipping.csproj':
+		'<Project Sdk="Microsoft.NET.Sdk">\n\t<PropertyGroup>\n\t\t<TargetFramework>net10.0</TargetFramework>\n\t\t<Nullable>enable</Nullable>\n\t\t<OutputType>Exe</OutputType>\n\t</PropertyGroup>\n</Project>\n',
+	'tests/Billing.Tests/Billing.Tests.csproj': '<Project Sdk="Microsoft.NET.Sdk">\n\t<PropertyGroup>\n\t\t<TargetFramework>net10.0</TargetFramework>\n\t</PropertyGroup>\n</Project>\n'
+};
+
 // Stands in for the folder picker with the browser's private file system, which has the same read and write API.
 async function seedRepo(page: Page, repoFiles: Record<string, string> = REPO_FILES): Promise<void> {
 	await page.addInitScript(files => {
@@ -94,4 +103,23 @@ test('an opened repo loads its config files and saves edits back without losing 
 	expect(editorConfig).toContain('resharper_braces_for_ifelse = required');
 	expect(await readRepoFile(page, 'Directory.Build.props')).toBe(REPO_FILES['Directory.Build.props']);
 	expect(await readRepoFile(page, 'src/App/Program.cs')).toBe(REPO_FILES['src/App/Program.cs']);
+});
+
+test('a setting every project in a folder repeats moves into a new props file there, and then out of the projects', async ({ page }) => {
+	await openSeededRepo(page, REPEATED_REPO_FILES);
+	await openStep(page, 'Review and export');
+
+	const repeated = page.getByRole('region', { name: 'Repeated settings' });
+	await expect(repeated).toContainText('<Nullable>enable</Nullable>');
+	await expect(repeated).toContainText('In 2 projects under src/, which gets its own Directory.Build.props');
+	await repeated.getByRole('listitem').filter({ hasText: '<Nullable>' }).getByRole('button', { name: 'Add src/ and set it' }).click();
+
+	await expect.poll(() => readRepoFile(page, 'src/Directory.Build.props').catch(() => '')).toContain('<Nullable>enable</Nullable>');
+	const projectFiles = page.getByRole('region', { name: 'Project files' });
+	await expect(projectFiles.getByRole('checkbox', { name: 'Remove <Nullable>enable</Nullable> in src/Shipping/Shipping.csproj' })).toBeVisible();
+	await projectFiles.getByRole('button', { name: 'Apply 2 changes' }).click();
+
+	await expect(projectFiles.getByRole('status')).toHaveText('Updated 2 project files.');
+	expect(await readRepoFile(page, 'src/Billing/Billing.csproj')).not.toContain('<Nullable>');
+	expect(await readRepoFile(page, 'src/Shipping/Shipping.csproj')).toContain('<OutputType>Exe</OutputType>');
 });
