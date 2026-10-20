@@ -1,10 +1,19 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
-import { getParentScope, type ResolvedScope, resolveScope } from '../config/scopes.ts';
+import { type ResolvedScope, resolveInheritedScope, resolveScope } from '../config/scopes.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import type { GeneratedFile, SkippedKey } from '../export/generatedFile.ts';
-import { BUILD_PROPERTIES, BUILD_PROPERTIES_BY_NAME, type PropertyFile, toProjectNameCondition } from './buildProperties.ts';
+import {
+	BUILD_PROPERTIES,
+	BUILD_PROPERTIES_BY_NAME,
+	PROJECT_UNDER_TEST_PATH,
+	PROJECT_UNDER_TEST_PROPERTIES,
+	PROJECTS_UNDER_TEST_FOLDER,
+	type PropertyFile,
+	TEST_ASSEMBLY_NAME,
+	toProjectNameCondition
+} from './buildProperties.ts';
 import { toElement, toGroup, toItem, toParentImport, toProjectDocument, type XmlLine } from './msbuildXml.ts';
 
 const BUILD_PROPS = 'Directory.Build.props';
@@ -43,25 +52,29 @@ export function toBuildFiles(config: WizardConfig, catalog: Catalog, commentStyl
 	return output;
 }
 
-/** The test project that can see a project's internal types: the project's name plus `.Tests`. */
-export const TEST_ASSEMBLY_NAME = '$(AssemblyName).Tests';
-
 /** Every property the generated props can write, so saving to a repo replaces them rather than keeping the old lines. */
-export const WRITTEN_PROPERTY_NAMES: ReadonlySet<string> = new Set([...BUILD_PROPERTIES_BY_NAME.keys(), 'ContinuousIntegrationBuild', 'TargetFramework', 'TargetFrameworks']);
+export const WRITTEN_PROPERTY_NAMES: ReadonlySet<string> = new Set([
+	...BUILD_PROPERTIES_BY_NAME.keys(),
+	'ContinuousIntegrationBuild',
+	'TargetFramework',
+	'TargetFrameworks',
+	...PROJECT_UNDER_TEST_PROPERTIES
+]);
 
 function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog, commentStyle: CommentStyle, isCentrallyManaged: boolean): string | undefined {
 	const isRoot = scope.path === '';
 	const resolved = resolveScope(config, scope);
 	const blocks: XmlLine[][] = [
 		toGroup('PropertyGroup', 'Target framework', toTargetFrameworkLines(config, scope, resolved)),
-		isRoot ? toProjectNameGroup(scope.projectNamePrefix) : [],
+		isRoot ? toProjectNameGroup(config.projectNamePrefix) : [],
 		...toPropertyGroups(scope.build ?? {}, 'props', commentStyle),
 		isRoot && hasCiSettings(config) ? toGroup('PropertyGroup', 'Continuous integration', [toElement('ContinuousIntegrationBuild', 'true')], CI_CONDITION) : [],
 		toGroup('PropertyGroup', 'CI builds only', toPropertyLines(scope.ciBuild ?? {}, 'props', commentStyle), CI_ONLY_CONDITION),
 		isCentrallyManaged ? [] : toGroup('ItemGroup', 'Analyzer packages', toPackageItems(config, scope, catalog, 'PackageReference')),
 		toGroup('ItemGroup', 'Analyzer files', toAnalyzerFileItems(config, scope, resolved.packages)),
 		toGroup('ItemGroup', 'Package files', toPackFileItems(scope.build ?? {})),
-		toGroup('ItemGroup', 'Test access', toTestAccessItems(config, scope))
+		toGroup('ItemGroup', 'Test access', toTestAccessItems(config, scope)),
+		...toProjectUnderTestGroups(config, scope)
 	];
 
 	if (blocks.every(block => block.length === 0)) return undefined;
@@ -70,8 +83,7 @@ function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog
 
 /** The frameworks a folder sets for its projects, clearing an inherited value that would conflict, such as a single TargetFramework that breaks multi-targeting. */
 function toTargetFrameworkLines(config: WizardConfig, scope: ScopeConfig, resolved: ResolvedScope): XmlLine[] {
-	const parent = getParentScope(config, scope);
-	const inherited = parent ? resolveScope(config, parent) : undefined;
+	const inherited = resolveInheritedScope(config, scope);
 	const inheritedProperty = inherited?.isTargetFrameworkShared ? toFrameworkProperty(inherited.tfms) : undefined;
 	if (scope.isTargetFrameworkShared === false && inheritedProperty) return [toElement(inheritedProperty, '')];
 	if (!resolved.isTargetFrameworkShared || resolved.tfms.length === 0) return [];
@@ -128,10 +140,9 @@ function toPropertyLines(values: Record<string, string>, file: PropertyFile, com
 function toPackageItems(config: WizardConfig, scope: ScopeConfig, catalog: Catalog, itemType: 'PackageReference' | 'GlobalPackageReference'): XmlLine[] {
 	if (scope.packages === undefined) return [];
 
-	const parent = getParentScope(config, scope);
 	// Analyzers that come with another package, such as xunit.v3, are already referenced through it.
 	const isReferenced = (packageId: string) => !catalog.packages.get(packageId)?.includedWith;
-	const inherited = (parent ? resolveScope(config, parent).packages : []).filter(isReferenced);
+	const inherited = (resolveInheritedScope(config, scope)?.packages ?? []).filter(isReferenced);
 	const packageIds = scope.packages.filter(isReferenced);
 	const removed = inherited.filter(packageId => !packageIds.includes(packageId));
 	const added = packageIds.filter(packageId => !inherited.includes(packageId));
@@ -152,7 +163,7 @@ function toAnalyzerFileItems(config: WizardConfig, scope: ScopeConfig, packages:
 	if (isRoot && packages.includes(SONAR_PACKAGE) && Object.keys(scope.ruleParameters ?? {}).length > 0) items.push(toItem('AdditionalFiles', { Include: '$(MSBuildThisFileDirectory)SonarLint.xml' }));
 	if (isRoot && config.severityFile === 'globalconfig' && Object.keys(scope.severities ?? {}).length > 0)
 		items.push(toItem('GlobalAnalyzerConfigFiles', { Include: `$(MSBuildThisFileDirectory)${GLOBAL_CONFIG_FILE}` }));
-	if (packages.includes(PUBLIC_API_PACKAGE) && !getParentScopePackages(config, scope).includes(PUBLIC_API_PACKAGE)) {
+	if (packages.includes(PUBLIC_API_PACKAGE) && !(resolveInheritedScope(config, scope)?.packages ?? []).includes(PUBLIC_API_PACKAGE)) {
 		// The public API analyzer reads these from each project's own folder.
 		for (const fileName of ['PublicAPI.Shipped.txt', 'PublicAPI.Unshipped.txt']) {
 			items.push(toItem('AdditionalFiles', { Include: `$(MSBuildProjectDirectory)/${fileName}`, Condition: `Exists('$(MSBuildProjectDirectory)/${fileName}')` }));
@@ -173,15 +184,31 @@ function toPackFileItems(build: Record<string, string>): XmlLine[] {
 function toTestAccessItems(config: WizardConfig, scope: ScopeConfig): XmlLine[] {
 	if (scope.areInternalsVisibleToTests === undefined) return [];
 
-	const parent = getParentScope(config, scope);
-	const isInherited = parent ? resolveScope(config, parent).areInternalsVisibleToTests : false;
+	const isInherited = resolveInheritedScope(config, scope)?.areInternalsVisibleToTests ?? false;
 	if (scope.areInternalsVisibleToTests === isInherited) return [];
 	return [toItem('InternalsVisibleTo', scope.areInternalsVisibleToTests ? { Include: TEST_ASSEMBLY_NAME } : { Remove: TEST_ASSEMBLY_NAME })];
 }
 
-function getParentScopePackages(config: WizardConfig, scope: ScopeConfig): string[] {
-	const parent = getParentScope(config, scope);
-	return parent ? resolveScope(config, parent).packages : [];
+/**
+ * References each test project's project under test where a folder turns it on, and removes the inherited reference where a
+ * folder turns it off. A test project with no matching project, such as an architecture test, gets no reference.
+ */
+function toProjectUnderTestGroups(config: WizardConfig, scope: ScopeConfig): XmlLine[][] {
+	if (scope.isProjectUnderTestReferenced === undefined) return [];
+
+	const isInherited = resolveInheritedScope(config, scope)?.isProjectUnderTestReferenced ?? false;
+	if (scope.isProjectUnderTestReferenced === isInherited) return [];
+	if (!scope.isProjectUnderTestReferenced) return [toGroup('ItemGroup', 'Project under test', [toItem('ProjectReference', { Remove: PROJECT_UNDER_TEST_PATH })])];
+
+	const [nameProperty, pathProperty] = PROJECT_UNDER_TEST_PROPERTIES;
+	const folderPath = `${'../'.repeat(scope.path === '' ? 0 : scope.path.split('/').length)}${PROJECTS_UNDER_TEST_FOLDER}`;
+	return [
+		toGroup('PropertyGroup', 'Project under test', [
+			toElement(nameProperty, "$([System.Text.RegularExpressions.Regex]::Replace($(MSBuildProjectName), '\\.Tests$', ''))"),
+			toElement(pathProperty, `$(MSBuildThisFileDirectory)${folderPath}/$(${nameProperty})/$(${nameProperty}).csproj`)
+		]),
+		toGroup('ItemGroup', 'Project under test', [toItem('ProjectReference', { Include: PROJECT_UNDER_TEST_PATH, Condition: `Exists('${PROJECT_UNDER_TEST_PATH}')` })])
+	];
 }
 
 function hasCiSettings(config: WizardConfig): boolean {

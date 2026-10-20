@@ -450,8 +450,6 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 	// Apps that don't format for people run fine without ICU, and behave the same in every locale and container.
 	if (projectKind === 'service' && preset.level === 'opinionated') src.build = { InvariantGlobalization: 'true' };
 
-	// Opinionated shows what would block trimming and Native AOT without claiming compatibility: the analyzers run, their
-	// findings are suggestions so they never fail the build, and libraries don't declare IsAotCompatible.
 	// Libraries can't rely on the app's culture, so string interpolation and sorting must name theirs too. Services run with
 	// invariant globalization, where neither can vary.
 	if (preset.level === 'opinionated' && projectKind === 'library') src.severities = { ...src.severities, MA0076: 'warning' };
@@ -459,12 +457,16 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 
 	if (preset.level === 'opinionated') {
 		src.areInternalsVisibleToTests = true;
+		// Opinionated shows what would block trimming and Native AOT without claiming compatibility: the analyzers run, their
+		// findings are suggestions so they never fail the build, and libraries don't declare IsAotCompatible.
 		const { IsAotCompatible: _isAotCompatible, ...build } = src.build ?? {};
 		src.build = { ...build, EnableTrimAnalyzer: 'true', EnableAotAnalyzer: 'true' };
 		src.categorySeverities = { Trimming: 'suggestion', AOT: 'suggestion' };
 	}
 
 	const tests = toScopePreset('tests', config);
+	// Opinionated test projects reference what they test by name, so their project files hold only what's specific to them.
+	if (preset.level === 'opinionated') tests.isProjectUnderTestReferenced = true;
 	// Opinionated tests use MSTest, whose analyzers come with MSTest.Sdk; its suggestions become warnings.
 	if (preset.level === 'opinionated') {
 		tests.packages = [...root.packages, MSTEST];

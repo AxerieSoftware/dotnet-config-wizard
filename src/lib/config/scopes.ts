@@ -19,6 +19,7 @@ export type ResolvedScope = {
 	bannedApis: BannedApi[];
 	isTargetFrameworkShared: boolean;
 	areInternalsVisibleToTests: boolean;
+	isProjectUnderTestReferenced: boolean;
 };
 
 /** The closest scope whose folder contains this one; the root scope contains every other scope. */
@@ -30,9 +31,14 @@ export function getParentScope(config: WizardConfig, scope: ScopeConfig): ScopeC
 		.reduce<ScopeConfig | undefined>((closest, candidate) => (!closest || candidate.path.length > closest.path.length ? candidate : closest), undefined);
 }
 
+/** What a scope inherits from the folders above it, or undefined for the root scope. */
+export function resolveInheritedScope(config: WizardConfig, scope: ScopeConfig): ResolvedScope | undefined {
+	const parent = getParentScope(config, scope);
+	return parent ? resolveScope(config, parent) : undefined;
+}
+
 export function resolveScope(config: WizardConfig, scope: ScopeConfig): ResolvedScope {
-	const parentScope = getParentScope(config, scope);
-	const inherited = parentScope ? resolveScope(config, parentScope) : undefined;
+	const inherited = resolveInheritedScope(config, scope);
 
 	return {
 		path: scope.path,
@@ -49,7 +55,8 @@ export function resolveScope(config: WizardConfig, scope: ScopeConfig): Resolved
 		ruleParameters: mergeNested(inherited?.ruleParameters ?? {}, scope.ruleParameters ?? {}),
 		bannedApis: [...(inherited?.bannedApis ?? []), ...(scope.bannedApis ?? [])],
 		isTargetFrameworkShared: scope.isTargetFrameworkShared ?? inherited?.isTargetFrameworkShared ?? false,
-		areInternalsVisibleToTests: scope.areInternalsVisibleToTests ?? inherited?.areInternalsVisibleToTests ?? false
+		areInternalsVisibleToTests: scope.areInternalsVisibleToTests ?? inherited?.areInternalsVisibleToTests ?? false,
+		isProjectUnderTestReferenced: scope.isProjectUnderTestReferenced ?? inherited?.isProjectUnderTestReferenced ?? false
 	};
 }
 

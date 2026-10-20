@@ -3,7 +3,7 @@ import { readBands, readCatalog } from '../../../scripts/readCatalog.ts';
 import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
 import { toSavedState } from '../config/shareLink.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
-import { toSavedText } from './preserve.ts';
+import { findUnmanaged, toSavedText } from './preserve.ts';
 import { findPinnedBand, toRepoConfig } from './repoImport.ts';
 
 const catalog = readCatalog('10.0.4xx');
@@ -161,17 +161,49 @@ describe('saving over existing files', () => {
 		expect(buildProps).not.toContain('Kept');
 	});
 
+	it('keeps an unmanaged property in its CI-only group when the generated file also writes its neighbor unconditionally', () => {
+		const generatedProps = `<Project>
+	<PropertyGroup Label="Warnings">
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+</Project>
+`;
+		const existingProps = `<Project>
+	<PropertyGroup Condition="'$(CI)' == 'true'">
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<PublishReadyToRun>true</PublishReadyToRun>
+	</PropertyGroup>
+</Project>
+`;
+
+		const saved = toSavedText('Directory.Build.props', generatedProps, existingProps, catalog);
+
+		expect(saved).toMatch(/<PropertyGroup Condition="'\$\(CI\)' == 'true'">\n\t\t<PublishReadyToRun>true<\/PublishReadyToRun>\n\t<\/PropertyGroup>/);
+		expect(saved).toMatch(/<TreatWarningsAsErrors>true<\/TreatWarningsAsErrors>\n\t<\/PropertyGroup>/);
+	});
+
+	it('saves the project under test groups over themselves unchanged and keeps hand-written project references', () => {
+		const opinionated = toPresetConfig({ level: 'opinionated', kind: 'library' }, catalog);
+		const testsProps = toGeneratedOutput(opinionated, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'tests/Directory.Build.props')?.content ?? '';
+		const withSharedReference = testsProps.replace('</Project>', '\t<ItemGroup>\n\t\t<ProjectReference Include="../shared/TestKit.csproj" />\n\t</ItemGroup>\n</Project>');
+
+		expect(testsProps).toContain('<ProjectReference Include="$(ProjectUnderTestPath)"');
+		expect(toSavedText('tests/Directory.Build.props', testsProps, testsProps, catalog)).toBe(testsProps);
+		expect(toSavedText('tests/Directory.Build.props', testsProps, withSharedReference, catalog)).toContain('<ProjectReference Include="../shared/TestKit.csproj" />');
+		expect(findUnmanaged('tests/Directory.Build.props', testsProps, catalog)).toEqual([]);
+	});
+
 	it('replaces the project name prefix group rather than keeping the old one beside it', () => {
 		const prefixed = toRepoConfig([{ path: 'Directory.Build.props', text: BUILD_PROPS }], catalog).config;
-		prefixed.scopes[0].projectNamePrefix = 'Contoso';
+		prefixed.projectNamePrefix = 'Contoso';
 		const first = toGeneratedOutput(prefixed, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Build.props')?.content ?? '';
-		prefixed.scopes[0].projectNamePrefix = 'Fabrikam';
+		prefixed.projectNamePrefix = 'Fabrikam';
 		const second = toGeneratedOutput(prefixed, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Build.props')?.content ?? '';
 
 		const saved = toSavedText('Directory.Build.props', second, toSavedText('Directory.Build.props', first, BUILD_PROPS, catalog), catalog);
 
-		expect(saved).toContain(`<PropertyGroup Label="Project names" Condition="!$(MSBuildProjectName.StartsWith('Fabrikam.'))">`);
+		expect(saved).toContain(`<PropertyGroup Label="Project names" Condition="'$(MSBuildProjectName)' != 'Fabrikam' and !$(MSBuildProjectName.StartsWith('Fabrikam.'))">`);
 		expect(saved).not.toContain('Contoso');
-		expect(toRepoConfig([{ path: 'Directory.Build.props', text: saved }], catalog).config.scopes[0].projectNamePrefix).toBe('Fabrikam');
+		expect(toRepoConfig([{ path: 'Directory.Build.props', text: saved }], catalog).config.projectNamePrefix).toBe('Fabrikam');
 	});
 });

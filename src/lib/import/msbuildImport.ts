@@ -1,4 +1,4 @@
-import { BUILD_PROPERTIES_BY_NAME, PROJECT_NAME_CONDITION } from '../build/buildProperties.ts';
+import { BUILD_PROPERTIES_BY_NAME, PROJECT_UNDER_TEST_ITEM, PROJECT_UNDER_TEST_PROPERTIES, readProjectNamePrefix, TEST_ACCESS_ITEM, toConditionKind } from '../build/buildProperties.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { isSupportedTargetFramework } from '../config/targetFrameworks.ts';
 import type { Severity } from '../config/wizardConfig.ts';
@@ -6,13 +6,9 @@ import { type ImportNote, type ImportResult, toUnmaintainedNotes } from './impor
 
 const PROPERTY_GROUP = /<PropertyGroup(?<attributes>[^>]*)>(?<body>[\s\S]*?)<\/PropertyGroup>/g;
 const PROPERTY = /<(?<name>\w+)(?<attributes>\s[^>]*)?>(?<value>[^<]*)<\/\k<name>>/g;
-const CONDITION = /Condition="(?<condition>[^"]*)"/;
 // Compiler warnings can be written as bare numbers in NoWarn, such as 1591 for CS1591.
 const COMPILER_WARNING = /^(?:CS)?\d+$/;
 const PACKAGE_ITEM = /<(?:Global)?Package(?:Reference|Version)\s[^>]*Include="(?<id>[^"]+)"/g;
-const TEST_ACCESS_ITEM = /<InternalsVisibleTo\s[^>]*(?<action>Include|Remove)="\$\(AssemblyName\)\.Tests"/;
-/** A condition that limits a group to CI builds. */
-export const CI_CONDITION = /ContinuousIntegrationBuild|\$\(CI\)|TF_BUILD|GITHUB_ACTIONS/;
 const UNMAINTAINED_PACKAGES = ['StyleCop.Analyzers', 'SecurityCodeScan', 'SecurityCodeScan.VS2019', 'IDisposableAnalyzers', 'AsyncFixer'];
 const DROPPED_PROPERTIES: Readonly<Record<string, string>> = {
 	LangVersion: 'the C# version follows the target framework, as Microsoft recommends',
@@ -30,40 +26,42 @@ const DROPPED_PROPERTIES: Readonly<Record<string, string>> = {
 export function importMsBuildFile(text: string, catalog: Catalog): ImportResult {
 	const settings: ImportResult['settings'] = {};
 	const notes: ImportNote[] = [];
+	let projectNamePrefix: string | undefined;
 	const unsupported = new Set<string>();
 	let skippedConditionCount = 0;
 
 	for (const group of text.matchAll(PROPERTY_GROUP)) {
-		const condition = CONDITION.exec(group.groups?.attributes ?? '')?.groups?.condition;
-		const projectNamePrefix = condition === undefined ? undefined : PROJECT_NAME_CONDITION.exec(condition)?.groups?.prefix;
-		if (projectNamePrefix) {
-			settings.projectNamePrefix = projectNamePrefix;
+		const attributes = group.groups?.attributes ?? '';
+		const conditionKind = toConditionKind(attributes);
+		if (conditionKind === 'project name') {
+			projectNamePrefix = readProjectNamePrefix(attributes);
 			continue;
 		}
 
-		const isCiOnly = condition !== undefined && CI_CONDITION.test(condition);
-		if (condition && !isCiOnly) {
+		if (conditionKind === 'other') {
 			skippedConditionCount++;
 			continue;
 		}
 
+		const isCiOnly = conditionKind === 'CI';
 		for (const property of (group.groups?.body ?? '').matchAll(PROPERTY)) {
 			// A condition on the property itself limits it the same way a group's does.
-			const propertyCondition = CONDITION.exec(property.groups?.attributes ?? '')?.groups?.condition;
-			const isPropertyCiOnly = propertyCondition !== undefined && CI_CONDITION.test(propertyCondition);
-			if (propertyCondition && !isPropertyCiOnly) {
+			const propertyConditionKind = toConditionKind(property.groups?.attributes ?? '');
+			if (propertyConditionKind === 'other' || propertyConditionKind === 'project name') {
 				skippedConditionCount++;
 				continue;
 			}
 
 			const name = property.groups?.name ?? '';
 			const value = (property.groups?.value ?? '').trim();
-			notes.push(...importProperty(name, value, isCiOnly || isPropertyCiOnly, catalog, settings, unsupported));
+			notes.push(...importProperty(name, value, isCiOnly || propertyConditionKind === 'CI', catalog, settings, unsupported));
 		}
 	}
 
 	const testAccess = TEST_ACCESS_ITEM.exec(text)?.groups?.action;
 	if (testAccess) settings.areInternalsVisibleToTests = testAccess === 'Include';
+	const projectUnderTest = PROJECT_UNDER_TEST_ITEM.exec(text)?.groups?.action;
+	if (projectUnderTest) settings.isProjectUnderTestReferenced = projectUnderTest === 'Include';
 
 	const packageIds = [...text.matchAll(PACKAGE_ITEM)].map(match => match.groups?.id ?? '');
 	const analyzerPackages = packageIds.filter(id => catalog.packages.has(id));
@@ -74,7 +72,7 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 	if (skippedConditionCount > 0)
 		notes.push({ severity: 'info', isDropped: true, message: `Skipped ${skippedConditionCount} conditional properties or property groups; only unconditional and CI-only settings are imported.` });
 	if (unsupported.size > 0) notes.push({ severity: 'info', isDropped: true, message: `${[...unsupported].join(', ')} aren't properties the wizard writes, so they were dropped.` });
-	return { settings, notes };
+	return { settings, notes, projectNamePrefix };
 }
 
 function importProperty(name: string, value: string, isCiOnly: boolean, catalog: Catalog, settings: ImportResult['settings'], unsupported: Set<string>): ImportNote[] {
@@ -107,6 +105,9 @@ function importProperty(name: string, value: string, isCiOnly: boolean, catalog:
 			...(unsupportedTfms.length > 0 ? [{ severity: 'warning' as const, isDropped: true, message: `${unsupportedTfms.join(', ')} were dropped; the wizard supports .NET 10 and later only.` }] : [])
 		];
 	}
+
+	// These only feed the project under test reference, which is read from its item.
+	if ((PROJECT_UNDER_TEST_PROPERTIES as readonly string[]).includes(name)) return [];
 
 	const property = BUILD_PROPERTIES_BY_NAME.get(name);
 	if (!property) {

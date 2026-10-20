@@ -1,4 +1,4 @@
-import { BUILD_PROPERTIES_BY_NAME } from '../build/buildProperties.ts';
+import { BUILD_PROPERTIES_BY_NAME, PROJECT_UNDER_TEST_ITEM, PROJECT_UNDER_TEST_PROPERTIES, PROJECTS_UNDER_TEST_FOLDER, TEST_ACCESS_ITEM } from '../build/buildProperties.ts';
 import type { Catalog, CatalogOption } from '../catalog/catalog.ts';
 import { FORMATTING_GLOBS, FORMATTING_KEYS } from '../formatting/formattingKeys.ts';
 import { STEP_PATHS } from '../ui/wizardSteps.ts';
@@ -27,7 +27,6 @@ const CATEGORY_SEVERITY = /^dotnet_analyzer_diagnostic\.category-(\w+)\.severity
 const NAMING_PART = /^dotnet_naming_(rule|symbols|style)\.(\w+)\.(\w+)$/;
 const MSBUILD_PROPERTY = /^<(\w+)>([^<]*)<\/\1>$/;
 const PACKAGE_ITEM = /^<(GlobalPackageReference|PackageReference|PackageVersion) (Include|Remove)="([^"]+)"/;
-const TEST_ACCESS_ITEM = /^<InternalsVisibleTo (Include|Remove)="\$\(AssemblyName\)\.Tests"/;
 const JSON_PROPERTY = /^"([\w-]+)":\s*(.+?),?$/;
 const BANNED_SYMBOL = /^([TMPFEN]):([^;]+);(.*)$/;
 
@@ -179,8 +178,22 @@ function describeMsBuildLine(text: string, catalog: Catalog): LineInfo | undefin
 		const prefix = property[2].replace('.$(MSBuildProjectName)', '');
 		return {
 			title: `${property[1]} = ${property[2]}`,
-			details: [`Adds ${prefix} to the front of each project's ${property[1] === 'AssemblyName' ? 'assembly name' : 'root namespace'}, unless its name already starts with it.`],
+			details: [
+				`Adds ${prefix} to the front of each project's ${property[1] === 'AssemblyName' ? 'assembly name' : 'root namespace'}, unless the project is already named ${prefix} or ${prefix}.<something>.`
+			],
 			target: { path: STEP_PATHS.build, selector: '[data-setting="ProjectNamePrefix"]' }
+		};
+	}
+
+	if (property && (PROJECT_UNDER_TEST_PROPERTIES as readonly string[]).includes(property[1])) {
+		return {
+			title: property[1],
+			details: [
+				property[1] === PROJECT_UNDER_TEST_PROPERTIES[0]
+					? 'The name of the project a test project tests: its own name without .Tests on the end.'
+					: `Where that project is: ${PROJECTS_UNDER_TEST_FOLDER}/<name>/<name>.csproj.`
+			],
+			target: { path: STEP_PATHS.build, selector: '[data-setting="ProjectUnderTest"]' }
 		};
 	}
 
@@ -207,16 +220,31 @@ function describeMsBuildLine(text: string, catalog: Catalog): LineInfo | undefin
 		}
 	}
 
-	const testAccess = TEST_ACCESS_ITEM.exec(text);
+	const testAccess = TEST_ACCESS_ITEM.exec(text)?.groups?.action;
 	if (testAccess) {
+		const isIncluded = testAccess === 'Include';
 		return {
-			title: testAccess[1] === 'Include' ? 'Internals visible to tests' : 'Internals hidden from tests',
+			title: isIncluded ? 'Internals visible to tests' : 'Internals hidden from tests',
 			details: [
-				testAccess[1] === 'Include'
+				isIncluded
 					? "Lets each project's test project, named after it with .Tests on the end, use its internal types."
-					: 'Stops projects in this folder sharing their internal types with their test projects.'
+					: 'Stops projects in this folder from sharing their internal types with their test projects.'
 			],
 			target: { path: STEP_PATHS.build, selector: '[data-setting="InternalsVisibleTo"]' }
+		};
+	}
+
+	const projectUnderTest = PROJECT_UNDER_TEST_ITEM.exec(text)?.groups?.action;
+	if (projectUnderTest) {
+		const isIncluded = projectUnderTest === 'Include';
+		return {
+			title: isIncluded ? 'Project under test referenced' : 'Project under test not referenced',
+			details: [
+				isIncluded
+					? `References ${PROJECTS_UNDER_TEST_FOLDER}/<name>/<name>.csproj from <name>.Tests, when that project exists.`
+					: 'Removes the reference to the project under test that the folder above adds.'
+			],
+			target: { path: STEP_PATHS.build, selector: '[data-setting="ProjectUnderTest"]' }
 		};
 	}
 

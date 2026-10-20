@@ -1,4 +1,4 @@
-import { getParentScope, resolveScope } from './scopes.ts';
+import { resolveInheritedScope } from './scopes.ts';
 import type { ScopeConfig, WizardConfig } from './wizardConfig.ts';
 
 /**
@@ -35,10 +35,9 @@ export function toScopePreset(path: string, config: WizardConfig): ScopeConfig {
 	const scope = structuredClone(SCOPE_PRESETS.find(preset => preset.scope.path === path)?.scope ?? { path });
 	if (path !== 'src' && config.scopes[0].build?.IsAotCompatible === 'true') scope.build = { ...scope.build, IsAotCompatible: 'false' };
 
-	const parent = getParentScope(config, scope);
-	if (!parent) return scope;
+	const inherited = resolveInheritedScope(config, scope);
+	if (!inherited) return scope;
 
-	const inherited = resolveScope(config, parent);
 	if (scope.severities) scope.severities = withoutInherited(scope.severities, inherited.severities);
 	if (scope.build) scope.build = withoutInherited(scope.build, inherited.build);
 	return scope;

@@ -1,8 +1,12 @@
-import type { ScopeConfig } from '../config/wizardConfig.ts';
+import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import type { ImportResult } from './importResult.ts';
 
-/** Merges imported settings into a scope: imported values win, lists of packages combine, and naming rules replace by symbol group. */
-export function mergeImport(scope: ScopeConfig, settings: ImportResult['settings']): void {
+/**
+ * Merges an imported file into a scope, and its repo-wide settings into the config: imported values win, lists of packages
+ * combine, and naming rules replace by symbol group.
+ */
+export function mergeImport(config: WizardConfig, scope: ScopeConfig, { settings, projectNamePrefix }: ImportResult): void {
+	if (projectNamePrefix) config.projectNamePrefix = projectNamePrefix;
 	for (const [glob, values] of Object.entries(settings.formatting ?? {})) {
 		scope.formatting ??= {};
 		scope.formatting[glob] = { ...scope.formatting[glob], ...values };
@@ -16,8 +20,8 @@ export function mergeImport(scope: ScopeConfig, settings: ImportResult['settings
 	if (settings.tfms && settings.tfms.length > 0) scope.tfms = settings.tfms;
 	if (settings.isIgnored) scope.isIgnored = true;
 	if (settings.isTargetFrameworkShared) scope.isTargetFrameworkShared = true;
-	if (settings.projectNamePrefix) scope.projectNamePrefix = settings.projectNamePrefix;
 	if (settings.areInternalsVisibleToTests !== undefined) scope.areInternalsVisibleToTests = settings.areInternalsVisibleToTests;
+	if (settings.isProjectUnderTestReferenced !== undefined) scope.isProjectUnderTestReferenced = settings.isProjectUnderTestReferenced;
 	if (settings.packages) scope.packages = [...new Set([...(scope.packages ?? []), ...settings.packages])];
 	if (settings.naming) {
 		const importedSymbols = new Set(settings.naming.map(rule => rule.symbols));

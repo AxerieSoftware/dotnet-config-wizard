@@ -24,6 +24,9 @@ export type BuildProperty = {
 	isRepoWide?: boolean;
 };
 
+/** What a condition limits a group or property to. CI-only conditions all count as one, since people write them differently. */
+export type ConditionKind = 'none' | 'CI' | 'project name' | 'other';
+
 const BOOLEAN = ['true', 'false'] as const;
 
 /**
@@ -255,10 +258,46 @@ export const BUILD_PROPERTIES_BY_NAME: ReadonlyMap<string, BuildProperty> = new 
 /** A prefix the wizard can add to project names: one or more dot-separated identifiers, such as `Contoso` or `Contoso.Tools`. */
 export const PROJECT_NAME_PREFIX = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/;
 
-/** The group condition that adds the prefix only to projects not already named with it, so none get it twice. */
+const CONDITION = /Condition="(?<condition>[^"]*)"/;
+
+/** A condition that limits a group to CI builds. */
+const CI_CONDITION = /ContinuousIntegrationBuild|\$\(CI\)|TF_BUILD|GITHUB_ACTIONS/;
+
+/** A group condition written by `toProjectNameCondition`, with its prefix. */
+const PROJECT_NAME_CONDITION = /^'\$\(MSBuildProjectName\)' != '(?<prefix>[\w.]+)' and !\$\(MSBuildProjectName\.StartsWith\('\k<prefix>\.'\)\)$/;
+
+/** The test project that can see a project's internal types: the project's name plus `.Tests`. */
+export const TEST_ASSEMBLY_NAME = '$(AssemblyName).Tests';
+
+/** The `TEST_ASSEMBLY_NAME` item, and whether it adds or removes access. */
+export const TEST_ACCESS_ITEM = /<InternalsVisibleTo\s[^>]*(?<action>Include|Remove)="\$\(AssemblyName\)\.Tests"/;
+
+/** The folder test projects find the project they test in, as `<folder>/<name>/<name>.csproj` for a test project named `<name>.Tests`. */
+export const PROJECTS_UNDER_TEST_FOLDER = 'src';
+
+/** The properties that name a test project's project under test and the path to it. */
+export const PROJECT_UNDER_TEST_PROPERTIES = ['ProjectUnderTest', 'ProjectUnderTestPath'] as const;
+
+/** The path to the project under test, which the reference to it includes. */
+export const PROJECT_UNDER_TEST_PATH = '$(ProjectUnderTestPath)';
+
+/** The reference to the project under test, and whether it adds or removes it. */
+export const PROJECT_UNDER_TEST_ITEM = /<ProjectReference\s[^>]*(?<action>Include|Remove)="\$\(ProjectUnderTestPath\)"/;
+
+/** The group condition that adds the prefix only to projects not already named with it (`Contoso` or `Contoso.Billing` for prefix `Contoso`), so none get it twice. */
 export function toProjectNameCondition(prefix: string): string {
-	return `!$(MSBuildProjectName.StartsWith('${prefix}.'))`;
+	return `'$(MSBuildProjectName)' != '${prefix}' and !$(MSBuildProjectName.StartsWith('${prefix}.'))`;
 }
 
-/** Reads the prefix back from a group condition written by `toProjectNameCondition`. */
-export const PROJECT_NAME_CONDITION = /^!\$\(MSBuildProjectName\.StartsWith\('(?<prefix>[\w.]+)\.'\)\)$/;
+/** The kind of condition in a group's or property's attributes. */
+export function toConditionKind(attributes: string): ConditionKind {
+	const condition = CONDITION.exec(attributes)?.groups?.condition ?? '';
+	if (condition === '') return 'none';
+	if (CI_CONDITION.test(condition)) return 'CI';
+	return PROJECT_NAME_CONDITION.test(condition) ? 'project name' : 'other';
+}
+
+/** The prefix a project name group's attributes add, or undefined for any other group. */
+export function readProjectNamePrefix(attributes: string): string | undefined {
+	return PROJECT_NAME_CONDITION.exec(CONDITION.exec(attributes)?.groups?.condition ?? '')?.groups?.prefix;
+}

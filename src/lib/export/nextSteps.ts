@@ -1,3 +1,4 @@
+import { PROJECTS_UNDER_TEST_FOLDER } from '../build/buildProperties.ts';
 import { resolveScope } from '../config/scopes.ts';
 import type { WizardConfig } from '../config/wizardConfig.ts';
 import type { GeneratedFile } from './generatedFile.ts';
@@ -27,10 +28,14 @@ export function toNextSteps(config: WizardConfig, files: readonly GeneratedFile[
 		steps.push('Build output now goes to one artifacts folder at the repo root. Add `artifacts/` to .gitignore, and update CI paths that read bin/ or obj/.');
 	if (isAnyScope(scope => scope.build.IsPackable === 'true' && scope.build.VersionPrefix === undefined))
 		steps.push("Set `<VersionPrefix>` in each package's project file, such as `1.0.0`, so each package has its own version. A package without one is versioned 1.0.0.");
-	const prefix = config.scopes[0]?.projectNamePrefix;
+	const prefix = config.projectNamePrefix;
 	if (prefix)
 		steps.push(
-			`Projects now build as ${prefix}.<project name>, so remove AssemblyName and RootNamespace from project files that only add ${prefix}. Projects already named ${prefix}.<something> are left as they are.`
+			`Projects now build as ${prefix}.<project name>, so remove AssemblyName and RootNamespace from project files that only add ${prefix}. Projects named ${prefix} or ${prefix}.<something> are left as they are.`
+		);
+	if (isAnyScope(scope => scope.isProjectUnderTestReferenced))
+		steps.push(
+			`Test projects named \`<project>.Tests\` now reference \`${PROJECTS_UNDER_TEST_FOLDER}/<project>/<project>.csproj\` from Directory.Build.props, so remove that ProjectReference from their project files. Keep every other reference.`
 		);
 	if (isAnyScope(scope => scope.areInternalsVisibleToTests))
 		steps.push("Name each test project after the project it tests with `.Tests` on the end, such as `Contoso.Billing.Tests`, so it can use that project's internal types.");

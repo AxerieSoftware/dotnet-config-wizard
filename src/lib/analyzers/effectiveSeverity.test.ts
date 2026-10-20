@@ -23,6 +23,7 @@ function toScope(overrides: Partial<ResolvedScope>): ResolvedScope {
 		bannedApis: [],
 		isTargetFrameworkShared: false,
 		areInternalsVisibleToTests: false,
+		isProjectUnderTestReferenced: false,
 		...overrides
 	};
 }

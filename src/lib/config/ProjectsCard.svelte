@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PROJECTS_UNDER_TEST_FOLDER } from '../build/buildProperties.ts';
 	import { toFrameworkProperty } from '../build/buildPropsFiles.ts';
 	import Icon from '../ui/Icon.svelte';
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
@@ -15,9 +16,16 @@
 	// An SDK can't build a framework newer than itself, and the wizard doesn't support .NET Framework or .NET Standard.
 	const unsupportedTfms = $derived(tfms.filter(tfm => !isSupportedTargetFramework(tfm) || !offeredTfms.some(offered => tfm.startsWith(offered))));
 	const scopeLabel = $derived(wizard.isRootActive ? 'the repo root' : `${wizard.activeScope.path}/`);
+	const examplePrefix = $derived(wizard.config.projectNamePrefix ?? 'Contoso');
 
 	function toggleTfm(tfm: string, isChecked: boolean): void {
 		wizard.setTargetFrameworks(isChecked ? [...tfms, tfm] : tfms.filter(existing => existing !== tfm));
+	}
+
+	function setProjectNamePrefix(input: HTMLInputElement): void {
+		wizard.setProjectNamePrefix(input.value);
+		// When the cleaned-up prefix matches the stored one, the value binding doesn't refresh the field.
+		input.value = wizard.config.projectNamePrefix ?? '';
 	}
 
 	function setOtherTfms(text: string): void {
@@ -95,14 +103,14 @@
 			<input
 				aria-label="Project name prefix"
 				data-setting="ProjectNamePrefix"
-				value={wizard.rootScope.projectNamePrefix ?? ''}
+				value={wizard.config.projectNamePrefix ?? ''}
 				placeholder="Contoso"
-				onchange={event => wizard.setProjectNamePrefix(event.currentTarget.value.trim().replace(/\.+$/, '') || undefined)}
+				onchange={event => setProjectNamePrefix(event.currentTarget)}
 			>
 		</label>
 		<p class="caption">
-			Builds <code>Billing</code> as <code>{wizard.rootScope.projectNamePrefix ?? 'Contoso'}.Billing</code> and its tests as
-			<code>{wizard.rootScope.projectNamePrefix ?? 'Contoso'}.Billing.Tests</code>, so short project names need no renaming. Projects already named with the prefix are left alone.
+			Builds <code>Billing</code> as <code>{examplePrefix}.Billing</code> and its tests as
+			<code>{examplePrefix}.Billing.Tests</code>, so short project names need no renaming. Projects already named with the prefix are left alone.
 		</p>
 	{/if}
 	<label class="checkbox">
@@ -115,4 +123,20 @@
 		>
 		<span>Let each project's tests use its internal types. The test project must be named after it with <code>.Tests</code> on the end.</span>
 	</label>
+	<!-- Shown while on even outside a test folder, so it can always be turned off. -->
+	{#if wizard.resolvedActiveScope.projectKind === 'test' || wizard.resolvedActiveScope.isProjectUnderTestReferenced}
+		<label class="checkbox">
+			<input
+				type="checkbox"
+				aria-label="Reference the project under test"
+				data-setting="ProjectUnderTest"
+				checked={wizard.resolvedActiveScope.isProjectUnderTestReferenced}
+				onchange={event => wizard.setProjectUnderTestReferenced(event.currentTarget.checked)}
+			>
+			<span>
+				Add each test project's reference to the project it covers, so project files don't need it: <code>Billing.Tests</code> references
+				<code>{PROJECTS_UNDER_TEST_FOLDER}/Billing/Billing.csproj</code>. A test project with no matching project gets no reference.
+			</span>
+		</label>
+	{/if}
 </section>

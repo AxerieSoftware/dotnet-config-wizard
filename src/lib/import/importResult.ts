@@ -4,7 +4,7 @@ import type { ScopeConfig } from '../config/wizardConfig.ts';
 export type ImportNote = { severity: 'error' | 'warning' | 'info'; message: string; isDropped?: boolean };
 
 /** Settings read from an existing file, ready to merge into a scope, with notes on anything changed or dropped. */
-export type ImportResult = { settings: Omit<ScopeConfig, 'path'>; notes: ImportNote[]; catalogVersion?: string };
+export type ImportResult = { settings: Omit<ScopeConfig, 'path'>; notes: ImportNote[]; catalogVersion?: string; projectNamePrefix?: string };
 
 export const UNMAINTAINED_PREFIXES: readonly { prefix: RegExp; name: string }[] = [
 	{ prefix: /^S[AX]\d{4}$/, name: 'StyleCop.Analyzers' },

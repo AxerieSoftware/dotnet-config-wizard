@@ -1,0 +1,10 @@
+<Project Sdk="MSTest.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+	</PropertyGroup>
+
+	<!-- Configs that reference the project under test from Directory.Build.props set ProjectUnderTestPath; the rest need the reference here. -->
+	<ItemGroup Condition="'$(ProjectUnderTestPath)' == ''">
+		<ProjectReference Include="../../src/Sample.Greeting/Sample.Greeting.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,9 +1,8 @@
-import { PROJECT_NAME_CONDITION } from '../build/buildProperties.ts';
-import { TEST_ASSEMBLY_NAME, WRITTEN_PROPERTY_NAMES } from '../build/buildPropsFiles.ts';
+import { type ConditionKind, PROJECT_UNDER_TEST_PATH, TEST_ASSEMBLY_NAME, toConditionKind } from '../build/buildProperties.ts';
+import { WRITTEN_PROPERTY_NAMES } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { toFileName } from '../export/fileTree.ts';
 import { FORMATTING_KEY_NAMES } from '../import/editorConfigImport.ts';
-import { CI_CONDITION } from '../import/msbuildImport.ts';
 import { parseJson } from '../import/repoSettingsImport.ts';
 
 const EDITORCONFIG_SETTING = /^\s*([\w.-]+)\s*=/;
@@ -20,11 +19,14 @@ type XmlNode = { raw: string; name: string; attributes: string; body: string; is
 /** What saving does with an existing top-level XML element: drop it, keep it whole, or keep the children the wizard doesn't write. */
 type XmlNodeHandling = { kind: 'managed' } | { kind: 'kept' } | { kind: 'group'; isManagedChild: (child: XmlNode) => boolean };
 
+/** An element with the comments directly above it. */
+type CommentedNode = { node: XmlNode; comments: string[] };
+
 /** Lines to add after a line of the generated file; insertions at the same line keep the order they were found in. */
 type Insertion = { after: number; lines: string[] };
 
 /** A top-level element of the generated XML, by line. */
-type GeneratedXmlNode = { name: string; start: number; end: number };
+type GeneratedXmlNode = { name: string; conditionKind: ConditionKind; start: number; end: number };
 
 /**
  * The text to save for a generated file: the wizard's version, with everything the existing file holds that the wizard
@@ -159,30 +161,57 @@ function mergeXml(generated: string, existing: string, root: string, toHandling:
 	const generatedNodes = toGeneratedXmlNodes(lines, indent);
 	const insertions: Insertion[] = [];
 	let topAnchor = rootLine;
-	let comments: string[] = [];
 
-	for (const node of toXmlNodes(body)) {
+	for (const { node, comments } of toCommentedNodes(toXmlNodes(body))) {
+		const handling = toHandling(node);
+		if (handling.kind === 'managed') {
+			const match = generatedNodes.find(generatedNode => generatedNode.name === node.name);
+			if (match) topAnchor = match.end;
+			continue;
+		}
+
+		const generatedGroup = handling.kind === 'group' ? mergeXmlGroup(node, handling.isManagedChild, lines, generatedNodes, indent, insertions) : undefined;
+		if (generatedGroup) {
+			topAnchor = generatedGroup.end;
+			continue;
+		}
+
+		const kept = handling.kind === 'kept' ? node.raw : toKeptGroup(node, handling.isManagedChild, indent);
+		if (kept !== undefined) insertions.push({ after: topAnchor, lines: ['', ...toIndentedLines(comments, kept, indent)] });
+	}
+
+	return `${applyInsertions(lines, insertions).join('\n')}\n`;
+}
+
+function toGeneratedXmlNodes(lines: readonly string[], indent: string): GeneratedXmlNode[] {
+	const nodes: GeneratedXmlNode[] = [];
+	for (let index = 0; index < lines.length; index++) {
+		const line = lines[index];
+		if (!line.startsWith(`${indent}<`) || line.startsWith(`${indent}</`) || line.startsWith(`${indent}<!--`) || line.startsWith(`${indent}${indent}`)) continue;
+
+		const name = /^<([\w.:-]+)/.exec(line.trim())?.[1] ?? '';
+		const closing = line.trimEnd().endsWith('/>') ? index : lines.findIndex((candidate, candidateIndex) => candidateIndex > index && candidate === `${indent}</${name}>`);
+		nodes.push({ name, conditionKind: toConditionKind(line), start: index, end: closing === -1 ? index : closing });
+	}
+
+	return nodes;
+}
+
+/** Pairs each element with the comments directly above it. Comments with no element after them are dropped. */
+function toCommentedNodes(nodes: readonly XmlNode[]): CommentedNode[] {
+	const result: CommentedNode[] = [];
+	let comments: string[] = [];
+	for (const node of nodes) {
 		if (node.isComment) {
 			comments.push(node.raw);
 			continue;
 		}
 
-		const handling = toHandling(node);
-		if (handling.kind === 'managed') {
-			const match = generatedNodes.find(generatedNode => generatedNode.name === node.name);
-			if (match) topAnchor = match.end;
-		} else if (handling.kind === 'kept') {
-			insertions.push({ after: topAnchor, lines: ['', ...comments.map(comment => indent + comment), ...indentFirst(node.raw, indent)] });
-		} else {
-			const generatedGroup = mergeXmlGroup(node, handling.isManagedChild, lines, generatedNodes, indent, insertions);
-			const keptGroup = generatedGroup ? undefined : toKeptGroup(node, handling.isManagedChild, indent);
-			if (generatedGroup) topAnchor = generatedGroup.end;
-			else if (keptGroup) insertions.push({ after: topAnchor, lines: ['', ...comments.map(comment => indent + comment), ...keptGroup] });
-		}
+		result.push({ node, comments });
 		comments = [];
 	}
 
-	return `${applyInsertions(lines, insertions).join('\n')}\n`;
+	return result;
 }
 
 /**
@@ -197,68 +226,43 @@ function mergeXmlGroup(
 	indent: string,
 	insertions: Insertion[]
 ): GeneratedXmlNode | undefined {
-	const children = toXmlNodes(node.body);
+	const children = toCommentedNodes(toXmlNodes(node.body));
 	const childIndent = indent + indent;
-	const findGeneratedLine = (child: XmlNode) => lines.findIndex(line => line.startsWith(childIndent) && toChildIdentity(line.trim()) === toIdentity(child));
-	const managedLines = children
-		.filter(child => !child.isComment && isManagedChild(child))
-		.map(findGeneratedLine)
-		.filter(index => index !== -1);
-	if (managedLines.length === 0) return undefined;
+	// Only groups with the same kind of condition, so a kept child of a CI-only group never moves into an unconditional one, and a new
+	// project name prefix takes over the old prefix's group.
+	const conditionKind = toConditionKind(node.attributes);
+	const groups = generatedNodes.filter(generatedNode => generatedNode.name === node.name && generatedNode.conditionKind === conditionKind);
+	const findGeneratedLine = (child: XmlNode) => {
+		const identity = toChildIdentity(child.name, child.attributes);
+		return lines.findIndex((line, index) => line.startsWith(childIndent) && toLineIdentity(line) === identity && groups.some(group => group.start < index && index < group.end));
+	};
+
+	const managedChildren = children.filter(({ node: child }) => isManagedChild(child));
+	const generatedLines = new Map(managedChildren.map(({ node: child }) => [child, findGeneratedLine(child)]));
+	const firstGeneratedLine = [...generatedLines.values()].find(index => index !== -1);
+	if (firstGeneratedLine === undefined) return undefined;
 
 	let anchor: number | undefined;
-	let comments: string[] = [];
-	for (const child of children) {
-		if (child.isComment) {
-			comments.push(child.raw);
-			continue;
-		}
-
-		if (isManagedChild(child)) {
-			const index = findGeneratedLine(child);
-			if (index !== -1) anchor = index;
-		} else {
+	for (const { node: child, comments } of children) {
+		const generatedLine = generatedLines.get(child);
+		if (generatedLine === undefined) {
 			// A kept child before any managed one goes above the first managed child and its comments.
-			const after = anchor ?? toLineAboveComments(lines, managedLines[0]);
-			insertions.push({ after, lines: [...comments.map(comment => childIndent + comment), ...indentFirst(child.raw, childIndent)] });
+			insertions.push({ after: anchor ?? toLineAboveComments(lines, firstGeneratedLine), lines: toIndentedLines(comments, child.raw, childIndent) });
+		} else if (generatedLine !== -1) {
+			anchor = generatedLine;
 		}
-		comments = [];
 	}
 
-	return generatedNodes.find(generatedNode => generatedNode.start < managedLines[0] && generatedNode.end > managedLines[0]);
+	return groups.find(group => group.start < firstGeneratedLine && group.end > firstGeneratedLine);
 }
 
 /** A group none of whose managed children are generated: only its kept children, under its own start tag, or undefined when it keeps none. */
-function toKeptGroup(node: XmlNode, isManagedChild: (child: XmlNode) => boolean, indent: string): string[] | undefined {
-	const childIndent = indent + indent;
-	let comments: string[] = [];
-	const kept: string[] = [];
-	for (const child of toXmlNodes(node.body)) {
-		if (child.isComment) {
-			comments.push(child.raw);
-			continue;
-		}
-
-		if (!isManagedChild(child)) kept.push(...comments.map(comment => childIndent + comment), ...indentFirst(child.raw, childIndent));
-		comments = [];
-	}
-
+function toKeptGroup(node: XmlNode, isManagedChild: (child: XmlNode) => boolean, indent: string): string | undefined {
+	const kept = toCommentedNodes(toXmlNodes(node.body))
+		.filter(({ node: child }) => !isManagedChild(child))
+		.flatMap(({ node: child, comments }) => toIndentedLines(comments, child.raw, indent + indent));
 	if (kept.length === 0) return undefined;
-	return [`${indent}<${node.name}${node.attributes}>`, ...kept, `${indent}</${node.name}>`];
-}
-
-function toGeneratedXmlNodes(lines: readonly string[], indent: string): GeneratedXmlNode[] {
-	const nodes: GeneratedXmlNode[] = [];
-	for (let index = 0; index < lines.length; index++) {
-		const line = lines[index];
-		if (!line.startsWith(`${indent}<`) || line.startsWith(`${indent}</`) || line.startsWith(`${indent}<!--`) || line.startsWith(`${indent}${indent}`)) continue;
-
-		const name = /^<([\w.:-]+)/.exec(line.trim())?.[1] ?? '';
-		const closing = line.trimEnd().endsWith('/>') ? index : lines.findIndex((candidate, candidateIndex) => candidateIndex > index && candidate === `${indent}</${name}>`);
-		nodes.push({ name, start: index, end: closing === -1 ? index : closing });
-	}
-
-	return nodes;
+	return [`<${node.name}${node.attributes}>`, ...kept, `${indent}</${node.name}>`].join('\n');
 }
 
 /** The line just above a generated child and the comments that describe it. */
@@ -268,20 +272,25 @@ function toLineAboveComments(lines: readonly string[], index: number): number {
 	return above;
 }
 
-function toIdentity(node: XmlNode): string {
-	return toChildIdentity(`<${node.name}${node.attributes}>`);
+function toLineIdentity(line: string): string {
+	const [node] = toXmlNodes(line.trim());
+	return node ? toChildIdentity(node.name, node.attributes) : '';
 }
 
 /** A child element's name, plus what it includes or removes for items, so the same item can be found in either file. */
-function toChildIdentity(tag: string): string {
-	const name = /^<([\w.:-]+)/.exec(tag)?.[1] ?? '';
-	const include = /\s(?:Include|Remove)="([^"]*)"/.exec(tag)?.[1];
+function toChildIdentity(name: string, attributes: string): string {
+	const include = toItemInclude(attributes);
 	return include === undefined ? name : `${name} ${include}`;
 }
 
-function indentFirst(raw: string, indent: string): string[] {
+function toItemInclude(attributes: string): string | undefined {
+	return /(?:Include|Remove)="([^"]*)"/.exec(attributes)?.[1];
+}
+
+/** An element's lines with the comments above it, starting at `indent`; the element's later lines keep the indentation they have. */
+function toIndentedLines(comments: readonly string[], raw: string, indent: string): string[] {
 	const [first, ...rest] = raw.split('\n');
-	return [indent + first, ...rest];
+	return [...comments.map(comment => indent + comment), indent + first, ...rest];
 }
 
 function applyInsertions(lines: readonly string[], insertions: readonly Insertion[]): string[] {
@@ -294,20 +303,22 @@ function applyInsertions(lines: readonly string[], insertions: readonly Insertio
 
 /** How saving treats a top-level MSBuild element: unconditional and CI-only groups are merged, the parent import is the wizard's, and everything else is kept. */
 function toMsBuildHandling(node: XmlNode, catalog: Catalog): XmlNodeHandling {
-	const condition = /Condition="([^"]*)"/.exec(node.attributes)?.[1];
 	if (node.name === 'Import') return { kind: node.attributes.includes('GetPathOfFileAbove') ? 'managed' : 'kept' };
-	if (condition && PROJECT_NAME_CONDITION.test(condition)) return { kind: 'group', isManagedChild: child => child.name === 'AssemblyName' || child.name === 'RootNamespace' };
-	if ((node.name !== 'PropertyGroup' && node.name !== 'ItemGroup') || (condition && !CI_CONDITION.test(condition))) return { kind: 'kept' };
+
+	const conditionKind = toConditionKind(node.attributes);
+	if (conditionKind === 'project name') return { kind: 'group', isManagedChild: child => child.name === 'AssemblyName' || child.name === 'RootNamespace' };
+	if ((node.name !== 'PropertyGroup' && node.name !== 'ItemGroup') || conditionKind === 'other') return { kind: 'kept' };
 
 	const isManagedChild = node.name === 'PropertyGroup' ? (child: XmlNode) => WRITTEN_PROPERTY_NAMES.has(child.name) : (child: XmlNode) => isManagedItem(child, catalog);
 	return { kind: 'group', isManagedChild };
 }
 
 function isManagedItem(item: XmlNode, catalog: Catalog): boolean {
-	const include = /(?:Include|Remove)="([^"]+)"/.exec(item.attributes)?.[1] ?? '';
+	const include = toItemInclude(item.attributes) ?? '';
 	if (item.name === 'GlobalPackageReference' || item.name === 'PackageReference') return catalog.packages.has(include);
 	if (item.name === 'AdditionalFiles' || item.name === 'GlobalAnalyzerConfigFiles') return ANALYZER_FILE.test(include);
 	if (item.name === 'InternalsVisibleTo') return include === TEST_ASSEMBLY_NAME;
+	if (item.name === 'ProjectReference') return include === PROJECT_UNDER_TEST_PATH;
 	// The README and icon pack items the wizard writes for PackageReadmeFile and PackageIcon.
 	return item.name === 'None' && include.startsWith('$(MSBuildThisFileDirectory)') && item.attributes.includes('Pack="true"');
 }

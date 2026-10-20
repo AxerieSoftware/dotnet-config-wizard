@@ -446,6 +446,24 @@ test('letting tests use internal types adds the .Tests InternalsVisibleTo item',
 	await expect(page.locator('.line.linked')).toContainText('InternalsVisibleTo');
 });
 
+test("a tests folder can reference each test project's project under test", async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'tests');
+	await openStep(page, 'Build');
+	await page.getByRole('checkbox', { name: 'Reference the project under test' }).check();
+
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<ProjectReference Include="$(ProjectUnderTestPath)"');
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('$(MSBuildThisFileDirectory)../src/$(ProjectUnderTest)/$(ProjectUnderTest).csproj');
+	await expect(page.locator('.line.linked')).toContainText('<ProjectUnderTest>');
+
+	await page.getByRole('combobox', { name: 'Project kind' }).selectOption('library');
+	// Outside a test folder the checkbox stays while the setting is on, and goes once it's turned off.
+	await page.getByRole('checkbox', { name: 'Reference the project under test' }).click();
+
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).not.toContainText('ProjectUnderTestPath');
+	await expect(page.getByRole('checkbox', { name: 'Reference the project under test' })).toHaveCount(0);
+});
+
 test('a project name prefix names every project and its tests', async ({ page }) => {
 	await page.goto('/wizard/build');
 	await page.getByRole('textbox', { name: 'Project name prefix' }).fill('Contoso');
@@ -453,6 +471,18 @@ test('a project name prefix names every project and its tests', async ({ page })
 
 	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<AssemblyName>Contoso.$(MSBuildProjectName)</AssemblyName>');
 	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<RootNamespace>Contoso.$(MSBuildProjectName)</RootNamespace>');
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText(`Condition="'$(MSBuildProjectName)' != 'Contoso' and !$(MSBuildProjectName.StartsWith('Contoso.'))"`);
+});
+
+test('the project name prefix field trims surrounding spaces and trailing dots on blur', async ({ page }) => {
+	await page.goto('/wizard/build');
+	const prefix = page.getByRole('textbox', { name: 'Project name prefix' });
+	await prefix.fill('Contoso');
+	await prefix.press('Tab');
+	await prefix.fill(' Contoso. ');
+	await prefix.press('Tab');
+
+	await expect(prefix).toHaveValue('Contoso');
 });
 
 test('the folder being edited survives a reload', async ({ page }) => {
