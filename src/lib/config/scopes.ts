@@ -25,10 +25,14 @@ export type ResolvedScope = {
 /** The closest scope whose folder contains this one; the root scope contains every other scope. */
 export function getParentScope(config: WizardConfig, scope: ScopeConfig): ScopeConfig | undefined {
 	if (scope.path === '') return undefined;
+	return findScopeForFolder(config, scope.path.split('/').slice(0, -1).join('/'));
+}
 
+/** The scope whose folder holds a repo folder, such as `src/Billing`: the closest one, or the root scope. */
+export function findScopeForFolder(config: WizardConfig, folderPath: string): ScopeConfig {
 	return config.scopes
-		.filter(candidate => candidate !== scope && (candidate.path === '' || scope.path.startsWith(`${candidate.path}/`)))
-		.reduce<ScopeConfig | undefined>((closest, candidate) => (!closest || candidate.path.length > closest.path.length ? candidate : closest), undefined);
+		.filter(scope => scope.path === '' || folderPath === scope.path || folderPath.startsWith(`${scope.path}/`))
+		.reduce((closest, scope) => (scope.path.length > closest.path.length ? scope : closest), config.scopes[0]);
 }
 
 /** What a scope inherits from the folders above it, or undefined for the root scope. */

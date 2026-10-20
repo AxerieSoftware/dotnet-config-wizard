@@ -16,8 +16,8 @@ import {
 } from './buildProperties.ts';
 import { toElement, toGroup, toItem, toParentImport, toProjectDocument, type XmlLine } from './msbuildXml.ts';
 
-const BUILD_PROPS = 'Directory.Build.props';
-const PACKAGES_PROPS = 'Directory.Packages.props';
+export const BUILD_PROPS = 'Directory.Build.props';
+export const PACKAGES_PROPS = 'Directory.Packages.props';
 const BANNED_API_PACKAGE = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
 const PUBLIC_API_PACKAGE = 'Microsoft.CodeAnalysis.PublicApiAnalyzers';
 const SONAR_PACKAGE = 'SonarAnalyzer.CSharp';

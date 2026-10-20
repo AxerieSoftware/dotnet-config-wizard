@@ -3,6 +3,7 @@ import { readBands, readCatalog } from '../../../scripts/readCatalog.ts';
 import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
 import { toSavedState } from '../config/shareLink.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
+import { toPackagesPropsWithVersions } from '../projects/projectCleanup.ts';
 import { findUnmanaged, toSavedText } from './preserve.ts';
 import { findPinnedBand, toRepoConfig } from './repoImport.ts';
 
@@ -191,6 +192,14 @@ describe('saving over existing files', () => {
 		expect(toSavedText('tests/Directory.Build.props', testsProps, testsProps, catalog)).toBe(testsProps);
 		expect(toSavedText('tests/Directory.Build.props', testsProps, withSharedReference, catalog)).toContain('<ProjectReference Include="../shared/TestKit.csproj" />');
 		expect(findUnmanaged('tests/Directory.Build.props', testsProps, catalog)).toEqual([]);
+	});
+
+	it('keeps package versions moved out of project files when it saves Directory.Packages.props again', () => {
+		const opinionated = toPresetConfig({ level: 'opinionated', kind: 'library' }, catalog);
+		const packagesProps = toGeneratedOutput(opinionated, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Packages.props')?.content ?? '';
+		const withVersions = toPackagesPropsWithVersions(packagesProps, [{ packageId: 'Serilog', version: '4.0.0' }]);
+
+		expect(toSavedText('Directory.Packages.props', packagesProps, withVersions, catalog)).toBe(withVersions);
 	});
 
 	it('replaces the project name prefix group rather than keeping the old one beside it', () => {
