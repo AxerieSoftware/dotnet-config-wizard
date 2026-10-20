@@ -1,5 +1,6 @@
 import { BUILD_PROPERTIES_BY_NAME, PROJECTS_UNDER_TEST_FOLDER } from '../build/buildProperties.ts';
-import { BUILD_PROPS, PACKAGES_PROPS, toFrameworkProperty } from '../build/buildPropsFiles.ts';
+import { BUILD_PROPS, isFrameworkProperty, PACKAGES_PROPS, toFrameworkProperty } from '../build/buildPropsFiles.ts';
+import { isSameList, isSameValue, toList } from '../build/msbuildValues.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { findScopeForFolder, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import { getDefaultCSharpVersion, isSupportedTargetFramework } from '../config/targetFrameworks.ts';
@@ -51,7 +52,9 @@ type VersionedReference = { projectPath: string; projectLine: ProjectLine; packa
  * unconditional groups are offered, and not when the project sets the same property elsewhere or a props file above it sets
  * it under a condition; lines that look redundant but might not be are kept with a reason.
  */
-export function findProjectCleanup(config: WizardConfig, catalog: Catalog, projects: readonly RepoFile[], diskConfig: DiskConfig): ProjectCleanup {
+export function findProjectCleanup(config: WizardConfig, catalog: Catalog, allProjects: readonly RepoFile[], diskConfig: DiskConfig): ProjectCleanup {
+	// Settings such as LangVersion mean something else in other languages' projects, so only C# projects are cleaned up.
+	const projects = allProjects.filter(project => project.path.endsWith('.csproj'));
 	const cleanup: ProjectCleanup = { edits: [], keptLines: [] };
 	const projectPaths = new Set(projects.map(project => project.path));
 	const isRepoCentrallyManaged = resolveScope(config, config.scopes[0]).build.ManagePackageVersionsCentrally === 'true';
@@ -125,6 +128,21 @@ export function toPackagesPropsWithVersions(text: string, versions: readonly Pac
 	return `${text.slice(0, closing).replace(/\n*$/, '\n\n')}${group}${text.slice(closing)}`;
 }
 
+/** The properties a project sets once, in an unconditional group and before any import, so their value is the project's. */
+export function toPlainProperties(text: string): Map<string, string> {
+	return new Map(toProjectLines(text).flatMap(projectLine => (projectLine.kind === 'property' && !isSetElsewhere(text, projectLine) ? [[projectLine.name, projectLine.value] as const] : [])));
+}
+
+/** The props file above a folder that sets a property under a condition, which saving keeps as it is. */
+export function findConditionalSetting(folderPath: string, name: string, diskConfig: DiskConfig): string | undefined {
+	const setting = new RegExp(`<${name}[\\s>/]`);
+	const conditionalSetting = new RegExp(`<${name}\\s[^>]*Condition=`);
+	return toAncestorPaths(folderPath, BUILD_PROPS).find(path => {
+		const text = diskConfig.readText(path) ?? '';
+		return conditionalSetting.test(text) || [...text.matchAll(CONDITIONAL_PROPERTY_GROUP)].some(group => setting.test(group.groups?.body ?? ''));
+	});
+}
+
 function toEdit(projectPath: string, projectLine: ProjectLine, reason: string, movedVersion?: PackageVersion): ProjectEdit {
 	return { projectPath, lineIndex: projectLine.lineIndex, line: projectLine.line, reason, movedVersion };
 }
@@ -168,7 +186,7 @@ function toProjectLines(text: string): ProjectLine[] {
 }
 
 function toProjectTfms(projectLines: readonly ProjectLine[]): string[] | undefined {
-	const frameworks = projectLines.find(projectLine => projectLine.kind === 'property' && (projectLine.name === 'TargetFramework' || projectLine.name === 'TargetFrameworks'));
+	const frameworks = projectLines.find(projectLine => projectLine.kind === 'property' && isFrameworkProperty(projectLine.name));
 	return frameworks?.kind === 'property' ? toList(frameworks.value) : undefined;
 }
 
@@ -189,7 +207,7 @@ function decideProperty(
 	catalog: Catalog,
 	diskConfig: DiskConfig
 ): LineDecision {
-	if (name === 'TargetFramework' || name === 'TargetFrameworks') {
+	if (isFrameworkProperty(name)) {
 		const isShared = resolved.isTargetFrameworkShared && name === toFrameworkProperty(resolved.tfms) && isSameList(toList(value), resolved.tfms);
 		return isShared ? { status: 'remove', reason: `${BUILD_PROPS} sets ${name} to ${resolved.tfms.join(';')} for this folder.` } : undefined;
 	}
@@ -330,16 +348,6 @@ function withoutEmptiedGroups(lines: readonly (string | undefined)[]): string[] 
 	return result;
 }
 
-/** The props file above a folder that sets a property under a condition, which saving keeps as it is. */
-function findConditionalSetting(folderPath: string, name: string, diskConfig: DiskConfig): string | undefined {
-	const setting = new RegExp(`<${name}[\\s>/]`);
-	const conditionalSetting = new RegExp(`<${name}\\s[^>]*Condition=`);
-	return toAncestorPaths(folderPath, BUILD_PROPS).find(path => {
-		const text = diskConfig.readText(path) ?? '';
-		return conditionalSetting.test(text) || [...text.matchAll(CONDITIONAL_PROPERTY_GROUP)].some(group => setting.test(group.groups?.body ?? ''));
-	});
-}
-
 /** A file in each folder from `folderPath` up to the repo root, nearest first. */
 function toAncestorPaths(folderPath: string, fileName: string): string[] {
 	const segments = folderPath === '' ? [] : folderPath.split('/');
@@ -359,23 +367,6 @@ function toRepoPath(folderPath: string, relativePath: string): string {
 
 function toProjectName(projectPath: string): string {
 	return toFileName(projectPath).replace(/\.csproj$/, '');
-}
-
-function toList(value: string): string[] {
-	return value
-		.split(';')
-		.map(entry => entry.trim())
-		.filter(entry => entry !== '');
-}
-
-function isSameList(left: readonly string[], right: readonly string[]): boolean {
-	return left.length === right.length && left.every(entry => right.includes(entry));
-}
-
-/** MSBuild reads `True` and `true` alike; other values compare exactly. */
-function isSameValue(left: string, right: string): boolean {
-	const isBoolean = (value: string) => value.toLowerCase() === 'true' || value.toLowerCase() === 'false';
-	return left === right || (isBoolean(left) && left.toLowerCase() === right.toLowerCase());
 }
 
 /** `14` and `14.0` both mean C# 14. */

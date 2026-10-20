@@ -17,6 +17,7 @@
 			readText: path => repo.readDiskText(path)
 		})
 	);
+	const projectCount = $derived(repo.projectFiles.filter(project => project.path.endsWith('.csproj')).length);
 	const projectPaths = $derived([...new Set([...cleanup.edits, ...cleanup.keptLines].map(line => line.projectPath))].sort());
 	// Every edit starts chosen. Declined ones are remembered by their text, so they stay declined after other lines go.
 	const declinedKeys = new SvelteSet<string>();
@@ -60,7 +61,7 @@
 	{/if}
 
 	{#if projectPaths.length === 0}
-		<p class="note">Nothing in the {repo.projectFiles.length === 1 ? 'project file' : `${repo.projectFiles.length} project files`} is unnecessary now.</p>
+		<p class="note">Nothing in the {projectCount === 1 ? 'project file' : `${projectCount} project files`} is unnecessary now.</p>
 	{:else}
 		{#each projectPaths as projectPath (projectPath)}
 			<fieldset class="project">

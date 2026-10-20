@@ -26,8 +26,9 @@ export function isConfigFile(path: string): boolean {
 	return isConfigName && !isInSkippedFolder(path);
 }
 
+/** Any MSBuild project, such as a .csproj, .fsproj or traversal .proj, since the props reach them all. */
 export function isProjectFile(path: string): boolean {
-	return path.endsWith('.csproj') && !isInSkippedFolder(path);
+	return /\.\w*proj$/.test(path) && !isInSkippedFolder(path);
 }
 
 /** Reads every config and project file under a folder the user picked, skipping build output and dependencies. */

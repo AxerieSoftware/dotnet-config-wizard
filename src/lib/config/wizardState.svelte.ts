@@ -2,6 +2,8 @@ import { createContext } from 'svelte';
 import { type AnalysisMode, toAnalysisLevelValue } from '../analyzers/analysisLevel.ts';
 import type { BannedApi } from '../analyzers/bannedApis.ts';
 import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
+import { isFrameworkProperty } from '../build/buildPropsFiles.ts';
+import { toList } from '../build/msbuildValues.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { BANDS, DEFAULT_BAND, loadCatalog } from '../catalog/loadCatalog.ts';
 import { toEffectiveFiles } from '../export/effectiveFiles.ts';
@@ -234,6 +236,23 @@ export class WizardState {
 	/** Sets the active scope's target frameworks; undefined makes a nested scope inherit them again. */
 	public setTargetFrameworks(tfms: string[] | undefined): void {
 		setOrDelete(this.activeScope, 'tfms', tfms);
+	}
+
+	/** Sets a build property, or shared target frameworks, for a folder, adding the folder if the wizard doesn't have it yet. */
+	public setFolderSetting(path: string, name: string, value: string): void {
+		let scope = this.config.scopes.find(entry => entry.path === path);
+		if (!scope) {
+			this.config.scopes.push({ path });
+			scope = this.config.scopes.at(-1) as ScopeConfig;
+		}
+
+		if (isFrameworkProperty(name)) {
+			scope.tfms = toList(value);
+			const isInherited = resolveInheritedScope(this.config, scope)?.isTargetFrameworkShared ?? false;
+			setOrDelete(scope, 'isTargetFrameworkShared', isInherited ? undefined : true);
+		} else {
+			scope.build = { ...scope.build, [name]: value };
+		}
 	}
 
 	/** Sets TargetFramework for every project in the active folder, or leaves it to each project file. */

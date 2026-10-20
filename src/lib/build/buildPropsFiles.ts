@@ -105,6 +105,10 @@ function toProjectNameGroup(prefix: string | undefined): XmlLine[] {
 	return toGroup('PropertyGroup', 'Project names', [toElement('AssemblyName', name), toElement('RootNamespace', name)], toProjectNameCondition(prefix));
 }
 
+export function isFrameworkProperty(name: string): name is 'TargetFramework' | 'TargetFrameworks' {
+	return name === 'TargetFramework' || name === 'TargetFrameworks';
+}
+
 /** The property a folder's frameworks go in: TargetFramework for one, TargetFrameworks for several. */
 export function toFrameworkProperty(tfms: readonly string[]): 'TargetFramework' | 'TargetFrameworks' {
 	return tfms.length === 1 ? 'TargetFramework' : 'TargetFrameworks';
@@ -172,6 +176,9 @@ function toAnalyzerFileItems(config: WizardConfig, scope: ScopeConfig, packages:
 
 	return items;
 }
+
+/** Properties that name a file next to the props file, which the props pack from there. */
+export const PACK_FILE_PROPERTIES: ReadonlySet<string> = new Set(['PackageReadmeFile', 'PackageIcon']);
 
 /** Packs the README and icon that PackageReadmeFile and PackageIcon name, from the folder the props file is in. */
 function toPackFileItems(build: Record<string, string>): XmlLine[] {
