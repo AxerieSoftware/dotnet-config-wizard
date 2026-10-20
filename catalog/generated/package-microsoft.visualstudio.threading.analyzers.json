@@ -1,6 +1,6 @@
 {
 	"id": "Microsoft.VisualStudio.Threading.Analyzers",
-	"version": "18.7.23",
+	"version": "18.12.1",
 	"rules": [
 		{
 			"id": "VSTHRD001",
@@ -96,6 +96,20 @@
 			"defaultSeverity": "warning",
 			"isEnabledByDefault": true,
 			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD012.html",
+			"description": null,
+			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "VSTHRD013",
+			"source": "Microsoft.VisualStudio.Threading.Analyzers",
+			"title": "Apply CompletedTaskAttribute only to immutable members",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD013.html",
 			"description": null,
 			"tags": [],
 			"hasCodeFix": false,
@@ -327,6 +341,34 @@
 			"parameters": []
 		},
 		{
+			"id": "VSTHRD116",
+			"source": "Microsoft.VisualStudio.Threading.Analyzers",
+			"title": "Use ThreadStaticAttribute only with static fields",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD116.html",
+			"description": null,
+			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "VSTHRD117",
+			"source": "Microsoft.VisualStudio.Threading.Analyzers",
+			"title": "Avoid initialization of ThreadStatic fields in a type initializer",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD117.html",
+			"description": null,
+			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
 			"id": "VSTHRD200",
 			"source": "Microsoft.VisualStudio.Threading.Analyzers",
 			"title": "Use \"Async\" suffix for async methods",
@@ -334,6 +376,20 @@
 			"defaultSeverity": "warning",
 			"isEnabledByDefault": true,
 			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD200.html",
+			"description": null,
+			"tags": [],
+			"hasCodeFix": true,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "VSTHRD202",
+			"source": "Microsoft.VisualStudio.Threading.Analyzers",
+			"title": "Remove unnecessary async state machine",
+			"category": "Style",
+			"defaultSeverity": "suggestion",
+			"isEnabledByDefault": true,
+			"helpLink": "https://microsoft.github.io/vs-threading/analyzers/VSTHRD202.html",
 			"description": null,
 			"tags": [],
 			"hasCodeFix": true,
