@@ -72,6 +72,8 @@ jobs:
           # Set one of the two secrets.
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # The action refuses bot-started runs unless listed; the job's condition already limits it to Dependabot.
+          allowed_bots: dependabot[bot]
           claude_args: --allowedTools "Edit,Write,Read,Glob,Grep,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(dotnet:*),Bash(git:*),Bash(gh:*)"
           prompt: |
             The `${{ github.event.workflow_run.name }}` run ${{ github.event.workflow_run.html_url }} failed on Dependabot's branch `${{ github.event.workflow_run.head_branch }}`, PR #${{ github.event.workflow_run.pull_requests[0].number }}.
