@@ -55,10 +55,14 @@ jobs:
           path: .cache/dotnet
           key: dotnet-sdks-${{ hashFiles('catalog/generated/bands.json') }}
 
+      # An update can break the install itself, such as with a peer dependency conflict, and that's Claude's to fix.
       - name: Install dependencies
+        id: install
         run: npm ci
+        continue-on-error: true
 
       - name: Install Playwright browser
+        if: steps.install.outcome == 'success'
         run: npx playwright install --with-deps chromium
         timeout-minutes: 5
 
@@ -74,7 +78,7 @@ jobs:
 
             1. If the branch's HEAD is no longer `${{ github.event.workflow_run.head_sha }}`, a newer push is already being checked. Change nothing and say so.
             2. Read the failed jobs' logs with `gh run view ${{ github.event.workflow_run.id }} --log-failed`. Playwright traces are in the run's artifacts.
-            3. Find the root cause, usually an update that changed an API, a type or a lint rule.
+            3. Find the root cause, usually an update that changed an API, a type or a lint rule. `npm ci` ${{ steps.install.outcome == 'success' && 'succeeded' || 'failed in this job, so start there; once it installs, run `npx playwright install --with-deps chromium`' }}.
             4. Fix it, following AGENTS.md. Don't weaken, skip or delete tests to get them passing.
             5. Run what AGENTS.md lists for the files you changed, and always rerun what failed: `npm run check`, `npm run e2e`, `node scripts/renderConfig.ts config/dogfood.json --check` and `node scripts/validateOutput.ts`.
             6. Commit on the current branch and push it to the PR. Never push to `main`.
