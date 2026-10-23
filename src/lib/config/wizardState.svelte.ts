@@ -13,17 +13,22 @@ import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
 import { mergeImport } from '../import/mergeImport.ts';
 import type { NamingRule } from '../naming/namingRule.ts';
+import { forgetFolder, rememberFolder } from '../repo/rememberedFolder.ts';
 import { RepoConnection } from '../repo/repoConnection.svelte.ts';
 import { isConfigFile, type RepoFile } from '../repo/repoFiles.ts';
 import { findPinnedBand, toRepoConfig } from '../repo/repoImport.ts';
 import { SessionValue } from '../ui/sessionValue.svelte.ts';
 import { validateConfig } from '../validation/validateConfig.ts';
 import type { InitialState } from './initialState.ts';
-import { DEFAULT_PRESET, type Preset, toPresetConfig, toPresetName } from './presets.ts';
-import { type ResolvedScope, resolveInheritedScope, resolveScope } from './scopes.ts';
+import { toMergePatch } from './mergePatch.ts';
+import { DEFAULT_PRESET, isEmpty, type Preset, toPresetConfig, toPresetName } from './presets.ts';
+import { toKindSettings } from './scopePresets.ts';
+import { type ResolvedScope, resolveInheritedScope, resolveScope, toReachedKinds } from './scopes.ts';
 import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
-import type { GlobalJsonConfig, NuGetConfig, ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
+import { type GlobalJsonConfig, type NuGetConfig, PROJECT_KIND_TITLES, type ProjectKind, type ScopeConfig, type Severity, type WizardConfig } from './wizardConfig.ts';
+
+type FrameworkSettings = Pick<ScopeConfig, 'tfms' | 'isTargetFrameworkShared'>;
 
 /**
  * The config being edited and the files it renders to. Folder settings edit the active scope; repo-wide settings, such as
@@ -42,6 +47,8 @@ export class WizardState {
 	public isSavedInBrowser = $state(false);
 	/** The repo folder open in the wizard, which edits save to. */
 	public repo = $state.raw<RepoConnection | undefined>(undefined);
+	/** The folder opened last, which a reload disconnects; reopening it takes one click instead of finding it again. */
+	public rememberedFolder = $state.raw<FileSystemDirectoryHandle | undefined>(undefined);
 	/** The folder a new folder goes inside; the dialog for adding one is open while it's set. */
 	public addFolderParentPath = $state<string | undefined>(undefined);
 	/** The folder files are being imported into; the import dialog is open while it's set. */
@@ -60,13 +67,13 @@ export class WizardState {
 	/** Whether the settings differ from the preset they started from, so replacing them loses work. */
 	public readonly hasChanges = $derived.by(() => Object.keys(this.savedState.changes as object).length > 0);
 	/** Whether the settings are still what a first visit starts with, so there's nothing worth saving or starting over from. */
-	public readonly isUntouched = $derived.by(
-		() => !this.hasChanges && this.preset.level === DEFAULT_PRESET.level && this.preset.kind === DEFAULT_PRESET.kind && this.config.versions.sdkBand === DEFAULT_BAND.band
-	);
+	public readonly isUntouched = $derived.by(() => !this.hasChanges && this.preset === DEFAULT_PRESET && this.config.versions.sdkBand === DEFAULT_BAND.band);
 	public readonly issues = $derived.by(() => validateConfig(this.config, this.catalog, this.output.skippedKeys));
 	public readonly resolvedActiveScope: ResolvedScope = $derived.by(() => resolveScope(this.config, this.activeScope));
 	/** What the active scope inherits, or undefined for the root scope. */
 	public readonly inheritedScope: ResolvedScope | undefined = $derived.by(() => resolveInheritedScope(this.config, this.activeScope));
+	/** The kinds of project the active folder's settings reach, which decide the settings it offers. */
+	public readonly reachedKinds = $derived.by(() => toReachedKinds(this.config, this.activeScope));
 	public readonly activeContext = $derived.by(() => toGateContext(this.resolvedActiveScope, this.catalog));
 
 	/** The generated line the setting being edited writes, which the preview opens and highlights. */
@@ -99,7 +106,9 @@ export class WizardState {
 	}
 
 	public set commentStyle(commentStyle: CommentStyle) {
+		const filesBefore = this.output.files;
 		this.savedCommentStyle.value = commentStyle;
+		if (this.repo && commentStyle !== 'none') this.repo.markFullyCommented(filesBefore, this.output.files);
 	}
 
 	public get rootScope(): ScopeConfig {
@@ -187,10 +196,22 @@ export class WizardState {
 		this.confirm({ title: `Remove ${path}/?`, message: 'Its settings are deleted. Files already on disk stay.', confirmLabel: 'Remove folder' }, () => this.removeScope(path));
 	}
 
-	/** Stops saving to the open repo folder; the settings stay in the browser. */
+	/** Stops saving to the open repo folder, and forgets it; the settings stay in the browser. */
 	public closeRepo(): void {
 		this.repo = undefined;
 		this.openedRepoSummary = undefined;
+		this.forgetRememberedFolder();
+	}
+
+	/** Remembers a folder that was opened, in the browser too, so it can be reopened after a reload. */
+	public rememberOpenedFolder(directory: FileSystemDirectoryHandle): void {
+		this.rememberedFolder = directory;
+		void rememberFolder(directory);
+	}
+
+	public forgetRememberedFolder(): void {
+		this.rememberedFolder = undefined;
+		void forgetFolder();
 	}
 
 	/** Imports existing files into the active scope, reporting anything changed or dropped. */
@@ -275,8 +296,37 @@ export class WizardState {
 		this.setInheritedSwitch('isProjectUnderTestReferenced', isReferenced);
 	}
 
-	public setProjectKind(projectKind: ProjectKind | undefined): void {
-		setOrDelete(this.activeScope, 'projectKind', projectKind);
+	/**
+	 * Sets what a folder holds, with that kind's defaults replacing its settings, asking first when it has some of its own.
+	 * The repo root only records the kind, since it holds what every folder shares.
+	 */
+	public setProjectKind(path: string, projectKind: ProjectKind | undefined): void {
+		const scope = this.config.scopes.find(entry => entry.path === path);
+		if (!scope) return;
+		if (path === '' || projectKind === undefined) {
+			setOrDelete(scope, 'projectKind', projectKind);
+			return;
+		}
+
+		// What the folder holds doesn't change which frameworks its projects target.
+		const frameworks = toFrameworkSettings(scope);
+		const defaults = { ...toKindSettings(path, projectKind, this.config, this.preset, this.catalog), ...frameworks };
+		const useDefaults = () => {
+			this.config.scopes = this.config.scopes.map(entry => (entry.path === path ? defaults : entry));
+		};
+		if (!this.hasOwnSettings(scope, frameworks)) {
+			useDefaults();
+			return;
+		}
+
+		this.confirm(
+			{
+				title: `Use the defaults for ${PROJECT_KIND_TITLES[projectKind].toLowerCase()} in ${path}/?`,
+				message: `They replace the settings ${path}/ sets itself, except its target frameworks.`,
+				confirmLabel: 'Use defaults'
+			},
+			useDefaults
+		);
 	}
 
 	public setFormatting(glob: string, key: string, value: string | undefined): void {
@@ -389,6 +439,17 @@ export class WizardState {
 		setOrDelete(this.config, 'severityFile', severityFile === 'globalconfig' ? severityFile : undefined);
 	}
 
+	/** Whether a folder sets anything beyond its current kind's defaults and its frameworks, which a new kind would lose. */
+	private hasOwnSettings(scope: ScopeConfig, frameworks: FrameworkSettings): boolean {
+		// Clearing a setting can leave an empty object behind, which sets nothing.
+		const settings = Object.fromEntries(Object.entries(scope).filter(([key, value]) => key !== 'path' && key !== 'projectKind' && !(key in frameworks) && !isEmpty(value)));
+		if (Object.keys(settings).length === 0) return false;
+		if (!scope.projectKind) return true;
+
+		const { path: _path, projectKind: _projectKind, ...currentDefaults } = toKindSettings(scope.path, scope.projectKind, this.config, this.preset, this.catalog);
+		return toMergePatch(currentDefaults, settings) !== undefined;
+	}
+
 	private setInheritedSwitch(key: 'isTargetFrameworkShared' | 'areInternalsVisibleToTests' | 'isProjectUnderTestReferenced', isOn: boolean): void {
 		// Turning one off below a folder that turns it on needs an explicit false.
 		const isInherited = this.inheritedScope?.[key] ?? false;
@@ -400,6 +461,14 @@ export class WizardState {
 export type Confirmation = { title: string; message: string; confirmLabel: string; onConfirm: () => void };
 
 export const [getWizardState, setWizardState] = createContext<WizardState>();
+
+/** A folder's target frameworks, which stay when what it holds changes. */
+function toFrameworkSettings(scope: ScopeConfig): FrameworkSettings {
+	const frameworks: FrameworkSettings = {};
+	if (scope.tfms) frameworks.tfms = scope.tfms;
+	if (scope.isTargetFrameworkShared !== undefined) frameworks.isTargetFrameworkShared = scope.isTargetFrameworkShared;
+	return frameworks;
+}
 
 function setOrDelete<TRecord extends object, TKey extends keyof TRecord>(record: TRecord, key: TKey, value: TRecord[TKey] | undefined): void {
 	if (value === undefined) delete record[key];

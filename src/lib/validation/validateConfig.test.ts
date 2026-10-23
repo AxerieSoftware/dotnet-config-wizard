@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { readCatalog } from '../../../scripts/readCatalog.ts';
-import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
+import { PRESET_LEVELS, SOURCE_KINDS, toPresetConfigWithSource, toPresetName } from '../config/presets.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { validateConfig } from './validateConfig.ts';
 
 const catalog = readCatalog('10.0.4xx');
+const PRESET_VARIANTS = PRESET_LEVELS.flatMap(preset => SOURCE_KINDS.map(sourceKind => ({ name: `${toPresetName(preset)} with src as ${sourceKind ?? 'any'}`, preset, sourceKind })));
 
 function issuesFor(config: WizardConfig) {
 	return validateConfig(config, catalog, toGeneratedOutput(config, catalog, { commentStyle: 'none' }).skippedKeys);
@@ -20,12 +21,12 @@ function messagesFor(config: WizardConfig) {
 }
 
 describe('validateConfig', () => {
-	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('finds no errors or warnings in the $name preset', ({ preset }) => {
-		expect(issuesFor(toPresetConfig(preset, catalog)).filter(issue => issue.severity !== 'info')).toEqual([]);
+	it.each(PRESET_VARIANTS)('finds no errors or warnings in the $name preset', ({ preset, sourceKind }) => {
+		expect(issuesFor(toPresetConfigWithSource(preset, sourceKind, catalog)).filter(issue => issue.severity !== 'info')).toEqual([]);
 	});
 
-	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('finds no folder settings that repeat what they inherit in the $name preset', ({ preset }) => {
-		expect(issuesFor(toPresetConfig(preset, catalog)).filter(issue => issue.message.includes('repeat what this folder already inherits'))).toEqual([]);
+	it.each(PRESET_VARIANTS)('finds no folder settings that repeat what they inherit in the $name preset', ({ preset, sourceKind }) => {
+		expect(issuesFor(toPresetConfigWithSource(preset, sourceKind, catalog)).filter(issue => issue.message.includes('repeat what this folder already inherits'))).toEqual([]);
 	});
 
 	it('skips analysis checks in an ignored folder and the folders inside it, but still checks how it builds', () => {

@@ -15,7 +15,7 @@ export type EditorConfigDocument = { headerComment?: string; isRoot: boolean; se
  */
 export function renderEditorConfig(document: EditorConfigDocument): string {
 	const chunks: string[][] = [];
-	const preamble = [...(document.headerComment ? [`# ${document.headerComment}`] : []), ...(document.isRoot ? ['root = true'] : [])];
+	const preamble = [...(document.headerComment?.split('\n').map(line => `# ${line}`) ?? []), ...(document.isRoot ? ['root = true'] : [])];
 	if (preamble.length > 0) chunks.push(preamble);
 
 	for (const section of document.sections) {

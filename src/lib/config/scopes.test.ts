@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getParentScope, resolveScope } from './scopes.ts';
+import { getParentScope, resolveScope, toReachedKinds } from './scopes.ts';
 import type { WizardConfig } from './wizardConfig.ts';
 
 const config: WizardConfig = {
@@ -28,5 +28,19 @@ describe('scopes', () => {
 		expect(resolved.tfms).toEqual(['net8.0']);
 		expect(resolved.formatting['[*]']).toEqual({ indent_style: 'space', end_of_line: 'lf' });
 		expect(resolved.severities).toEqual({ CA1707: 'none', CA2007: 'warning' });
+	});
+});
+
+describe('toReachedKinds', () => {
+	const layout: WizardConfig = {
+		versions: { sdkBand: '10.0.4xx' },
+		scopes: [{ path: '' }, { path: 'src', projectKind: 'library' }, { path: 'src/Api', projectKind: 'service' }, { path: 'tests', projectKind: 'test' }, { path: 'tools' }]
+	};
+
+	it('collects the kinds of a folder and every folder inside it, leaving out folders of no known kind', () => {
+		expect(toReachedKinds(layout, layout.scopes[0])).toEqual(['library', 'service', 'test']);
+		expect(toReachedKinds(layout, layout.scopes[1])).toEqual(['library', 'service']);
+		expect(toReachedKinds(layout, layout.scopes[3])).toEqual(['test']);
+		expect(toReachedKinds(layout, layout.scopes[4])).toEqual([]);
 	});
 });

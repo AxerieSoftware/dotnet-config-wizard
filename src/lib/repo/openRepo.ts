@@ -1,4 +1,5 @@
 import type { WizardState } from '../config/wizardState.svelte.ts';
+import { requestFolderAccess } from './rememberedFolder.ts';
 import { readRepoFiles, readRepoFilesFromList } from './repoFiles.ts';
 
 /**
@@ -28,6 +29,8 @@ export async function openFolderFromList(wizard: WizardState, fileList: FileList
 	await openWithNotice(wizard, async () => {
 		const { name, files } = await readRepoFilesFromList(fileList);
 		await wizard.openRepo(name, undefined, files);
+		// A read-only folder has no handle to reopen, so an older remembered folder would only mislead.
+		wizard.forgetRememberedFolder();
 	});
 }
 
@@ -56,7 +59,37 @@ async function pickFolder(wizard: WizardState): Promise<void> {
 		return;
 	}
 
-	await openWithNotice(wizard, async () => wizard.openRepo(directory.name, directory, await readRepoFiles(directory)));
+	await openWithNotice(wizard, async () => {
+		await wizard.openRepo(directory.name, directory, await readRepoFiles(directory));
+		wizard.rememberOpenedFolder(directory);
+	});
+}
+
+/**
+ * Reopens the last folder: confirms first if that would replace changed settings, then asks the browser for access.
+ * Must run from a click, like the folder picker.
+ */
+export function askToReopenFolder(wizard: WizardState, directory: FileSystemDirectoryHandle): void {
+	wizard.confirmIfChanged({ title: `Reopen ${directory.name}?`, message: "The folder's files replace the current settings.", confirmLabel: 'Reopen' }, () => void reopenFolder(wizard, directory));
+}
+
+async function reopenFolder(wizard: WizardState, directory: FileSystemDirectoryHandle): Promise<void> {
+	try {
+		if (!(await requestFolderAccess(directory))) {
+			wizard.notice = `Couldn't reopen ${directory.name} because the browser didn't allow access.`;
+			return;
+		}
+
+		await wizard.openRepo(directory.name, directory, await readRepoFiles(directory));
+	} catch (error) {
+		if (!(error instanceof DOMException && error.name === 'NotFoundError')) {
+			wizard.notice = toFailureNotice(error);
+			return;
+		}
+
+		wizard.forgetRememberedFolder();
+		wizard.notice = `${directory.name} wasn't found, so it was forgotten. If it moved, open it from its new location.`;
+	}
 }
 
 /** Runs an open, turning a failure such as an unreadable file into a notice. */

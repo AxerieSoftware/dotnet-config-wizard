@@ -13,6 +13,10 @@ declare global {
 	interface Window {
 		showDirectoryPicker?: (options?: { id?: string; mode?: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
 	}
+
+	interface FileSystemHandle {
+		requestPermission(descriptor?: { mode?: 'read' | 'readwrite' }): Promise<PermissionState>;
+	}
 }
 
 export {};

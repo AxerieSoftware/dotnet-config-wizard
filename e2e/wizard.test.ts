@@ -273,15 +273,62 @@ test('a risky combination shows as a check on the review step and a count in the
 	await expect(page.locator('.issue-error')).toContainText('RestoreLockedMode needs RestorePackagesWithLockFile');
 });
 
-test('Strict for libraries combines a strictness with a project kind', async ({ page }) => {
+test("asks before a kind's defaults replace settings a folder sets itself", async ({ page }) => {
 	await page.goto('/wizard/start');
 	await page.getByRole('button', { name: /^Strict/ }).click();
-	await page.getByRole('button', { name: /^Libraries/ }).click();
+	await openStep(page, 'Build');
+	await page
+		.getByRole('treeitem', { name: /^src\// })
+		.locator('.tree-row')
+		.first()
+		.click();
+	await page.getByRole('combobox', { name: 'Nullable', exact: true }).selectOption('disable');
+	await openStep(page, 'Start');
+
+	const kind = page.getByRole('combobox', { name: 'What src/ holds' });
+	const confirmation = page.getByRole('dialog', { name: 'Use the defaults for apps and services in src/?' });
+	await kind.selectOption('service');
+	await confirmation.getByRole('button', { name: 'Cancel' }).click();
+	await expect(kind).toHaveValue('library');
+	await expect(page.getByTestId('file-src/Directory.Build.props')).toContainText('<Nullable>disable</Nullable>');
+
+	await kind.selectOption('service');
+	await confirmation.getByRole('button', { name: 'Use defaults' }).click();
+	await expect(kind).toHaveValue('service');
+	await expect(page.getByTestId('file-src/Directory.Build.props')).not.toContainText('<Nullable>');
+});
+
+test("a preset adds src for libraries, and changing what a folder holds brings that kind's defaults", async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Strict/ }).click();
 
 	await expect(page.getByRole('button', { name: /^Strict/ })).toHaveAttribute('aria-pressed', 'true');
-	await expect(page.getByRole('button', { name: /^Libraries/ })).toHaveAttribute('aria-pressed', 'true');
 	await expect(page.getByTestId('file-Directory.Packages.props')).toContainText('Include="SonarAnalyzer.CSharp"');
 	await expect(page.getByTestId('file-src/Directory.Packages.props')).toContainText('Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"');
+	await expect(page.getByTestId('file-src/BannedSymbols.txt')).toContainText('T:System.Console;');
+
+	// src/ holds only the preset's library defaults, so switching it asks nothing.
+	await page.getByRole('combobox', { name: 'What src/ holds' }).selectOption('service');
+	await expect(page.getByTestId('file-src/Directory.Packages.props')).toHaveCount(0);
+	await expect(page.getByTestId('file-src/BannedSymbols.txt')).not.toContainText('T:System.Console;');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('# Projects: src service; tests test');
+});
+
+test('changing what an added common folder holds asks nothing while it keeps its own defaults', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Strict/ }).click();
+	await chooseFromRootMenu(page, 'Add a folder');
+	await page
+		.getByRole('dialog', { name: 'Add a folder' })
+		.getByRole('button', { name: /^benchmarks\// })
+		.click();
+	await openStep(page, 'Start');
+
+	await page.getByRole('combobox', { name: 'What benchmarks/ holds' }).selectOption('test');
+
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(page.getByRole('combobox', { name: 'What benchmarks/ holds' })).toHaveValue('test');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('benchmarks test');
 });
 
 test('a category severity writes one line and duplicates turn off in one click', async ({ page }) => {
@@ -450,18 +497,46 @@ test("a tests folder can reference each test project's project under test", asyn
 	await page.goto('/wizard/start');
 	await addFolder(page, 'tests');
 	await openStep(page, 'Build');
+	await expect(page.getByRole('checkbox', { name: 'Let tests use internal types' })).toHaveCount(0);
 	await page.getByRole('checkbox', { name: 'Reference the project under test' }).check();
 
 	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('<ProjectReference Include="$(ProjectUnderTestPath)"');
 	await expect(page.getByTestId('file-tests/Directory.Build.props')).toContainText('$(MSBuildThisFileDirectory)../src/$(ProjectUnderTest)/$(ProjectUnderTest).csproj');
 	await expect(page.locator('.line.linked')).toContainText('<ProjectUnderTest>');
 
-	await page.getByRole('combobox', { name: 'Project kind' }).selectOption('library');
-	// Outside a test folder the checkbox stays while the setting is on, and goes once it's turned off.
-	await page.getByRole('checkbox', { name: 'Reference the project under test' }).click();
+	await openStep(page, 'Start');
+	await page.getByRole('combobox', { name: 'What tests/ holds' }).selectOption('library');
+	await page.getByRole('dialog', { name: 'Use the defaults for libraries in tests/?' }).getByRole('button', { name: 'Use defaults' }).click();
+	await openStep(page, 'Build');
 
-	await expect(page.getByTestId('file-tests/Directory.Build.props')).not.toContainText('ProjectUnderTestPath');
+	// A library folder's defaults don't reference a project under test, and a library folder doesn't offer it.
+	await expect(page.getByTestId('file-tests/Directory.Build.props')).toHaveCount(0);
 	await expect(page.getByRole('checkbox', { name: 'Reference the project under test' })).toHaveCount(0);
+});
+
+test('each folder offers only the settings that suit what the Start step says it holds', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await addFolder(page, 'src');
+	await addFolder(page, 'tests');
+	const folders = page.getByRole('region', { name: 'Folders' });
+	await expect(folders.getByRole('combobox', { name: 'What src/ holds' })).toHaveValue('library');
+	await expect(folders.getByRole('combobox', { name: 'What tests/ holds' })).toHaveValue('test');
+
+	await openStep(page, 'Build');
+	await expect(page.getByLabel('EmbedUntrackedSources')).toHaveCount(0);
+	await page
+		.getByRole('treeitem', { name: /^src\// })
+		.locator('.tree-row')
+		.first()
+		.click();
+	await expect(page.getByLabel('EmbedUntrackedSources')).toBeVisible();
+	await page.getByRole('treeitem', { name: 'Repo root' }).locator('.tree-row').first().click();
+	await expect(page.getByLabel('EmbedUntrackedSources')).toHaveCount(0);
+
+	await openStep(page, 'Start');
+	await folders.getByRole('combobox', { name: 'What tests/ holds' }).selectOption('library');
+	await openStep(page, 'Build');
+	await expect(page.getByLabel('EmbedUntrackedSources')).toBeVisible();
 });
 
 test('a project name prefix names every project and its tests', async ({ page }) => {
@@ -536,7 +611,6 @@ test('a share link reopens the same settings in a new browser', async ({ page, b
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto('/wizard/start');
 	await page.getByRole('button', { name: /^Recommended/ }).click();
-	await page.getByRole('button', { name: /^Libraries/ }).click();
 	await openStep(page, 'Formatting');
 	await page.getByRole('combobox', { name: 'All files: Indent style' }).selectOption('tab');
 	await openStep(page, 'Review and export');

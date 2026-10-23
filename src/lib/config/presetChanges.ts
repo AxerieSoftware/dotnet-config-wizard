@@ -2,7 +2,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { isObject } from './mergePatch.ts';
 import { toPresetConfig } from './presets.ts';
 import { type SavedState, toKeyed } from './shareLink.ts';
-import type { WizardConfig } from './wizardConfig.ts';
+import { PROJECT_KIND_TITLES, PROJECT_KINDS, type ProjectKind, type WizardConfig } from './wizardConfig.ts';
 
 /** One setting that differs from the preset: where it is, what it is, and both values. */
 export type PresetChange = { folderPath: string | undefined; setting: string; presetValue: string; value: string };
@@ -62,7 +62,13 @@ function toChanges(folderPath: string | undefined, path: string[], change: unkno
 		return Object.entries(change).flatMap(([key, nested]) => toChanges(folderPath, [...path, key], nested, presetValue[key], isObject(value) ? value[key] : undefined));
 	}
 
-	return [{ folderPath, setting: toSettingLabel(path), presetValue: toDisplayValue(presetValue), value: toDisplayValue(change === null ? undefined : value) }];
+	// What a folder holds reads the way the Folders card names it, such as Apps and services.
+	const toDisplay = path[0] === 'projectKind' ? toKindTitle : toDisplayValue;
+	return [{ folderPath, setting: toSettingLabel(path), presetValue: toDisplay(presetValue), value: toDisplay(change === null ? undefined : value) }];
+}
+
+function toKindTitle(value: unknown): string {
+	return PROJECT_KINDS.includes(value as ProjectKind) ? PROJECT_KIND_TITLES[value as ProjectKind] : NOT_SET;
 }
 
 function toSettingLabel(path: readonly string[]): string {
@@ -79,8 +85,8 @@ function toDisplayValue(value: unknown): string {
 	return String(value);
 }
 
-/** A list entry's name: a package or framework, a naming rule's symbol group, or a banned API's symbol. */
+/** A list entry's name: a package or framework, a naming rule's symbol group, a banned API's symbol, or a NuGet source's key. */
 function toEntryName(entry: unknown): string {
 	if (!isObject(entry)) return String(entry);
-	return String(entry.symbols ?? entry.symbol ?? '…');
+	return String(entry.symbols ?? entry.symbol ?? entry.key ?? '…');
 }

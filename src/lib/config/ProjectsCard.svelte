@@ -2,10 +2,10 @@
 	import { PROJECTS_UNDER_TEST_FOLDER } from '../build/buildProperties.ts';
 	import { toFrameworkProperty } from '../build/buildPropsFiles.ts';
 	import Icon from '../ui/Icon.svelte';
-	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
-	import ValueSelect from '../ui/ValueSelect.svelte';
+	import { STEP_PATHS } from '../ui/wizardSteps.ts';
+	import { suitsKinds } from './scopes.ts';
 	import { getTargetFrameworksForChannel, isSupportedTargetFramework } from './targetFrameworks.ts';
-	import { PROJECT_KINDS, type ProjectKind } from './wizardConfig.ts';
+	import { PROJECT_KIND_TITLES } from './wizardConfig.ts';
 	import { getWizardState } from './wizardState.svelte.ts';
 
 	const wizard = getWizardState();
@@ -15,6 +15,7 @@
 	const otherTfms = $derived(tfms.filter(tfm => !offeredTfms.includes(tfm)));
 	// An SDK can't build a framework newer than itself, and the wizard doesn't support .NET Framework or .NET Standard.
 	const unsupportedTfms = $derived(tfms.filter(tfm => !isSupportedTargetFramework(tfm) || !offeredTfms.some(offered => tfm.startsWith(offered))));
+	const projectKind = $derived(wizard.resolvedActiveScope.projectKind);
 	const scopeLabel = $derived(wizard.isRootActive ? 'the repo root' : `${wizard.activeScope.path}/`);
 	const examplePrefix = $derived(wizard.config.projectNamePrefix ?? 'Contoso');
 
@@ -86,17 +87,10 @@
 			<Icon name="errorCircle" /><span>SDK {wizard.catalog.band.band} can't target {unsupportedTfms.join(', ')}. Only .NET 10 and later are supported.</span>
 		</p>
 	{/if}
-	<label class="field" style:max-width="320px">
-		<span>Projects here are</span>
-		<ValueSelect
-			label="Project kind"
-			value={wizard.activeScope.projectKind}
-			values={PROJECT_KINDS}
-			unsetLabel={toUnsetLabel(wizard.inheritedScope?.projectKind, 'Not set')}
-			fallbackValue={wizard.inheritedScope?.projectKind}
-			onchange={value => wizard.setProjectKind(value as ProjectKind | undefined)}
-		/>
-	</label>
+	<p class="caption" data-setting="ProjectKind">
+		{projectKind ? `Projects here: ${PROJECT_KIND_TITLES[projectKind].toLowerCase()}.` : "What this folder holds isn't set."}
+		<a href={STEP_PATHS.start}>Change what each folder holds on the Start step.</a>
+	</p>
 	{#if wizard.isRootActive}
 		<label class="field" style:max-width="320px">
 			<span>Project name prefix</span>
@@ -113,18 +107,21 @@
 			<code>{examplePrefix}.Billing.Tests</code>, so short project names need no renaming. Projects already named with the prefix are left alone.
 		</p>
 	{/if}
-	<label class="checkbox">
-		<input
-			type="checkbox"
-			aria-label="Let tests use internal types"
-			data-setting="InternalsVisibleTo"
-			checked={wizard.resolvedActiveScope.areInternalsVisibleToTests}
-			onchange={event => wizard.setInternalsVisibleToTests(event.currentTarget.checked)}
-		>
-		<span>Let each project's tests use its internal types. The test project must be named after it with <code>.Tests</code> on the end.</span>
-	</label>
+	<!-- Only the projects being tested use this. A folder that reaches any tests, such as the repo root, shows it only while it sets it, so it can be turned off. -->
+	{#if suitsKinds(['library', 'service'], wizard.reachedKinds) || wizard.activeScope.areInternalsVisibleToTests !== undefined}
+		<label class="checkbox">
+			<input
+				type="checkbox"
+				aria-label="Let tests use internal types"
+				data-setting="InternalsVisibleTo"
+				checked={wizard.resolvedActiveScope.areInternalsVisibleToTests}
+				onchange={event => wizard.setInternalsVisibleToTests(event.currentTarget.checked)}
+			>
+			<span>Let each project's tests use its internal types. Its test project must be named after it plus <code>.Tests</code>, such as <code>Billing.Tests</code>.</span>
+		</label>
+	{/if}
 	<!-- Shown while on even outside a test folder, so it can always be turned off. -->
-	{#if wizard.resolvedActiveScope.projectKind === 'test' || wizard.resolvedActiveScope.isProjectUnderTestReferenced}
+	{#if suitsKinds(['test'], wizard.reachedKinds) || wizard.resolvedActiveScope.isProjectUnderTestReferenced}
 		<label class="checkbox">
 			<input
 				type="checkbox"

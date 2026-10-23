@@ -124,6 +124,14 @@ describe('findProjectCleanup safety', () => {
 		expect(kept([generator])).toEqual(['<LangVersion>latest</LangVersion>']);
 	});
 
+	it('says why it keeps LangVersion on a project targeting frameworks with different defaults', () => {
+		const app = project('src/App/App.csproj', '\t<PropertyGroup>\n\t\t<TargetFrameworks>net10.0;net11.0</TargetFrameworks>\n\t\t<LangVersion>14.0</LangVersion>\n\t</PropertyGroup>');
+
+		expect(findProjectCleanup(CONFIG, catalog, [app], NO_DISK_CONFIG).keptLines.map(line => line.reason)).toEqual([
+			'Pins net10.0;net11.0 to one C# version; by default they use C# 14 and 15. Remove it by hand if each framework can use its default.'
+		]);
+	});
+
 	it('keeps LangVersion when a Directory.Build.props above the project sets one too', () => {
 		const app = project('src/App/App.csproj', '\t<PropertyGroup>\n\t\t<LangVersion>14</LangVersion>\n\t</PropertyGroup>');
 		const diskConfig: DiskConfig = { packagesPropsText: undefined, readText: path => (path === 'Directory.Build.props' ? '<LangVersion>preview</LangVersion>' : undefined) };
@@ -167,7 +175,7 @@ describe('findProjectCleanup safety', () => {
 		const config: WizardConfig = { versions: { sdkBand: '10.0.4xx' }, scopes: [{ path: '', tfms: ['net10.0'] }] };
 		const app = project('src/App/App.csproj', '\t<PropertyGroup>\n\t\t<LangVersion>14</LangVersion>\n\t</PropertyGroup>');
 
-		expect(findProjectCleanup(config, catalog, [app], NO_DISK_CONFIG).keptLines[0].reason).toContain("can't tell which C# version");
+		expect(findProjectCleanup(config, catalog, [app], NO_DISK_CONFIG).keptLines[0].reason).toContain("can't tell which frameworks");
 	});
 
 	it('keeps an analyzer reference with metadata the generated one lacks', () => {

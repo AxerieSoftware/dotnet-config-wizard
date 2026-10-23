@@ -143,6 +143,12 @@ describe('importMsBuildFile', () => {
 		expect(result.settings).toEqual({ tfms: ['net10.0'], isTargetFrameworkShared: true });
 	});
 
+	it('reads escaped text as the text it stands for, so saving escapes it only once', () => {
+		const result = importMsBuildFile('<Project><PropertyGroup><Authors>Servers &amp; Communications</Authors><Copyright>&#169; Contoso &#x2014; 2026</Copyright></PropertyGroup></Project>', catalog);
+
+		expect(result.settings.build).toEqual({ Authors: 'Servers & Communications', Copyright: '© Contoso — 2026' });
+	});
+
 	it('reads the project under test reference as on and its removal as off, without reporting its properties as dropped', () => {
 		const included = importMsBuildFile(
 			`<Project><PropertyGroup><ProjectUnderTest>$([System.Text.RegularExpressions.Regex]::Replace($(MSBuildProjectName), '\\.Tests$', ''))</ProjectUnderTest><ProjectUnderTestPath>$(MSBuildThisFileDirectory)../src/$(ProjectUnderTest)/$(ProjectUnderTest).csproj</ProjectUnderTestPath></PropertyGroup><ItemGroup><ProjectReference Include="$(ProjectUnderTestPath)" Condition="Exists('$(ProjectUnderTestPath)')" /></ItemGroup></Project>`,
@@ -196,7 +202,7 @@ it('converts a rule set into severities', () => {
 });
 
 it('round-trips a generated config through the importers unchanged', () => {
-	const original = toPresetConfig({ level: 'recommended', kind: 'any' }, catalog);
+	const original = toPresetConfig('recommended', catalog);
 	const files = toGeneratedOutput(original, catalog, { commentStyle: 'idAndTitle' }).files;
 	const rootFiles = ['.editorconfig', 'Directory.Build.props', 'Directory.Packages.props'];
 	const imported: WizardConfig = { versions: original.versions, scopes: [{ path: '', tfms: original.scopes[0].tfms }] };
@@ -205,6 +211,8 @@ it('round-trips a generated config through the importers unchanged', () => {
 		if (result) mergeImport(imported, imported.scopes[0], result);
 	}
 	imported.scopes[0].bannedApis = original.scopes[0].bannedApis;
+	// What each folder holds is read back with the whole repo, not by the single-file importers, so it's carried over too.
+	imported.scopes.push(...original.scopes.slice(1).map(scope => ({ path: scope.path, projectKind: scope.projectKind })));
 
 	const regenerated = toGeneratedOutput(imported, catalog, { commentStyle: 'idAndTitle' }).files;
 

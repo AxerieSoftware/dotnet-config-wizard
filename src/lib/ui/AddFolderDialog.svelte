@@ -10,7 +10,7 @@
 	let isIgnored = $state(false);
 
 	const existingPaths = $derived(wizard.config.scopes.map(scope => scope.path));
-	const unusedPresets = $derived(SCOPE_PRESETS.filter(preset => !existingPaths.includes(preset.scope.path)));
+	const unusedPresets = $derived(SCOPE_PRESETS.filter(preset => !existingPaths.includes(preset.path)));
 
 	// A folder added from a folder's menu goes inside it, and only the common folders sit at the repo root.
 	const parentPath = $derived(wizard.addFolderParentPath ?? '');
@@ -23,7 +23,7 @@
 	});
 
 	function addPreset(presetPath: string): void {
-		wizard.addScope(toScopePreset(presetPath, wizard.config));
+		wizard.addScope(toScopePreset(presetPath, wizard.config, wizard.preset, wizard.catalog));
 		dialog?.close();
 	}
 
@@ -53,9 +53,9 @@
 	<p>Its files hold only what it changes.</p>
 	{#if unusedPresets.length > 0 && parentPath === ''}
 		<div class="folder-presets">
-			{#each unusedPresets as preset (preset.scope.path)}
-				<button type="button" class="preset" onclick={() => addPreset(preset.scope.path)}>
-					<strong><Icon name="folder" small />{preset.scope.path}/</strong>
+			{#each unusedPresets as preset (preset.path)}
+				<button type="button" class="preset" onclick={() => addPreset(preset.path)}>
+					<strong><Icon name="folder" small />{preset.path}/</strong>
 					<span>{preset.description}</span>
 				</button>
 			{/each}

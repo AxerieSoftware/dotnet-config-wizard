@@ -3,34 +3,43 @@ import { readBands, readCatalog } from '../../../scripts/readCatalog.ts';
 import { parseAnalysisLevel } from '../analyzers/analysisLevel.ts';
 import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity.ts';
 import { findActiveOverlaps } from '../analyzers/overlaps.ts';
+import type { Catalog } from '../catalog/catalog.ts';
 import { checkEditorConfigKeys } from '../export/checkEditorConfigKeys.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
-import { ALL_PRESETS, type Preset, toPresetConfig, toPresetName } from './presets.ts';
+import { PRESET_LEVELS, type Preset, SOURCE_KINDS, toFolderDefaults, toPresetConfig, toPresetConfigWithSource, toPresetName } from './presets.ts';
 import { resolveScope } from './scopes.ts';
+import type { ProjectKind, WizardConfig } from './wizardConfig.ts';
 
 const BAND = '10.0.4xx';
 const catalog = readCatalog(BAND);
-const ANALYZING_PRESETS: readonly Preset[] = ALL_PRESETS.filter(preset => preset.level === 'recommended' || preset.level === 'strict' || preset.level === 'opinionated');
-const named = (presets: readonly Preset[]) => presets.map(preset => ({ name: toPresetName(preset), preset }));
+// Each preset with src holding each kind of project, or none, since a folder's kind brings settings of its own.
+type PresetVariant = { level: Preset; kind: ProjectKind | undefined };
+const PRESET_VARIANTS: readonly PresetVariant[] = PRESET_LEVELS.flatMap(level => SOURCE_KINDS.map(kind => ({ level, kind })));
+const ANALYZING_PRESETS: readonly PresetVariant[] = PRESET_VARIANTS.filter(preset => preset.level === 'recommended' || preset.level === 'strict' || preset.level === 'opinionated');
+const named = (presets: readonly PresetVariant[]) => presets.map(preset => ({ name: `${toPresetName(preset.level)} with src as ${preset.kind ?? 'any'}`, preset }));
 
-function render(preset: Preset, bandName = BAND) {
+function toVariantConfig(preset: PresetVariant, bandCatalog: Catalog) {
+	return toPresetConfigWithSource(preset.level, preset.kind, bandCatalog);
+}
+
+function render(preset: PresetVariant, bandName = BAND) {
 	const bandCatalog = readCatalog(bandName);
-	const config = toPresetConfig(preset, bandCatalog);
+	const config = toVariantConfig(preset, bandCatalog);
 	const output = toGeneratedOutput(config, bandCatalog, { commentStyle: 'idAndTitle' });
 	return { config, output, file: (path: string) => output.files.find(file => file.path === path)?.content ?? '' };
 }
 
 describe.each(readBands().map(band => band.band))('every preset on SDK %s', bandName => {
-	it.each(named(ALL_PRESETS))('$name writes only keys Roslyn reads and leaves nothing out', ({ preset }) => {
+	it.each(named(PRESET_VARIANTS))('$name writes only keys Roslyn reads and leaves nothing out', ({ preset }) => {
 		const { output } = render(preset, bandName);
 
 		expect(output.skippedKeys).toEqual([]);
 		for (const file of output.files.filter(file => file.path.endsWith('.editorconfig'))) expect(checkEditorConfigKeys(file.content, readCatalog(bandName))).toEqual([]);
 	});
 
-	it.each(named(ALL_PRESETS))('$name leaves exactly one active rule per concern in every folder', ({ preset }) => {
+	it.each(named(PRESET_VARIANTS))('$name leaves exactly one active rule per concern in every folder', ({ preset }) => {
 		const bandCatalog = readCatalog(bandName);
-		const config = toPresetConfig(preset, bandCatalog);
+		const config = toVariantConfig(preset, bandCatalog);
 
 		for (const scope of config.scopes) {
 			const resolved = resolveScope(config, scope);
@@ -39,7 +48,7 @@ describe.each(readBands().map(band => band.band))('every preset on SDK %s', band
 		}
 	});
 
-	it.each(named(ALL_PRESETS))('$name never pairs TreatWarningsAsErrors with AnalysisMode all', ({ preset }) => {
+	it.each(named(PRESET_VARIANTS))('$name never pairs TreatWarningsAsErrors with AnalysisMode all', ({ preset }) => {
 		const { config } = render(preset, bandName);
 
 		for (const scope of config.scopes) {
@@ -50,8 +59,8 @@ describe.each(readBands().map(band => band.band))('every preset on SDK %s', band
 	});
 });
 
-describe('combining a strictness with a project kind', () => {
-	it('gives Strict for libraries both the strict and the library settings', () => {
+describe('presets with src holding a kind of project', () => {
+	it('gives Strict with src as libraries both the strict and the library settings', () => {
 		const { file } = render({ level: 'strict', kind: 'library' });
 
 		expect(file('Directory.Build.props')).toMatch(/Label="Warnings">\s*<!--[^>]*-->\s*<TreatWarningsAsErrors>true/);
@@ -62,8 +71,8 @@ describe('combining a strictness with a project kind', () => {
 		expect(file('src/.editorconfig')).toContain('dotnet_diagnostic.CA2007.severity = warning');
 	});
 
-	it('ignores the project kind below Recommended', () => {
-		const config = toPresetConfig({ level: 'microsoft-conventions', kind: 'library' }, catalog);
+	it('gives src no kind below Recommended', () => {
+		const config = toVariantConfig({ level: 'microsoft-conventions', kind: 'library' }, catalog);
 
 		expect(config.scopes.map(scope => scope.path)).toEqual(['']);
 		expect(config.scopes[0].projectKind).toBeUndefined();
@@ -71,7 +80,7 @@ describe('combining a strictness with a project kind', () => {
 	});
 
 	it('leaves the repo root without a project kind and gives it to src', () => {
-		const config = toPresetConfig({ level: 'recommended', kind: 'service' }, catalog);
+		const config = toVariantConfig({ level: 'recommended', kind: 'service' }, catalog);
 
 		expect(config.scopes.map(scope => [scope.path, scope.projectKind])).toEqual([
 			['', undefined],
@@ -95,9 +104,9 @@ describe('C1: consistent style across developers', () => {
 	});
 
 	it('fails CI builds on warnings in Recommended, every build in Strict, and never in Microsoft defaults', () => {
-		expect(render({ level: 'recommended', kind: 'any' }).file('Directory.Build.props')).toMatch(/Label="CI builds only"[\s\S]*<TreatWarningsAsErrors>true/);
-		expect(render({ level: 'strict', kind: 'any' }).file('Directory.Build.props')).toMatch(/Label="Warnings">\s*<!--[^>]*-->\s*<TreatWarningsAsErrors>true/);
-		expect(render({ level: 'microsoft-defaults', kind: 'any' }).file('Directory.Build.props')).not.toContain('TreatWarningsAsErrors');
+		expect(render({ level: 'recommended', kind: undefined }).file('Directory.Build.props')).toMatch(/Label="CI builds only"[\s\S]*<TreatWarningsAsErrors>true/);
+		expect(render({ level: 'strict', kind: undefined }).file('Directory.Build.props')).toMatch(/Label="Warnings">\s*<!--[^>]*-->\s*<TreatWarningsAsErrors>true/);
+		expect(render({ level: 'microsoft-defaults', kind: undefined }).file('Directory.Build.props')).not.toContain('TreatWarningsAsErrors');
 	});
 
 	it('suppresses missing XML docs outside libraries only', () => {
@@ -108,10 +117,10 @@ describe('C1: consistent style across developers', () => {
 
 describe('C2: performance', () => {
 	it('raises the Performance category and logging rules, more in Strict', () => {
-		expect(render({ level: 'recommended', kind: 'any' }).file('.editorconfig')).toContain('dotnet_analyzer_diagnostic.category-Performance.severity = warning');
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_analyzer_diagnostic.category-Performance.severity = error');
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.CA1848.severity = error');
-		expect(render({ level: 'recommended', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.CA1873.severity = warning');
+		expect(render({ level: 'recommended', kind: undefined }).file('.editorconfig')).toContain('dotnet_analyzer_diagnostic.category-Performance.severity = warning');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_analyzer_diagnostic.category-Performance.severity = error');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.CA1848.severity = error');
+		expect(render({ level: 'recommended', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.CA1873.severity = warning');
 	});
 
 	it('asks for ConfigureAwait and AOT compatibility in libraries only', () => {
@@ -123,7 +132,7 @@ describe('C2: performance', () => {
 	});
 
 	it("uses only Microsoft's analyzers in Recommended, with the threading analyzers' general async rules", () => {
-		const { file } = render({ level: 'recommended', kind: 'any' });
+		const { file } = render({ level: 'recommended', kind: undefined });
 
 		expect(file('Directory.Packages.props')).toContain('Include="Microsoft.VisualStudio.Threading.Analyzers"');
 		expect(file('Directory.Packages.props')).not.toMatch(/Include="(?:Meziantou|SonarAnalyzer)/);
@@ -132,17 +141,17 @@ describe('C2: performance', () => {
 	});
 
 	it("lets Microsoft's threading analyzers own async concerns over Sonar's", () => {
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.S3168.severity = none');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.S3168.severity = none');
 	});
 
 	it('leaves the noisiest auto-fixable style rules to Strict', () => {
-		expect(render({ level: 'recommended', kind: 'any' }).file('.editorconfig')).not.toContain('dotnet_diagnostic.IDE0040.severity');
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.IDE0040.severity = warning');
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.IDE0300.severity = warning');
+		expect(render({ level: 'recommended', kind: undefined }).file('.editorconfig')).not.toContain('dotnet_diagnostic.IDE0040.severity');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.IDE0040.severity = warning');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.IDE0300.severity = warning');
 	});
 
 	it("turns off Sonar's loop-to-LINQ rule in Strict", () => {
-		expect(render({ level: 'strict', kind: 'any' }).file('.editorconfig')).toContain('dotnet_diagnostic.S3267.severity = none');
+		expect(render({ level: 'strict', kind: undefined }).file('.editorconfig')).toContain('dotnet_diagnostic.S3267.severity = none');
 	});
 });
 
@@ -191,9 +200,9 @@ describe('C4: new language features as they ship', () => {
 		const newerCatalog = readCatalog(newer.band);
 		const tfm = `net${older.channel}`;
 		// Same target framework on both, so only the SDK band changes.
-		const sameFrameworks = (bandConfig: ReturnType<typeof toPresetConfig>) => ({ ...bandConfig, scopes: bandConfig.scopes.map(scope => (scope.tfms ? { ...scope, tfms: [tfm] } : scope)) });
+		const sameFrameworks = (bandConfig: WizardConfig) => ({ ...bandConfig, scopes: bandConfig.scopes.map(scope => (scope.tfms ? { ...scope, tfms: [tfm] } : scope)) });
 		const toLines = (bandName: string, bandCatalog: typeof catalog) =>
-			toGeneratedOutput(sameFrameworks({ ...toPresetConfig({ level: 'recommended', kind: 'any' }, bandCatalog), versions: { sdkBand: bandName } }), bandCatalog, { commentStyle: 'none' })
+			toGeneratedOutput(sameFrameworks({ ...toVariantConfig({ level: 'recommended', kind: undefined }, bandCatalog), versions: { sdkBand: bandName } }), bandCatalog, { commentStyle: 'none' })
 				.files.flatMap(file => file.content.split('\n').map(line => `${file.path}: ${line}`))
 				.filter(line => !line.includes('# Settings for .NET SDK') && !line.includes('"version":'));
 
@@ -222,7 +231,7 @@ describe('Opinionated', () => {
 	});
 
 	it('turns on the MSTest analyzers for tests, raising their suggestions to warnings', () => {
-		const { config, file } = render({ level: 'opinionated', kind: 'any' });
+		const { config, file } = render({ level: 'opinionated', kind: undefined });
 
 		expect(config.scopes.find(scope => scope.path === 'tests')?.packages).toContain('MSTest.Analyzers');
 		expect(file('tests/.editorconfig')).toMatch(/dotnet_diagnostic\.MSTEST\d+\.severity = warning/);
@@ -244,7 +253,7 @@ describe('Opinionated', () => {
 	});
 
 	it('fails every build on warnings and uses the same analyzers as Strict', () => {
-		const { file } = render({ level: 'opinionated', kind: 'any' });
+		const { file } = render({ level: 'opinionated', kind: undefined });
 
 		expect(file('Directory.Build.props')).toMatch(/Label="Warnings">\s*<!--[^>]*-->\s*<TreatWarningsAsErrors>true/);
 		expect(file('Directory.Build.props')).toContain('<UseArtifactsOutput>true</UseArtifactsOutput>');
@@ -257,7 +266,7 @@ describe('Opinionated', () => {
 	});
 
 	it('enforces tabs, this., var everywhere, pattern matching and primary constructors', () => {
-		const editorConfig = render({ level: 'opinionated', kind: 'any' }).file('.editorconfig');
+		const editorConfig = render({ level: 'opinionated', kind: undefined }).file('.editorconfig');
 
 		expect(editorConfig).toContain('indent_style = tab');
 		expect(editorConfig).toContain('dotnet_style_qualification_for_field = true');
@@ -267,5 +276,39 @@ describe('Opinionated', () => {
 		expect(editorConfig).toContain('dotnet_diagnostic.IDE0290.severity = warning');
 		expect(editorConfig).toContain('dotnet_diagnostic.CA2016.severity = error');
 		expect(editorConfig).not.toContain('required_prefix = _');
+	});
+});
+
+describe('toFolderDefaults', () => {
+	it('undoes what only suits libraries in an apps or test folder inside a library folder', () => {
+		const config = toPresetConfig('recommended', catalog);
+
+		const api = toFolderDefaults('src/Api', 'service', 'recommended', config, catalog);
+		const tests = toFolderDefaults('src/Billing.Tests', 'test', 'recommended', config, catalog);
+
+		expect(api.build).toEqual({ IsPackable: 'false', IsAotCompatible: 'false' });
+		expect(api.severities).toEqual({ CA2007: 'none', CS1591: 'none' });
+		expect(api.packages).not.toContain('Microsoft.CodeAnalysis.PublicApiAnalyzers');
+		expect(tests.packages).not.toContain('Microsoft.CodeAnalysis.PublicApiAnalyzers');
+	});
+
+	it('undoes what only suits services in a library or test folder inside an apps folder', () => {
+		const config = toPresetConfigWithSource('opinionated', 'service', catalog);
+
+		const core = toFolderDefaults('src/Core', 'library', 'opinionated', config, catalog);
+		const tests = toFolderDefaults('src/Api.Tests', 'test', 'opinionated', config, catalog);
+
+		expect(core.build?.InvariantGlobalization).toBe('false');
+		expect(core.severities?.MA0002).toBe('warning');
+		expect(core.severities?.MA0076).toBe('warning');
+		expect(tests.build?.InvariantGlobalization).toBe('false');
+	});
+
+	it('repeats nothing a folder of the same kind above it already sets', () => {
+		const config = toPresetConfig('opinionated', catalog);
+		config.scopes.push(toFolderDefaults('samples', 'service', 'opinionated', config, catalog));
+
+		expect(toFolderDefaults('src/Core', 'library', 'opinionated', config, catalog)).toEqual({ path: 'src/Core', projectKind: 'library' });
+		expect(toFolderDefaults('samples/Web', 'service', 'opinionated', config, catalog)).toEqual({ path: 'samples/Web', projectKind: 'service' });
 	});
 });

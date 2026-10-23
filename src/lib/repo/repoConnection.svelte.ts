@@ -26,7 +26,12 @@ export class RepoConnection {
 	// The text on disk, and the wizard's own version of each file when it was last read or written.
 	private readonly diskTexts: Map<string, string>;
 	private readonly savedVersions: Map<string, string>;
+	// Files a newly picked comment style rewrote, which get its comments everywhere until they're next saved.
+	private readonly fullyCommentedPaths = new Set<string>();
 	private saveTimer: ReturnType<typeof setTimeout> | undefined;
+	// Saves write the newest files when they run, and an edit undone while one runs is written once it finishes.
+	private latestFiles: readonly GeneratedFile[] = [];
+	private savesInFlight = 0;
 	// Saves and applied changes write one after another, so neither works from text the other is about to replace.
 	private writes: Promise<unknown> = Promise.resolve();
 
@@ -50,19 +55,41 @@ export class RepoConnection {
 
 	/** What saving a generated file writes: the wizard's version merged with the file on disk. */
 	public toSavedFileText(file: GeneratedFile, catalog: Catalog): string {
-		return toSavedText(file.path, file.content, this.readDiskText(file.path), catalog);
+		return toSavedText(file.path, file.content, this.readDiskText(file.path), catalog, { isAddingEveryComment: this.fullyCommentedPaths.has(file.path) });
+	}
+
+	/**
+	 * Picking a comment style asks for its comments, so the files it rewrites get them even above settings the file already
+	 * has without one.
+	 */
+	public markFullyCommented(filesBefore: readonly GeneratedFile[], filesAfter: readonly GeneratedFile[]): void {
+		const contentBefore = new Map(filesBefore.map(file => [file.path, file.content]));
+		for (const file of filesAfter) if (contentBefore.get(file.path) !== file.content) this.fullyCommentedPaths.add(file.path);
 	}
 
 	/** Saves the files once edits pause, so a burst of changes writes once. */
 	public scheduleSave(files: readonly GeneratedFile[], catalog: Catalog): void {
 		if (!this.directory) return;
 
-		const changed = files.filter(file => this.savedVersions.get(file.path) !== file.content);
-		if (changed.length === 0) return;
-
+		this.latestFiles = files;
+		const changed = this.toChangedFiles();
+		// A file edited back to what was saved needs no write, and a pending save of its earlier edit must not run.
+		const changedPaths = new Set(changed.map(file => file.path));
+		for (const path of this.fullyCommentedPaths) if (!changedPaths.has(path)) this.fullyCommentedPaths.delete(path);
 		clearTimeout(this.saveTimer);
+		if (changed.length === 0) {
+			if (this.savesInFlight > 0) return;
+			this.status = 'saved';
+			this.failure = undefined;
+			return;
+		}
+
 		this.status = 'saving';
-		this.saveTimer = setTimeout(() => void this.enqueue(() => this.save(changed, catalog)), SAVE_DELAY_MS);
+		this.failure = undefined;
+		this.saveTimer = setTimeout(() => {
+			this.savesInFlight++;
+			void this.enqueue(() => this.saveLatest(catalog));
+		}, SAVE_DELAY_MS);
 	}
 
 	/**
@@ -93,7 +120,7 @@ export class RepoConnection {
 				// Versions are written before they leave the projects, so a failed write never leaves a package without one.
 				if (isPackagesPropsChanged) {
 					await this.writeFile(directory, packagesProps.path, packagesPropsText);
-					this.savedVersions.set(packagesProps.path, packagesProps.content);
+					this.recordSaved(packagesProps);
 				}
 
 				const projects = toCleanedProjects(current, edits);
@@ -109,27 +136,47 @@ export class RepoConnection {
 		});
 	}
 
+	private async saveLatest(catalog: Catalog): Promise<void> {
+		try {
+			await this.save(this.toChangedFiles(), catalog);
+		} finally {
+			this.savesInFlight--;
+		}
+
+		// A failed write waits for the next edit to retry, so a folder that can't be written doesn't retry forever.
+		if (this.status === 'failed' && this.toChangedFiles().length > 0) return;
+		this.scheduleSave(this.latestFiles, catalog);
+	}
+
+	private toChangedFiles(): GeneratedFile[] {
+		return this.latestFiles.filter(file => this.savedVersions.get(file.path) !== file.content);
+	}
+
 	private async save(files: readonly GeneratedFile[], catalog: Catalog): Promise<void> {
 		const directory = this.directory;
 		if (!directory) return;
 
-		try {
-			await Promise.all(
-				files.map(async file => {
-					const diskPath = this.toDiskPath(file.path);
-					const text = this.toSavedFileText(file, catalog);
-					if (text !== this.diskTexts.get(diskPath)) await writeRepoFile(directory, diskPath, text);
-					this.diskTexts.set(diskPath, text);
-					this.savedVersions.set(file.path, file.content);
-				})
-			);
+		// Every write settles before the queue moves on, even when one fails.
+		const results = await Promise.allSettled(
+			files.map(async file => {
+				const diskPath = this.toDiskPath(file.path);
+				const text = this.toSavedFileText(file, catalog);
+				if (text !== this.diskTexts.get(diskPath)) await writeRepoFile(directory, diskPath, text);
+				this.diskTexts.set(diskPath, text);
+				this.recordSaved(file);
+			})
+		);
+		const failed = results.find(result => result.status === 'rejected');
+		if (!failed) return;
 
-			this.status = 'saved';
-			this.failure = undefined;
-		} catch (error) {
-			this.status = 'failed';
-			this.failure = error instanceof Error ? error.message : String(error);
-		}
+		this.status = 'failed';
+		this.failure = failed.reason instanceof Error ? failed.reason.message : String(failed.reason);
+	}
+
+	private recordSaved(file: GeneratedFile): void {
+		this.savedVersions.set(file.path, file.content);
+		// A comment style picked while this was being written still wants its comments in the newer content.
+		if (this.latestFiles.find(latest => latest.path === file.path)?.content === file.content) this.fullyCommentedPaths.delete(file.path);
 	}
 
 	private enqueue<TResult>(write: () => Promise<TResult>): Promise<TResult> {

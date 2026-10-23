@@ -1,28 +1,21 @@
+import { MSTEST_PACKAGE, PUBLIC_API_PACKAGE } from '../analyzers/analyzerPackages.ts';
 import { BANNED_API_SETS } from '../analyzers/bannedApis.ts';
 import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity.ts';
 import { findActiveOverlaps } from '../analyzers/overlaps.ts';
+import { isSameList } from '../build/msbuildValues.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { MICROSOFT_NAMING_SYMBOLS, NAMING_TEMPLATES, type NamingRule } from '../naming/namingRule.ts';
 import { NUGET_ORG } from '../packages/nugetConfig.ts';
-import { toScopePreset } from './scopePresets.ts';
-import { resolveScope } from './scopes.ts';
-import type { ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
+import { type ResolvedScope, resolveInheritedScope, resolveScope } from './scopes.ts';
+import type { ProjectKind, ScopeConfig, Severity, WizardConfig } from './wizardConfig.ts';
 
+/** A preset is a strictness level. What each folder holds is set on the folder, and brings that kind's defaults with it. */
 export const PRESET_LEVELS = ['microsoft-defaults', 'microsoft-conventions', 'recommended', 'strict', 'opinionated'] as const;
-export type PresetLevel = (typeof PRESET_LEVELS)[number];
+export type Preset = (typeof PRESET_LEVELS)[number];
 
-export const PRESET_KINDS = ['any', 'library', 'service'] as const;
-export type PresetKind = (typeof PRESET_KINDS)[number];
+export const DEFAULT_PRESET: Preset = 'microsoft-defaults';
 
-/** A preset is a strictness level plus the kind of projects it's for, such as Strict for libraries. */
-export type Preset = { level: PresetLevel; kind: PresetKind };
-
-export const DEFAULT_PRESET: Preset = { level: 'microsoft-defaults', kind: 'any' };
-
-/** Every level paired with every kind. */
-export const ALL_PRESETS: readonly Preset[] = PRESET_LEVELS.flatMap(level => PRESET_KINDS.map(kind => ({ level, kind })));
-
-export const PRESET_LEVEL_DETAILS: Readonly<Record<PresetLevel, { title: string; description: string }>> = {
+export const PRESET_LEVEL_DETAILS: Readonly<Record<Preset, { title: string; description: string }>> = {
 	'microsoft-defaults': { title: 'Microsoft defaults', description: 'Whitespace and line endings only. Rules keep SDK defaults.' },
 	'microsoft-conventions': { title: 'Microsoft conventions', description: "Microsoft's C# coding and naming conventions." },
 	recommended: { title: 'Recommended', description: 'Conventions enforced on build, plus performance, security and supply-chain checks. Warnings fail CI.' },
@@ -30,16 +23,9 @@ export const PRESET_LEVEL_DETAILS: Readonly<Record<PresetLevel, { title: string;
 	opinionated: { title: 'Opinionated', description: 'Adds one house style: tabs, this., var everywhere, pattern matching.' }
 };
 
-export const PRESET_KIND_DETAILS: Readonly<Record<PresetKind, { title: string; description: string }>> = {
-	any: { title: 'Any project', description: 'No project-specific settings.' },
-	library: { title: 'Libraries', description: 'ConfigureAwait, AOT, public API tracking, package metadata.' },
-	service: { title: 'Apps and services', description: 'ASP.NET Core banned APIs.' }
-};
-
-/** A preset's display name, such as `Strict for libraries`. */
+/** A preset's display name, such as `Strict`. */
 export function toPresetName(preset: Preset): string {
-	const level = PRESET_LEVEL_DETAILS[preset.level].title;
-	return preset.kind === 'any' ? level : `${level} for ${PRESET_KIND_DETAILS[preset.kind].title.toLowerCase()}`;
+	return PRESET_LEVEL_DETAILS[preset].title;
 }
 
 const FORMATTING: Record<string, Record<string, string>> = {
@@ -302,6 +288,8 @@ const OPINIONATED_OPTIONS: Record<string, string> = {
 const OPINIONATED_SEVERITIES: Record<string, Severity> = {
 	// Trailing commas after the last value are left to taste.
 	MA0007: 'none',
+	// Namespaces needn't mirror folders; latest-recommended would otherwise warn.
+	IDE0130: 'none',
 	IDE0003: 'warning',
 	IDE0009: 'warning',
 	IDE0007: 'warning',
@@ -368,8 +356,6 @@ const PRIVATE_STATIC_READONLY_FIELDS: NamingRule = {
 const MEZIANTOU = 'Meziantou.Analyzer';
 const BANNED_API = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
 const SONAR = 'SonarAnalyzer.CSharp';
-const PUBLIC_API = 'Microsoft.CodeAnalysis.PublicApiAnalyzers';
-const MSTEST = 'MSTest.Analyzers';
 const VS_THREADING = 'Microsoft.VisualStudio.Threading.Analyzers';
 
 // The threading analyzers' JoinableTaskFactory and main-thread rules only suit Visual Studio extensions and UI apps, and
@@ -378,23 +364,36 @@ const VS_THREADING_OFF: Record<string, Severity> = Object.fromEntries(
 	['VSTHRD001', 'VSTHRD003', 'VSTHRD004', 'VSTHRD010', 'VSTHRD011', 'VSTHRD012', 'VSTHRD108', 'VSTHRD109', 'VSTHRD115', 'VSTHRD200'].map(id => [id, 'none'])
 );
 
+/** What src can hold in a preset. Presets now set libraries; older ones could set apps and services, or no kind. */
+export const SOURCE_KINDS: readonly (ProjectKind | undefined)[] = ['library', 'service', undefined];
+
+// Culture rules services turn off, since they run with invariant globalization.
+const SERVICE_CULTURE_RULES = ['MA0002', 'MA0076'];
+
 /**
- * Builds a preset for an SDK band. Rules the band doesn't have are left out, and any concern that two active analyzers
- * check ends with one active rule, so no preset ships duplicate warnings.
+ * Builds a preset for an SDK band. From Recommended up it adds src for libraries and tests for test projects. Rules the
+ * band doesn't have are left out, and duplicates of active rules are turned off, so no preset ships duplicate warnings.
  */
 export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
+	return toPresetConfigWithSource(preset, 'library', catalog);
+}
+
+/**
+ * A preset with src holding `sourceKind` projects, or no kind. Version 1 share links and older `.editorconfig` headers named
+ * the preset with what src held, such as `Strict for libraries`, so this rebuilds them with the settings they had.
+ */
+export function toPresetConfigWithSource(preset: Preset, sourceKind: ProjectKind | undefined, catalog: Catalog): WizardConfig {
 	const tfms = [`net${catalog.band.channel}`];
-	const projectKind = preset.kind === 'any' ? undefined : preset.kind;
 	// The repo root holds what every project shares; the kind of project belongs to src, beside tests.
 	const root: ScopeConfig = { path: '', tfms, formatting: structuredClone(FORMATTING) };
 	const config: WizardConfig = { versions: { sdkBand: catalog.band.band }, scopes: [root] };
-	if (preset.level === 'microsoft-defaults') return config;
+	if (preset === 'microsoft-defaults') return config;
 
 	root.options = { ...CONVENTION_OPTIONS };
 	root.severities = { ...CONVENTION_SEVERITIES };
 	root.naming = NAMING_TEMPLATES.filter(template => MICROSOFT_NAMING_SYMBOLS.includes(template.symbols)).map(template => structuredClone(template));
 	root.build = { EnforceCodeStyleInBuild: 'true' };
-	if (preset.level === 'microsoft-conventions') return withoutUnknownRules(config, catalog);
+	if (preset === 'microsoft-conventions') return withoutUnknownRules(config, catalog);
 
 	root.severities = { ...root.severities, ...RECOMMENDED_SEVERITIES };
 	// XML docs are generated for IDE0005 to run on build; outside libraries, missing docs aren't worth a warning.
@@ -405,13 +404,12 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 	// Microsoft's analyzers only; Strict adds third-party ones for the gaps they fill.
 	root.severities = { ...root.severities, ...VS_THREADING_OFF };
 	root.packages = [BANNED_API, VS_THREADING];
-	// Bans every kind shares go at the root; ones for a single kind, such as Console in libraries, go in src with its projects.
-	const isSharedSet = (set: (typeof BANNED_API_SETS)[number]) => set.projectKinds.includes('library') && set.projectKinds.includes('service');
-	root.bannedApis = BANNED_API_SETS.filter(isSharedSet).flatMap(set => set.apis);
+	// Banned APIs every kind shares go at the root; ones for a single kind, such as Console in libraries, go with its projects.
+	root.bannedApis = BANNED_API_SETS.filter(set => set.projectKinds === undefined).flatMap(set => set.apis);
 	config.nuget = { sources: [{ ...NUGET_ORG, patterns: ['*'] }], auditSourceUrl: NUGET_ORG.url };
 	config.globalJson = { rollForward: 'latestFeature', isTestingPlatformRunner: false, msbuildSdks: {} };
 
-	if (preset.level === 'strict' || preset.level === 'opinionated') {
+	if (preset === 'strict' || preset === 'opinionated') {
 		root.categorySeverities.Performance = 'error';
 		root.severities = { ...root.severities, ...STRICT_SEVERITIES, ...toWarnings(STRICT_ANALYZER_RULES), CA1848: 'error', CA2254: 'error', S3267: 'none' };
 		root.build.TreatWarningsAsErrors = 'true';
@@ -419,10 +417,12 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 		root.packages = [...root.packages, MEZIANTOU, SONAR];
 	}
 
-	if (preset.level === 'opinionated') {
+	if (preset === 'opinionated') {
 		root.formatting = structuredClone(OPINIONATED_FORMATTING);
 		root.options = { ...root.options, ...OPINIONATED_OPTIONS };
 		root.severities = { ...root.severities, ...OPINIONATED_SEVERITIES, ...toWarnings(OPINIONATED_ANALYZER_RULES) };
+		// Catching general exceptions is allowed, so CA1031 stays at its default of off.
+		delete root.severities.CA1031;
 		// S134 caps nesting at its default of three levels; cognitive complexity is a backstop high enough that a long, flat
 		// sequence of guarded steps passes.
 		root.ruleParameters = { ...root.ruleParameters, S3776: { threshold: '25' } };
@@ -431,59 +431,149 @@ export function toPresetConfig(preset: Preset, catalog: Catalog): WizardConfig {
 		root.build.DebugType = 'embedded';
 		// MSTest.Sdk runs on Microsoft.Testing.Platform, so dotnet test can use it directly. It ships with the MSTest analyzers
 		// at the same version, so the catalog's version pins it for every test project.
-		const msTestVersion = catalog.packages.get(MSTEST)?.version;
+		const msTestVersion = catalog.packages.get(MSTEST_PACKAGE)?.version;
 		config.globalJson = { ...config.globalJson, isTestingPlatformRunner: true, msbuildSdks: msTestVersion ? { 'MSTest.Sdk': msTestVersion } : {} };
 	}
 
-	const src: ScopeConfig = { path: 'src', ...(projectKind ? { projectKind } : {}) };
-	const kindBannedApis = BANNED_API_SETS.filter(set => !isSharedSet(set) && projectKind && set.projectKinds.includes(projectKind)).flatMap(set => set.apis);
-	if (kindBannedApis.length > 0) src.bannedApis = kindBannedApis;
+	const src = toFolderDefaults('src', sourceKind, preset, config, catalog);
+	const tests = toFolderDefaults('tests', 'test', preset, config, catalog);
+	config.scopes.push(src, tests);
+	return withoutDuplicateRules(withoutUnknownRules(config, catalog), catalog);
+}
+
+/**
+ * What a folder holding `projectKind` projects starts with at a preset level, on top of what it inherits in `config`. Below
+ * Recommended, only test folders get settings.
+ */
+export function toFolderDefaults(path: string, projectKind: ProjectKind | undefined, preset: Preset, config: WizardConfig, catalog: Catalog): ScopeConfig {
+	const scope: ScopeConfig = { path, ...(projectKind ? { projectKind } : {}) };
+	const inherited = resolveInheritedScope(config, scope);
+	const defaults = projectKind === 'test' ? toTestDefaults(scope, preset, inherited, catalog) : toShippedDefaults(scope, preset, inherited);
+	// A folder inside a library or service folder would otherwise build like one.
+	if (projectKind !== 'library') removeLibrarySettings(defaults, inherited);
+	if (projectKind !== 'service') removeServiceSettings(defaults, inherited, config, catalog);
+	return withoutRepeatedSettings(defaults, inherited);
+}
+
+/** A folder's defaults cleaned up the way presets are: rules the band doesn't have left out, and duplicates turned off. */
+export function toFolderSettings(path: string, projectKind: ProjectKind | undefined, preset: Preset, config: WizardConfig, catalog: Catalog): ScopeConfig {
+	const scope = toFolderDefaults(path, projectKind, preset, config, catalog);
+	const withScope: WizardConfig = { ...config, scopes: [...config.scopes.filter(other => other.path !== path), scope] };
+	dropUnknownRules(scope, catalog);
+	turnOffDuplicateRules(scope, withScope, catalog);
+	return scope;
+}
+
+export function withoutInherited<TValue>(own: Record<string, TValue>, inherited: Record<string, TValue>): Record<string, TValue> {
+	return Object.fromEntries(Object.entries(own).filter(([key, value]) => inherited[key] !== value));
+}
+
+/**
+ * Libraries track public API, ConfigureAwait and docs, and pack; apps get ASP.NET Core bans. A folder of no kind gets only
+ * what both share, such as Opinionated's trimming and AOT analyzers.
+ */
+function toShippedDefaults(scope: ScopeConfig, preset: Preset, inherited: ResolvedScope | undefined): ScopeConfig {
+	if (preset === 'microsoft-defaults' || preset === 'microsoft-conventions') return scope;
+
+	const projectKind = scope.projectKind;
+	const kindBannedApis = BANNED_API_SETS.filter(set => projectKind && set.projectKinds?.includes(projectKind)).flatMap(set => set.apis);
+	if (kindBannedApis.length > 0) scope.bannedApis = kindBannedApis;
 	if (projectKind === 'library') {
-		src.severities = { CA2007: 'warning', CS1591: 'warning' };
+		scope.severities = { CA2007: 'warning', CS1591: 'warning' };
 		// Embedded symbols ship inside the package with every source file, so debugging needs no symbol package or access
 		// to the repo, which suits private packages.
 		const { IncludeSymbols: _includeSymbols, SymbolPackageFormat: _symbolPackageFormat, EmbedUntrackedSources: _embedUntrackedSources, ...embeddedLibraryBuild } = LIBRARY_BUILD;
-		src.build = root.build.DebugType === 'embedded' ? { ...embeddedLibraryBuild, EmbedAllSources: 'true' } : { ...LIBRARY_BUILD };
-		src.packages = [...root.packages, PUBLIC_API];
+		scope.build = inherited?.build.DebugType === 'embedded' ? { ...embeddedLibraryBuild, EmbedAllSources: 'true' } : { ...LIBRARY_BUILD };
+		scope.packages = [...new Set([...(inherited?.packages ?? []), PUBLIC_API_PACKAGE])];
 	}
 
 	// Apps that don't format for people run fine without ICU, and behave the same in every locale and container.
-	if (projectKind === 'service' && preset.level === 'opinionated') src.build = { InvariantGlobalization: 'true' };
+	if (projectKind === 'service' && preset === 'opinionated') scope.build = { InvariantGlobalization: 'true' };
 
 	// Libraries can't rely on the app's culture, so string interpolation and sorting must name theirs too. Services run with
 	// invariant globalization, where neither can vary.
-	if (preset.level === 'opinionated' && projectKind === 'library') src.severities = { ...src.severities, MA0076: 'warning' };
-	if (preset.level === 'opinionated' && projectKind === 'service') src.severities = { ...src.severities, MA0002: 'none', MA0076: 'none' };
+	if (preset === 'opinionated' && projectKind === 'library') scope.severities = { ...scope.severities, MA0076: 'warning' };
+	if (preset === 'opinionated' && projectKind === 'service') scope.severities = { ...scope.severities, ...Object.fromEntries(SERVICE_CULTURE_RULES.map(id => [id, 'none'])) };
 
-	if (preset.level === 'opinionated') {
-		src.areInternalsVisibleToTests = true;
+	if (preset === 'opinionated') {
+		scope.areInternalsVisibleToTests = true;
 		// Opinionated shows what would block trimming and Native AOT without claiming compatibility: the analyzers run, their
 		// findings are suggestions so they never fail the build, and libraries don't declare IsAotCompatible.
-		const { IsAotCompatible: _isAotCompatible, ...build } = src.build ?? {};
-		src.build = { ...build, EnableTrimAnalyzer: 'true', EnableAotAnalyzer: 'true' };
-		src.categorySeverities = { Trimming: 'suggestion', AOT: 'suggestion' };
+		const { IsAotCompatible: _isAotCompatible, ...build } = scope.build ?? {};
+		scope.build = { ...build, EnableTrimAnalyzer: 'true', EnableAotAnalyzer: 'true' };
+		scope.categorySeverities = { Trimming: 'suggestion', AOT: 'suggestion' };
 	}
 
-	const tests = toScopePreset('tests', config);
+	return scope;
+}
+
+/**
+ * Tests don't ship, so they aren't packed and don't need ConfigureAwait (CA2007) or XML docs (CS1591). They also allow
+ * underscores in test names (CA1707) and public test classes (CA1515).
+ */
+function toTestDefaults(scope: ScopeConfig, preset: Preset, inherited: ResolvedScope | undefined, catalog: Catalog): ScopeConfig {
+	scope.severities = { CA1707: 'none', CA2007: 'none', CA1515: 'none', CS1591: 'none' };
+	scope.build = { IsPackable: 'false' };
+	if (preset !== 'opinionated') return scope;
+
 	// Opinionated test projects reference what they test by name, so their project files hold only what's specific to them.
-	if (preset.level === 'opinionated') tests.isProjectUnderTestReferenced = true;
+	scope.isProjectUnderTestReferenced = true;
 	// Opinionated tests use MSTest, whose analyzers come with MSTest.Sdk; its suggestions become warnings.
-	if (preset.level === 'opinionated') {
-		tests.packages = [...root.packages, MSTEST];
-		tests.severities = {
-			...tests.severities,
-			...toWarnings(
-				catalog.rules
-					.values()
-					.filter(rule => rule.packageId === MSTEST && rule.isEnabledByDefault && rule.defaultSeverity === 'suggestion')
-					.map(rule => rule.id)
-					.toArray()
-			)
-		};
-	}
+	scope.packages = [...new Set([...(inherited?.packages ?? []), MSTEST_PACKAGE])];
+	const msTestSuggestions = catalog.rules
+		.values()
+		.filter(rule => rule.packageId === MSTEST_PACKAGE && rule.isEnabledByDefault && rule.defaultSeverity === 'suggestion')
+		.map(rule => rule.id)
+		.toArray();
+	scope.severities = { ...scope.severities, ...toWarnings(msTestSuggestions) };
+	return scope;
+}
 
-	config.scopes.push(src, tests);
-	return withoutDuplicateRules(withoutUnknownRules(config, catalog), catalog);
+function removeLibrarySettings(scope: ScopeConfig, inherited: ResolvedScope | undefined): void {
+	if (!inherited) return;
+
+	const build: Record<string, string> = {};
+	if (inherited.build.IsPackable === 'true') build.IsPackable = 'false';
+	if (inherited.build.IsAotCompatible === 'true') build.IsAotCompatible = 'false';
+	const severities: Record<string, Severity> = Object.fromEntries(['CA2007', 'CS1591'].filter(id => inherited.severities[id] === 'warning').map(id => [id, 'none']));
+	scope.build = { ...build, ...scope.build };
+	scope.severities = { ...severities, ...scope.severities };
+	const packages = scope.packages ?? inherited.packages;
+	if (packages.includes(PUBLIC_API_PACKAGE)) scope.packages = packages.filter(packageId => packageId !== PUBLIC_API_PACKAGE);
+}
+
+/** Turns globalization back on, and the culture rules back to what the repo root gives them. */
+function removeServiceSettings(scope: ScopeConfig, inherited: ResolvedScope | undefined, config: WizardConfig, catalog: Catalog): void {
+	if (!inherited) return;
+
+	if (inherited.build.InvariantGlobalization === 'true') scope.build = { InvariantGlobalization: 'false', ...scope.build };
+	const root = resolveScope(config, config.scopes[0]);
+	for (const rule of SERVICE_CULTURE_RULES.map(id => catalog.rules.get(id))) {
+		if (!rule || inherited.severities[rule.id] !== 'none' || scope.severities?.[rule.id] !== undefined) continue;
+		scope.severities = { ...scope.severities, [rule.id]: getEffectiveSeverity(rule, root, catalog) };
+	}
+}
+
+/** Leaves out what the folder would inherit anyway, so its files hold only what it changes. */
+function withoutRepeatedSettings(scope: ScopeConfig, inherited: ResolvedScope | undefined): ScopeConfig {
+	const { severities, build, categorySeverities, bannedApis, packages, ...rest } = scope;
+	const own: ScopeConfig = {
+		...rest,
+		severities: withoutInherited(severities ?? {}, inherited?.severities ?? {}),
+		build: withoutInherited(build ?? {}, inherited?.build ?? {}),
+		categorySeverities: withoutInherited(categorySeverities ?? {}, inherited?.categorySeverities ?? {}),
+		bannedApis: (bannedApis ?? []).filter(api => !inherited?.bannedApis.some(inheritedApi => inheritedApi.symbol === api.symbol))
+	};
+	if (packages !== undefined && !(inherited && isSameList(packages, inherited.packages))) own.packages = packages;
+	if (own.areInternalsVisibleToTests === inherited?.areInternalsVisibleToTests) delete own.areInternalsVisibleToTests;
+	if (own.isProjectUnderTestReferenced === inherited?.isProjectUnderTestReferenced) delete own.isProjectUnderTestReferenced;
+	return Object.fromEntries(Object.entries(own).filter(([, value]) => !isEmpty(value))) as ScopeConfig;
+}
+
+/** Whether a setting holds nothing: an empty list or object. */
+export function isEmpty(value: unknown): boolean {
+	if (Array.isArray(value)) return value.length === 0;
+	return typeof value === 'object' && value !== null && Object.keys(value).length === 0;
 }
 
 function toWarnings(ruleIds: readonly string[]): Record<string, Severity> {
@@ -499,23 +589,25 @@ function toOpinionatedNaming(): NamingRule[] {
 
 /** Drops severities for rules the band doesn't have, such as CA1873 before SDK 10. */
 function withoutUnknownRules(config: WizardConfig, catalog: Catalog): WizardConfig {
-	for (const scope of config.scopes) {
-		if (scope.severities) scope.severities = Object.fromEntries(Object.entries(scope.severities).filter(([id]) => catalog.rules.has(id)));
-	}
-
+	for (const scope of config.scopes) dropUnknownRules(scope, catalog);
 	return config;
+}
+
+function dropUnknownRules(scope: ScopeConfig, catalog: Catalog): void {
+	if (scope.severities) scope.severities = Object.fromEntries(Object.entries(scope.severities).filter(([id]) => catalog.rules.has(id)));
 }
 
 /** Turns off every duplicate the overlap map finds, scope by scope, keeping each concern's owner. */
 function withoutDuplicateRules(config: WizardConfig, catalog: Catalog): WizardConfig {
-	for (const scope of config.scopes) {
-		const resolved = resolveScope(config, scope);
-		const overlaps = findActiveOverlaps(catalog, rule => (!rule.packageId || resolved.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, resolved, catalog)));
-		for (const duplicate of overlaps.flatMap(overlap => overlap.duplicates)) {
-			scope.severities ??= {};
-			scope.severities[duplicate.id] = 'none';
-		}
-	}
-
+	for (const scope of config.scopes) turnOffDuplicateRules(scope, config, catalog);
 	return config;
+}
+
+function turnOffDuplicateRules(scope: ScopeConfig, config: WizardConfig, catalog: Catalog): void {
+	const resolved = resolveScope(config, scope);
+	const overlaps = findActiveOverlaps(catalog, rule => (!rule.packageId || resolved.packages.includes(rule.packageId)) && isReported(getEffectiveSeverity(rule, resolved, catalog)));
+	for (const duplicate of overlaps.flatMap(overlap => overlap.duplicates)) {
+		scope.severities ??= {};
+		scope.severities[duplicate.id] = 'none';
+	}
 }

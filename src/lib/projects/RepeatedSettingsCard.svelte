@@ -3,6 +3,7 @@
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import { toFolderName } from '../export/fileTree.ts';
 	import type { RepoConnection } from '../repo/repoConnection.svelte.ts';
+	import { toProjectName } from './projectCleanup.ts';
 	import { findRepeatedSettings } from './repeatedSettings.ts';
 
 	let { repo }: { repo: RepoConnection } = $props();
@@ -29,7 +30,7 @@
 						<code>&lt;{setting.name}&gt;{setting.value}&lt;/{setting.name}&gt;</code>
 						<span class="caption">
 							In {setting.projectPaths.length} projects under {toFolderLabel(setting.folderPath)}{setting.isNewFolder ? `, which gets its own ${BUILD_PROPS}` : ''}:
-							{setting.projectPaths.join(', ')}
+							{setting.projectPaths.map(toProjectName).join(', ')}
 						</span>
 					</span>
 					<button type="button" class="small" onclick={() => wizard.setFolderSetting(setting.folderPath, setting.name, setting.value)}>
@@ -64,5 +65,6 @@
 		align-items: flex-start;
 		gap: 2px;
 		min-width: 0;
+		overflow-wrap: anywhere;
 	}
 </style>
