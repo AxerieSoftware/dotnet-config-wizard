@@ -1,0 +1,82 @@
+name: CI auto-fix
+
+# Claude fixes a failed run on Dependabot's grouped updates, which nobody else is touching. It runs the branch's code with
+# write access and secrets, which is safe only because Dependabot's own branches in this repo are trusted.
+on:
+  workflow_run:
+    workflows: [CI, Validate output]
+    types: [completed]
+
+permissions:
+  contents: read
+
+# CI and Validate output can both fail on one push, so their fixes run one after another on the branch.
+concurrency:
+  group: ci-auto-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    # Claude's own pushes run CI as claude[bot], so a fix that still fails isn't fixed again.
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      # The action trades the OIDC token for the Claude GitHub App's token, whose pushes trigger CI.
+      id-token: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Cache .NET SDKs for every cataloged band
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/dotnet
+          key: dotnet-sdks-${{ hashFiles('catalog/generated/bands.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
+
+      - name: Fix CI with Claude
+        uses: anthropics/claude-code-action@ae68417a745a5df4b2124873632bd73a2255e6f6 # v1.0.259
+        with:
+          # Set one of the two secrets.
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --allowedTools "Edit,Write,Read,Glob,Grep,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(dotnet:*),Bash(git:*),Bash(gh:*)"
+          prompt: |
+            The `${{ github.event.workflow_run.name }}` run ${{ github.event.workflow_run.html_url }} failed on Dependabot's branch `${{ github.event.workflow_run.head_branch }}`, PR #${{ github.event.workflow_run.pull_requests[0].number }}.
+
+            1. If the branch's HEAD is no longer `${{ github.event.workflow_run.head_sha }}`, a newer push is already being checked. Change nothing and say so.
+            2. Read the failed jobs' logs with `gh run view ${{ github.event.workflow_run.id }} --log-failed`. Playwright traces are in the run's artifacts.
+            3. Find the root cause, usually an update that changed an API, a type or a lint rule.
+            4. Fix it, following AGENTS.md. Don't weaken, skip or delete tests to get them passing.
+            5. Run what AGENTS.md lists for the files you changed, and always rerun what failed: `npm run check`, `npm run e2e`, `node scripts/renderConfig.ts config/dogfood.json --check` and `node scripts/validateOutput.ts`.
+            6. Commit on the current branch and push it to the PR. Never push to `main`.
+
+            If the failure is flaky or outside the code, such as a runner or network error, change nothing and say why.
