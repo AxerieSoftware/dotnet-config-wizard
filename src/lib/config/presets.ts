@@ -288,6 +288,8 @@ const OPINIONATED_OPTIONS: Record<string, string> = {
 const OPINIONATED_SEVERITIES: Record<string, Severity> = {
 	// Trailing commas after the last value are left to taste.
 	MA0007: 'none',
+	// Namespaces needn't mirror folders; latest-recommended would otherwise warn.
+	IDE0130: 'none',
 	IDE0003: 'warning',
 	IDE0009: 'warning',
 	IDE0007: 'warning',
@@ -419,6 +421,8 @@ export function toPresetConfigWithSource(preset: Preset, sourceKind: ProjectKind
 		root.formatting = structuredClone(OPINIONATED_FORMATTING);
 		root.options = { ...root.options, ...OPINIONATED_OPTIONS };
 		root.severities = { ...root.severities, ...OPINIONATED_SEVERITIES, ...toWarnings(OPINIONATED_ANALYZER_RULES) };
+		// Catching general exceptions is allowed, so CA1031 stays at its default of off.
+		delete root.severities.CA1031;
 		// S134 caps nesting at its default of three levels; cognitive complexity is a backstop high enough that a long, flat
 		// sequence of guarded steps passes.
 		root.ruleParameters = { ...root.ruleParameters, S3776: { threshold: '25' } };
