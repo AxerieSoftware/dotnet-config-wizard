@@ -18,7 +18,9 @@
 		})
 	);
 	const projectCount = $derived(repo.projectFiles.filter(project => project.path.endsWith('.csproj')).length);
-	const projectPaths = $derived([...new Set([...cleanup.edits, ...cleanup.keptLines].map(line => line.projectPath))].sort());
+	const projectPaths = $derived([...new Set(cleanup.edits.map(edit => edit.projectPath))].sort());
+	// Kept lines often share a reason, such as the same LangVersion across the same frameworks, so lines are grouped by reason.
+	const keptGroups = $derived([...Map.groupBy(cleanup.keptLines, kept => kept.reason)]);
 	// Every edit starts chosen. Declined ones are remembered by their text, so they stay declined after other lines go.
 	const declinedKeys = new SvelteSet<string>();
 	const chosenEdits = $derived(cleanup.edits.filter(edit => !declinedKeys.has(toKey(edit))));
@@ -60,7 +62,7 @@
 		<p class="message danger" role="alert"><Icon name="errorCircle" /><span>Not every file was saved: {result.message}</span></p>
 	{/if}
 
-	{#if projectPaths.length === 0}
+	{#if projectPaths.length === 0 && keptGroups.length === 0}
 		<p class="note">Nothing in the {projectCount === 1 ? 'project file' : `${projectCount} project files`} is unnecessary now.</p>
 	{:else}
 		{#each projectPaths as projectPath (projectPath)}
@@ -80,14 +82,22 @@
 						</span>
 					</label>
 				{/each}
-				{#each cleanup.keptLines.filter(kept => kept.projectPath === projectPath) as kept (kept.lineIndex)}
-					<p class="kept">
-						<code>{kept.line}</code>
-						<span class="caption">Kept. {kept.reason}</span>
-					</p>
-				{/each}
 			</fieldset>
 		{/each}
+
+		{#if keptGroups.length > 0}
+			<details class="kept">
+				<summary>{cleanup.keptLines.length === 1 ? '1 line looks unnecessary but is kept' : `${cleanup.keptLines.length} lines look unnecessary but are kept`}</summary>
+				{#each keptGroups as [reason, keptLines] (reason)}
+					<p class="caption">{reason}</p>
+					<ul>
+						{#each keptLines as kept (`${kept.projectPath}:${kept.lineIndex}`)}
+							<li><code>{kept.line}</code> in <code>{kept.projectPath}</code></li>
+						{/each}
+					</ul>
+				{/each}
+			</details>
+		{/if}
 
 		{#if cleanup.edits.length > 0}
 			<div class="actions">
@@ -122,16 +132,21 @@
 		font-weight: 600;
 	}
 
-	.project .checkbox > span,
-	.kept {
+	.project .checkbox > span {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 2px;
 	}
 
-	/* Lines up with the text of the checkbox rows. */
-	.kept {
-		padding-left: 21px;
+	.kept summary {
+		cursor: pointer;
+		color: var(--text-2);
+	}
+
+	.kept ul {
+		margin: 4px 0 12px;
+		padding-left: 20px;
+		overflow-wrap: anywhere;
 	}
 </style>

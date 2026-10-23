@@ -5,6 +5,18 @@ export function escapeXml(text: string): string {
 	return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
+/** The text an element holds, such as `Contoso & Co` for `Contoso &amp; Co` or `© Contoso` for `&#169; Contoso`. */
+export function unescapeXml(text: string): string {
+	return text
+		.replaceAll('&lt;', '<')
+		.replaceAll('&gt;', '>')
+		.replaceAll('&quot;', '"')
+		.replaceAll('&apos;', "'")
+		.replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 16)))
+		.replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 10)))
+		.replaceAll('&amp;', '&');
+}
+
 /** An element with text content, such as `<Nullable>enable</Nullable>`. */
 export function toElement(name: string, value: string): XmlLine {
 	return `<${name}>${escapeXml(value)}</${name}>`;

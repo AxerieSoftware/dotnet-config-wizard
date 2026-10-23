@@ -1,6 +1,7 @@
 import { BUILD_PROPERTIES_BY_NAME, PROJECTS_UNDER_TEST_FOLDER } from '../build/buildProperties.ts';
 import { BUILD_PROPS, isFrameworkProperty, PACKAGES_PROPS, toFrameworkProperty } from '../build/buildPropsFiles.ts';
 import { isSameList, isSameValue, toList } from '../build/msbuildValues.ts';
+import { unescapeXml } from '../build/msbuildXml.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { findScopeForFolder, type ResolvedScope, resolveScope } from '../config/scopes.ts';
 import { getDefaultCSharpVersion, isSupportedTargetFramework } from '../config/targetFrameworks.ts';
@@ -37,6 +38,7 @@ const CONDITIONAL_PROPERTY_GROUP = /<PropertyGroup\s[^>]*Condition=[^>]*>(?<body
 const GENERATED_ANALYZER_ATTRIBUTES = new Set(['Include', 'Version', 'PrivateAssets']);
 // Asking for the newest C# the compiler knows matches the framework default only when the framework is the SDK's own.
 const NEWEST_LANG_VERSIONS = new Set(['default', 'latest', 'latestmajor']);
+const VERSION_LIST = new Intl.ListFormat('en-US', { type: 'conjunction' });
 
 type ProjectLine = { lineIndex: number; line: string } & (
 	| { kind: 'property'; name: string; value: string }
@@ -143,6 +145,11 @@ export function findConditionalSetting(folderPath: string, name: string, diskCon
 	});
 }
 
+/** A project's name: its file name without the extension, such as `Billing` for `src/Billing/Billing.csproj`. */
+export function toProjectName(projectPath: string): string {
+	return toFileName(projectPath).replace(/\.\w*proj$/, '');
+}
+
 function toEdit(projectPath: string, projectLine: ProjectLine, reason: string, movedVersion?: PackageVersion): ProjectEdit {
 	return { projectPath, lineIndex: projectLine.lineIndex, line: projectLine.line, reason, movedVersion };
 }
@@ -172,7 +179,7 @@ function toProjectLines(text: string): ProjectLine[] {
 		if (groupType === undefined || isGroupConditional) continue;
 
 		const property = groupType === 'PropertyGroup' ? PROPERTY.exec(trimmed) : null;
-		if (property?.groups) projectLines.push({ kind: 'property', lineIndex, line: trimmed, name: property.groups.name, value: property.groups.value.trim() });
+		if (property?.groups) projectLines.push({ kind: 'property', lineIndex, line: trimmed, name: property.groups.name, value: unescapeXml(property.groups.value).trim() });
 
 		const reference = groupType === 'ItemGroup' ? REFERENCE.exec(trimmed) : null;
 		const attributes = toAttributes(reference?.groups?.attributes ?? '');
@@ -248,8 +255,14 @@ function decideLangVersion(value: string, folderPath: string, projectTfms: reado
 		(toCSharpVersion(requested) === frameworkVersion || (NEWEST_LANG_VERSIONS.has(requested) && frameworkVersion === getDefaultCSharpVersion(`net${catalog.band.channel}`)));
 
 	if (isDefault) return { status: 'remove', reason: `The compiler already uses C# ${toShortVersion(frameworkVersion)} for ${projectTfms.join(';')}.` };
+	if (projectTfms.length === 0) return { status: 'keep', reason: "The wizard can't tell which frameworks this project targets, so this may be needed. Remove it by hand if not." };
+	if (!isModernFramework)
+		return { status: 'keep', reason: `The wizard only knows the default C# version for .NET 10 and later, and this project targets ${projectTfms.join(';')}. Remove it by hand if it isn't needed.` };
 	if (frameworkVersion === undefined)
-		return { status: 'keep', reason: "The wizard can't tell which C# version this project's frameworks use by default, so this may be needed. Remove it by hand if not." };
+		return {
+			status: 'keep',
+			reason: `Pins ${projectTfms.join(';')} to one C# version; by default they use C# ${VERSION_LIST.format(defaultVersions.map(toShortVersion))}. Remove it by hand if each framework can use its default.`
+		};
 	return { status: 'keep', reason: 'Asks for a C# version other than the framework default, so code may rely on it. Remove it by hand if not.' };
 }
 
@@ -363,10 +376,6 @@ function toRepoPath(folderPath: string, relativePath: string): string {
 	}
 
 	return segments.join('/');
-}
-
-function toProjectName(projectPath: string): string {
-	return toFileName(projectPath).replace(/\.csproj$/, '');
 }
 
 /** `14` and `14.0` both mean C# 14. */

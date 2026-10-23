@@ -7,6 +7,8 @@ export type Severity = (typeof SEVERITIES)[number];
 export const PROJECT_KINDS = ['library', 'service', 'test'] as const;
 export type ProjectKind = (typeof PROJECT_KINDS)[number];
 
+export const PROJECT_KIND_TITLES: Readonly<Record<ProjectKind, string>> = { library: 'Libraries', service: 'Apps and services', test: 'Tests' };
+
 /** Settings for one folder. The root scope has an empty path; other scopes hold only what they override. */
 export type ScopeConfig = {
 	path: string;

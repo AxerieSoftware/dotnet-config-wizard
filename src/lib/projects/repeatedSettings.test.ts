@@ -83,10 +83,16 @@ describe('findRepeatedSettings', () => {
 		expect(findRepeatedSettings(toConfig({ path: 'tests', isTargetFrameworkShared: true }), projects, NO_DISK_CONFIG).filter(setting => setting.folderPath === '')).toEqual([]);
 	});
 
-	it('offers no packed files, property references or escaped text, which mean something else in props', () => {
-		const properties = '\t\t<PackageReadmeFile>README.md</PackageReadmeFile>\n\t\t<ErrorLog>$(OutDir)build.sarif</ErrorLog>\n\t\t<Company>Contoso &amp; Co</Company>';
+	it('offers no packed files or property references, which mean something else in props, or package versions, which match only by chance', () => {
+		const properties = '\t\t<PackageReadmeFile>README.md</PackageReadmeFile>\n\t\t<ErrorLog>$(OutDir)build.sarif</ErrorLog>\n\t\t<VersionPrefix>0.1.0</VersionPrefix>';
 
 		expect(findRepeatedSettings(toConfig(), [project('src/A/A.csproj', properties), project('src/B/B.csproj', properties)], NO_DISK_CONFIG)).toEqual([]);
+	});
+
+	it('reads escaped text as the text it stands for', () => {
+		const properties = '\t\t<Company>Contoso &amp; Co</Company>';
+
+		expect(findRepeatedSettings(toConfig(), [project('src/A/A.csproj', properties), project('src/B/B.csproj', properties)], NO_DISK_CONFIG).map(setting => setting.value)).toEqual(['Contoso & Co']);
 	});
 
 	it('counts projects of any MSBuild language, which the props reach too', () => {

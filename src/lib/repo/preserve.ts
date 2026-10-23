@@ -1,12 +1,14 @@
 import { type ConditionKind, PROJECT_UNDER_TEST_PATH, TEST_ASSEMBLY_NAME, toConditionKind } from '../build/buildProperties.ts';
 import { WRITTEN_PROPERTY_NAMES } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
+import { HEADER_PATTERN, PROJECTS_PATTERN } from '../export/editorConfigFiles.ts';
 import { toFileName } from '../export/fileTree.ts';
 import { FORMATTING_KEY_NAMES } from '../import/editorConfigImport.ts';
 import { parseJson } from '../import/repoSettingsImport.ts';
 
 const EDITORCONFIG_SETTING = /^\s*([\w.-]+)\s*=/;
 const SECTION = /^\s*\[.+\]\s*$/;
+const MSBUILD_GROUP = /^<(?:PropertyGroup|ItemGroup)[\s>]/;
 const RULE_SEVERITY = /^dotnet_diagnostic\.(\w+)\.severity$/;
 const MANAGED_EDITORCONFIG_KEY = /^(?:root|is_global|global_level|dotnet_analyzer_diagnostic\.(?:category-\w+\.)?severity|dotnet_naming_(?:rule|symbols|style)\.\w+\.\w+)$/;
 const ANALYZER_FILE = /(?:BannedSymbols\.txt|SonarLint\.xml|PublicAPI\.(?:Shipped|Unshipped)\.txt|Analyzers\.globalconfig)/;
@@ -29,13 +31,27 @@ type Insertion = { after: number; lines: string[] };
 type GeneratedXmlNode = { name: string; conditionKind: ConditionKind; start: number; end: number };
 
 /**
+ * How a file type writes the comment above a setting and, for files where the same setting can appear in several
+ * sections, how to name the section a line starts.
+ */
+type CommentSyntax = { isComment: (line: string) => boolean; toSection?: (line: string) => string | undefined };
+
+/**
  * The text to save for a generated file: the wizard's version, with everything the existing file holds that the wizard
  * doesn't manage put back beside the setting it followed, so loading a repo and editing it never loses or moves a setting.
+ * A setting the file already has with the same value and no comment above it stays without one, so the wizard adds
+ * comments only to what it changes, unless every comment is asked for.
  */
-export function toSavedText(path: string, generated: string, existing: string | undefined, catalog: Catalog): string {
+export function toSavedText(path: string, generated: string, existing: string | undefined, catalog: Catalog, options = { isAddingEveryComment: false }): string {
 	if (existing === undefined) return generated;
 
 	const fileName = toFileName(path);
+	const merged = toMergedText(fileName, generated, existing, catalog);
+	const syntax = toCommentSyntax(fileName);
+	return syntax && !options.isAddingEveryComment ? withoutAddedComments(merged, existing, syntax) : merged;
+}
+
+function toMergedText(fileName: string, generated: string, existing: string, catalog: Catalog): string {
 	if (fileName === '.editorconfig' || fileName.endsWith('.globalconfig')) return mergeEditorConfig(generated, existing, catalog);
 	if (fileName.endsWith('.props')) return mergeXml(generated, existing, 'Project', node => toMsBuildHandling(node, catalog));
 	if (fileName === 'nuget.config') return mergeXml(generated, existing, 'configuration', node => ({ kind: MANAGED_NUGET_SECTIONS.has(node.name) ? 'managed' : 'kept' }));
@@ -45,6 +61,67 @@ export function toSavedText(path: string, generated: string, existing: string | 
 
 	if (fileName === 'BannedSymbols.txt') return mergeLines(generated, existing, '//', line => !BANNED_SYMBOL.test(line));
 	return generated;
+}
+
+function toCommentSyntax(fileName: string): CommentSyntax | undefined {
+	if (fileName === '.editorconfig' || fileName.endsWith('.globalconfig')) {
+		// Only a setting's own comment can be dropped. Section, part and block headings (`##` and up) title settings the
+		// file may not have yet, and the header records what repo import reads back.
+		return {
+			isComment: line => (line.startsWith('#') || line.startsWith(';')) && !line.startsWith('##') && !HEADER_PATTERN.test(line) && !PROJECTS_PATTERN.test(line),
+			toSection: line => (SECTION.test(line) ? line : undefined)
+		};
+	}
+	if (fileName.endsWith('.props')) {
+		// Moving a property into or out of the CI-only group counts as a change, so it gets its comment.
+		return { isComment: isXmlComment, toSection: line => (MSBUILD_GROUP.test(line) ? toConditionKind(line) : undefined) };
+	}
+	if (fileName === 'nuget.config' || fileName === 'SonarLint.xml') return { isComment: isXmlComment };
+	if (fileName === '.gitattributes') return { isComment: line => line.startsWith('#') };
+	if (fileName === 'BannedSymbols.txt') return { isComment: line => line.startsWith('//') };
+	return undefined;
+}
+
+function isXmlComment(line: string): boolean {
+	return line.startsWith('<!--') && line.endsWith('-->');
+}
+
+/**
+ * Leaves out the comments directly above a setting the existing file already has with the same value but no comment
+ * above. Someone may have removed the wizard's comments on purpose, so saving doesn't bring them back, while a comment
+ * the file has is replaced with the wizard's current one, such as after the comment style changes.
+ */
+function withoutAddedComments(merged: string, existing: string, syntax: CommentSyntax): string {
+	const existingLines = existing.split('\n');
+	const existingSectionedLines = toSectionedLines(existingLines, syntax);
+	const existingSettings = new Set(existingSectionedLines);
+	const commentedSettings = new Set(existingSectionedLines.filter((_, index) => index > 0 && syntax.isComment(existingLines[index - 1].trim())));
+	const existingTrimmedLines = new Set(existingLines.map(line => line.trim()));
+	const lines = merged.split('\n');
+	const sectionedLines = toSectionedLines(lines, syntax);
+	const dropped = new Set<number>();
+
+	for (const [index, line] of lines.entries()) {
+		const text = line.trim();
+		const sectionedLine = sectionedLines[index];
+		if (text === '' || syntax.isComment(text) || !existingSettings.has(sectionedLine) || commentedSettings.has(sectionedLine)) continue;
+
+		for (let above = index - 1; above >= 0 && syntax.isComment(lines[above].trim()); above--) {
+			if (!existingTrimmedLines.has(lines[above].trim())) dropped.add(above);
+		}
+	}
+
+	return lines.filter((_, index) => !dropped.has(index)).join('\n');
+}
+
+/** Each line with the section it's in, for files where the same setting can appear in several sections. */
+function toSectionedLines(lines: readonly string[], syntax: CommentSyntax): string[] {
+	let section = '';
+	return lines.map(line => {
+		const trimmed = line.trim();
+		section = syntax.toSection?.(trimmed) ?? section;
+		return `${section}\n${trimmed}`;
+	});
 }
 
 /** Short names for what a file holds that the wizard doesn't manage, for the notes shown after loading a repo. */

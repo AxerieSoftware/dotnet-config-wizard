@@ -115,10 +115,9 @@ function toPropertySetting(name: string, value: string, folderPath: string, buil
 	const property = BUILD_PROPERTIES_BY_NAME.get(name);
 	// List properties add to what they inherit, a CI-only value would still win in CI, and a packed file would be looked for
 	// next to the folder's props instead of each project.
-	if (!property || property.isList || ciBuild[name] !== undefined || PACK_FILE_PROPERTIES.has(name) || (property.isRepoWide && folderPath !== '')) return undefined;
-	// Props are read before the project body, where other properties such as $(OutDir) are still empty, and the value
-	// here is raw XML text that would be escaped again.
-	if (value.includes('$(') || value.includes('&')) return undefined;
+	if (!property || property.isList || property.isPackageIdentity || ciBuild[name] !== undefined || PACK_FILE_PROPERTIES.has(name) || (property.isRepoWide && folderPath !== '')) return undefined;
+	// Props are read before the project body, where other properties such as $(OutDir) are still empty.
+	if (value.includes('$(')) return undefined;
 	if (build[name] !== undefined && isSameValue(value, build[name])) return undefined;
 	if (property.values.length === 0) return value;
 	return property.values.find(allowed => isSameValue(value, allowed));

@@ -1,10 +1,10 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import type { BandEntry } from '../catalog/catalogFiles.ts';
-import { ALL_PRESETS, type Preset, toPresetConfig, toPresetName } from '../config/presets.ts';
+import { PRESET_LEVELS, type Preset, toPresetConfigWithSource, toPresetName } from '../config/presets.ts';
 import { resolveInheritedScope } from '../config/scopes.ts';
-import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
-import { HEADER_PATTERN } from '../export/editorConfigFiles.ts';
+import type { ProjectKind, ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
+import { HEADER_PATTERN, readProjectKinds } from '../export/editorConfigFiles.ts';
 import { toFileName, toFolderPath } from '../export/fileTree.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
@@ -12,6 +12,10 @@ import { mergeImport } from '../import/mergeImport.ts';
 import { importBannedSymbols, importGlobalJson, importNuGetConfig, importSonarLintXml } from '../import/repoSettingsImport.ts';
 import { findUnmanaged } from './preserve.ts';
 import { isConfigFile, type RepoFile } from './repoFiles.ts';
+
+// Older headers put what src held in the preset name, such as `Strict for libraries`. A name with no `for` meant src held
+// any kind of project.
+const LEGACY_SOURCE_KINDS: Readonly<Record<string, ProjectKind>> = { libraries: 'library', 'apps and services': 'service' };
 
 /** A repo's settings, the notes about loading them, and the preset its root `.editorconfig` says they started from. */
 export type RepoImport = { config: WizardConfig; notes: (ImportNote & { fileName: string })[]; preset?: Preset };
@@ -46,26 +50,42 @@ export function toRepoConfig(repoFiles: readonly RepoFile[], catalog: Catalog): 
 	}
 
 	addInheritedAndFrameworkPackages(config, catalog);
-	const preset = findHeaderPreset(files);
-	if (preset) addPresetFolders(config, preset, catalog);
+	const rootEditorConfig = files.find(file => file.path === '.editorconfig')?.text ?? '';
+	const headerPreset = findHeaderPreset(rootEditorConfig);
+	const projectKinds = readProjectKinds(rootEditorConfig);
+	if (projectKinds) addProjectKinds(config, projectKinds);
+	else if (headerPreset) addPresetFolders(config, headerPreset, catalog);
 
 	// Every folder needs target frameworks to gate options by C# version; the root falls back to the band's own.
 	scopes[0].tfms ??= [`net${catalog.band.channel}`];
-	return { config, notes, preset };
+	return { config, notes, preset: headerPreset?.preset };
 }
 
 /** The preset named in the root `.editorconfig` header, which the wizard writes so a reopened repo keeps its preset. */
-function findHeaderPreset(files: readonly RepoFile[]): Preset | undefined {
-	const presetName = HEADER_PATTERN.exec(files.find(file => file.path === '.editorconfig')?.text ?? '')?.groups?.preset;
-	return ALL_PRESETS.find(preset => toPresetName(preset) === presetName);
+function findHeaderPreset(rootEditorConfig: string): { preset: Preset; sourceKind: ProjectKind | undefined } | undefined {
+	const presetName = HEADER_PATTERN.exec(rootEditorConfig)?.groups?.preset ?? '';
+	const [title, legacyKind] = presetName.split(' for ');
+	const preset = PRESET_LEVELS.find(level => toPresetName(level) === title);
+	const sourceKind = legacyKind === undefined ? undefined : LEGACY_SOURCE_KINDS[legacyKind];
+	if (!preset || (legacyKind !== undefined && !sourceKind)) return undefined;
+	return { preset, sourceKind };
+}
+
+/** Puts back what each folder holds, adding the folders that have nothing else on disk. */
+function addProjectKinds(config: WizardConfig, projectKinds: ReadonlyMap<string, ProjectKind>): void {
+	for (const [path, projectKind] of projectKinds) {
+		const scope = config.scopes.find(entry => entry.path === path);
+		if (scope) scope.projectKind = projectKind;
+		else config.scopes.push({ path, projectKind });
+	}
 }
 
 /**
- * Project kinds and folders without settings leave nothing on disk, so they come back from the preset: a folder keeps its
- * preset kind, and a preset folder the repo has no files for is added.
+ * For a header from before the root file recorded what each folder holds: folders without settings leave nothing on
+ * disk, so they come back from the preset, and a folder keeps the kind the preset gave it.
  */
-function addPresetFolders(config: WizardConfig, preset: Preset, catalog: Catalog): void {
-	for (const presetScope of toPresetConfig(preset, catalog).scopes) {
+function addPresetFolders(config: WizardConfig, { preset, sourceKind }: { preset: Preset; sourceKind: ProjectKind | undefined }, catalog: Catalog): void {
+	for (const presetScope of toPresetConfigWithSource(preset, sourceKind, catalog).scopes) {
 		const scope = config.scopes.find(entry => entry.path === presetScope.path);
 		if (!scope) config.scopes.push({ path: presetScope.path, projectKind: presetScope.projectKind });
 		else if (presetScope.projectKind) scope.projectKind ??= presetScope.projectKind;

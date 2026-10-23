@@ -22,6 +22,8 @@ export type BuildProperty = {
 	isOnAnalyzersStep?: boolean;
 	/** Applies to the whole repo, so only the root scope can set it. */
 	isRepoWide?: boolean;
+	/** Identifies one package's release, so projects that happen to share a value aren't repeating a setting. */
+	isPackageIdentity?: boolean;
 };
 
 /** What a condition limits a group or property to. CI-only conditions all count as one, since people write them differently. */
@@ -113,6 +115,7 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 
 	{
 		name: 'VersionPrefix',
+		isPackageIdentity: true,
 		group: 'Package metadata',
 		description: 'One version every package here shares, such as `1.4.0`. Leave it unset to version each package in its own project file. CI can add a `VersionSuffix` for prereleases.',
 		values: [],
@@ -185,6 +188,7 @@ export const BUILD_PROPERTIES: readonly BuildProperty[] = [
 	},
 	{
 		name: 'PackageValidationBaselineVersion',
+		isPackageIdentity: true,
 		group: 'Package metadata',
 		description: 'A version already published to your feed; restore downloads it for package validation to compare against.',
 		values: [],

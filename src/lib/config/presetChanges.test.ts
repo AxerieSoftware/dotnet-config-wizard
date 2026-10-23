@@ -5,7 +5,7 @@ import { type Preset, toPresetConfig } from './presets.ts';
 import { toSavedState } from './shareLink.ts';
 
 const catalog = readCatalog('10.0.4xx');
-const STRICT: Preset = { level: 'strict', kind: 'any' };
+const STRICT: Preset = 'strict';
 
 describe('toPresetChanges', () => {
 	it('finds nothing for a preset as it ships', () => {
@@ -24,5 +24,12 @@ describe('toPresetChanges', () => {
 			{ folderPath: 'src', setting: 'Folder', presetValue: 'in the preset', value: 'removed' },
 			{ folderPath: 'legacy', setting: 'Folder', presetValue: 'not in the preset', value: 'added' }
 		]);
+	});
+
+	it('names NuGet sources by their keys', () => {
+		const config = toPresetConfig(STRICT, catalog);
+		config.nuget = { sources: [{ key: 'contoso', url: 'https://pkgs.example.com/v3/index.json', patterns: ['Contoso.*'] }], auditSourceUrl: 'https://api.nuget.org/v3/index.json' };
+
+		expect(toPresetChanges(toSavedState(config, STRICT, catalog), config, catalog).find(change => change.setting === 'nuget.config: sources')?.value).toBe('contoso');
 	});
 });

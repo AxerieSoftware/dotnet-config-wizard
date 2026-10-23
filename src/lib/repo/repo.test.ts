@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readBands, readCatalog } from '../../../scripts/readCatalog.ts';
-import { ALL_PRESETS, toPresetConfig, toPresetName } from '../config/presets.ts';
+import { PRESET_LEVELS, toPresetConfig, toPresetName } from '../config/presets.ts';
 import { toSavedState } from '../config/shareLink.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { toPackagesPropsWithVersions } from '../projects/projectCleanup.ts';
@@ -79,7 +79,49 @@ describe('loading a repo', () => {
 });
 
 describe('reopening generated files', () => {
-	it.each(ALL_PRESETS.map(preset => ({ name: toPresetName(preset), preset })))('restores $name with nothing changed from it', ({ preset }) => {
+	it('keeps what each folder holds, including folders with nothing else on disk', () => {
+		const config = toPresetConfig('recommended', catalog);
+		const source = config.scopes.find(scope => scope.path === 'src');
+		if (source) source.projectKind = 'service';
+		config.scopes.push({ path: 'src/Core', projectKind: 'library' });
+		const files = toGeneratedOutput(config, catalog, { commentStyle: 'none', presetName: toPresetName('recommended') }).files.map(file => ({ path: file.path, text: file.content }));
+
+		const reopened = toRepoConfig(files, catalog);
+
+		expect(files.find(file => file.path === '.editorconfig')?.text).toContain('# Projects: src service; tests test; src/Core library');
+		expect(Object.fromEntries(reopened.config.scopes.map(scope => [scope.path, scope.projectKind]))).toEqual({ '': undefined, src: 'service', tests: 'test', 'src/Core': 'library' });
+	});
+
+	it('keeps every folder at no kind when none sets one', () => {
+		const config = toPresetConfig('recommended', catalog);
+		for (const scope of config.scopes) delete scope.projectKind;
+		const files = toGeneratedOutput(config, catalog, { commentStyle: 'none', presetName: toPresetName('recommended') }).files.map(file => ({ path: file.path, text: file.content }));
+
+		const reopened = toRepoConfig(files, catalog);
+
+		expect(files.find(file => file.path === '.editorconfig')?.text).toContain('# Projects: none');
+		expect(reopened.config.scopes.map(scope => scope.projectKind)).not.toContain('test');
+	});
+
+	it('reads an older header with a bare preset name as src holding no kind', () => {
+		const header = '# Settings for .NET SDK 10.0.4xx, catalog 2026-10-20, preset Recommended\nroot = true\n';
+
+		const reopened = toRepoConfig([{ path: '.editorconfig', text: header }], catalog);
+
+		expect(reopened.config.scopes.find(scope => scope.path === 'src')?.projectKind).toBeUndefined();
+		expect(reopened.config.scopes.find(scope => scope.path === 'tests')?.projectKind).toBe('test');
+	});
+
+	it("reads an older header such as 'Strict for apps and services' as the Strict preset with src holding apps and services", () => {
+		const header = '# Settings for .NET SDK 10.0.4xx, catalog 2026-10-20, preset Strict for apps and services\nroot = true\n';
+
+		const reopened = toRepoConfig([{ path: '.editorconfig', text: header }], catalog);
+
+		expect(reopened.preset).toBe('strict');
+		expect(reopened.config.scopes.find(scope => scope.path === 'src')?.projectKind).toBe('service');
+	});
+
+	it.each(PRESET_LEVELS.map(preset => ({ name: toPresetName(preset), preset })))('restores $name with nothing changed from it', ({ preset }) => {
 		const files = toGeneratedOutput(toPresetConfig(preset, catalog), catalog, { commentStyle: 'idAndTitle', presetName: toPresetName(preset) }).files.map(file => ({
 			path: file.path,
 			text: file.content
@@ -184,7 +226,7 @@ describe('saving over existing files', () => {
 	});
 
 	it('saves the project under test groups over themselves unchanged and keeps hand-written project references', () => {
-		const opinionated = toPresetConfig({ level: 'opinionated', kind: 'library' }, catalog);
+		const opinionated = toPresetConfig('opinionated', catalog);
 		const testsProps = toGeneratedOutput(opinionated, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'tests/Directory.Build.props')?.content ?? '';
 		const withSharedReference = testsProps.replace('</Project>', '\t<ItemGroup>\n\t\t<ProjectReference Include="../shared/TestKit.csproj" />\n\t</ItemGroup>\n</Project>');
 
@@ -195,11 +237,44 @@ describe('saving over existing files', () => {
 	});
 
 	it('keeps package versions moved out of project files when it saves Directory.Packages.props again', () => {
-		const opinionated = toPresetConfig({ level: 'opinionated', kind: 'library' }, catalog);
+		const opinionated = toPresetConfig('opinionated', catalog);
 		const packagesProps = toGeneratedOutput(opinionated, catalog, { commentStyle: 'none' }).files.find(file => file.path === 'Directory.Packages.props')?.content ?? '';
 		const withVersions = toPackagesPropsWithVersions(packagesProps, [{ packageId: 'Serilog', version: '4.0.0' }]);
 
 		expect(toSavedText('Directory.Packages.props', packagesProps, withVersions, catalog)).toBe(withVersions);
+	});
+
+	it('adds comments only above settings it adds or changes, and keeps its headings', () => {
+		const existingProps = '<Project>\n\t<PropertyGroup>\n\t\t<Nullable>enable</Nullable>\n\t\t<Deterministic>false</Deterministic>\n\t</PropertyGroup>\n</Project>\n';
+		const generatedProps =
+			'<Project>\n\t<PropertyGroup Label="Language">\n\t\t<!-- Nullable reference types. -->\n\t\t<Nullable>enable</Nullable>\n\t\t<!-- Global usings for common namespaces. -->\n\t\t<ImplicitUsings>enable</ImplicitUsings>\n\t</PropertyGroup>\n\t<PropertyGroup Label="Reproducible builds">\n\t\t<!-- The same inputs always produce the same binary. -->\n\t\t<Deterministic>true</Deterministic>\n\t</PropertyGroup>\n</Project>\n';
+		const existingEditorConfig = 'root = true\n\n[*.cs]\ndotnet_diagnostic.CA1822.severity = warning\n';
+		const generatedEditorConfig =
+			'# Settings for .NET SDK 10.0.4xx, catalog 2026-10-20, preset Recommended\nroot = true\n\n#### C# files ####\n[*.cs]\n## Performance\n# CA1822: Mark members as static\ndotnet_diagnostic.CA1822.severity = warning\n# CA1825: Avoid zero-length array allocations\ndotnet_diagnostic.CA1825.severity = warning\n';
+
+		const props = toSavedText('Directory.Build.props', generatedProps, existingProps, catalog);
+		const editorConfig = toSavedText('.editorconfig', generatedEditorConfig, existingEditorConfig, catalog);
+
+		expect(props).not.toContain('Nullable reference types');
+		expect(props).toContain('<!-- Global usings for common namespaces. -->');
+		expect(props).toContain('<!-- The same inputs always produce the same binary. -->');
+		expect(editorConfig).toBe(
+			'# Settings for .NET SDK 10.0.4xx, catalog 2026-10-20, preset Recommended\nroot = true\n\n#### C# files ####\n[*.cs]\n## Performance\ndotnet_diagnostic.CA1822.severity = warning\n# CA1825: Avoid zero-length array allocations\ndotnet_diagnostic.CA1825.severity = warning\n'
+		);
+	});
+
+	it('replaces comments the file has with the current comment style', () => {
+		const existing = '[*.cs]\n# CA1822\ndotnet_diagnostic.CA1822.severity = warning\n';
+		const generated = '[*.cs]\n# CA1822: Mark members as static\ndotnet_diagnostic.CA1822.severity = warning\n';
+
+		expect(toSavedText('.editorconfig', generated, existing, catalog)).toBe(generated);
+	});
+
+	it('adds its comment above a property that moves out of the CI-only group', () => {
+		const existing = `<Project>\n\t<PropertyGroup Condition="'$(CI)' == 'true'">\n\t\t<TreatWarningsAsErrors>true</TreatWarningsAsErrors>\n\t</PropertyGroup>\n</Project>\n`;
+		const generated = '<Project>\n\t<PropertyGroup>\n\t\t<!-- Fails the build on any warning. -->\n\t\t<TreatWarningsAsErrors>true</TreatWarningsAsErrors>\n\t</PropertyGroup>\n</Project>\n';
+
+		expect(toSavedText('Directory.Build.props', generated, existing, catalog)).toContain('<!-- Fails the build on any warning. -->');
 	});
 
 	it('replaces the project name prefix group rather than keeping the old one beside it', () => {

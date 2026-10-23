@@ -53,6 +53,19 @@ function readRepoFile(page: Page, path: string): Promise<string> {
 	}, path);
 }
 
+function isFolderRemembered(page: Page): Promise<boolean> {
+	return page.evaluate(
+		() =>
+			new Promise<boolean>(resolve => {
+				const opening = indexedDB.open('dotnet-config-wizard', 1);
+				opening.onsuccess = () => {
+					const reading = opening.result.transaction('folders', 'readonly').objectStore('folders').get('repo');
+					reading.onsuccess = () => resolve(reading.result !== undefined);
+				};
+			})
+	);
+}
+
 async function openSeededRepo(page: Page, repoFiles: Record<string, string>): Promise<void> {
 	await seedRepo(page, repoFiles);
 	await page.goto('/wizard/start');
@@ -122,4 +135,53 @@ test('a setting every project in a folder repeats moves into a new props file th
 	await expect(projectFiles.getByRole('status')).toHaveText('Updated 2 project files.');
 	expect(await readRepoFile(page, 'src/Billing/Billing.csproj')).not.toContain('<Nullable>');
 	expect(await readRepoFile(page, 'src/Shipping/Shipping.csproj')).toContain('<OutputType>Exe</OutputType>');
+});
+
+test('the folder opened last can be reopened after a reload, and is forgotten when it is closed', async ({ page }) => {
+	await openSeededRepo(page, REPO_FILES);
+	await page.reload();
+
+	const repoButton = page.getByRole('button', { name: /^repo/ });
+	await expect(repoButton).toContainText('Reopen');
+	await repoButton.click();
+	await page.getByRole('menuitem', { name: 'Reopen repo' }).click();
+	await page.getByRole('dialog', { name: 'Reopen repo?' }).getByRole('button', { name: 'Reopen' }).click();
+
+	await expect(repoButton).toContainText('Saved');
+	await expect(page.getByRole('treeitem', { name: 'tests/', exact: true })).toBeVisible();
+	await repoButton.click();
+	await page.getByRole('menuitem', { name: 'Close folder' }).click();
+	await expect(page.getByRole('button', { name: /^In browser/ })).toBeVisible();
+	await expect.poll(() => isFolderRemembered(page)).toBe(false);
+	await page.reload();
+	await expect(page.getByRole('button', { name: /^In browser/ })).toBeVisible();
+});
+
+test('choosing a comment style while a repo is open writes its comments into the files it rewrites, and only those', async ({ page }) => {
+	await openSeededRepo(page, {
+		'.editorconfig': 'root = true\n\n[*.cs]\ndotnet_diagnostic.CA1822.severity = warning\n',
+		'Directory.Build.props': '<Project>\n\t<PropertyGroup>\n\t\t<Nullable>enable</Nullable>\n\t\t<Deterministic>true</Deterministic>\n\t</PropertyGroup>\n</Project>\n'
+	});
+	await openStep(page, 'Review and export');
+
+	await page.getByRole('combobox', { name: 'Rule comments' }).selectOption('titleAndLink');
+	await expect.poll(() => readRepoFile(page, '.editorconfig')).toContain('Mark members as static');
+	await openStep(page, 'Build');
+	await page.getByRole('combobox', { name: 'Nullable', exact: true }).selectOption('disable');
+
+	await expect.poll(() => readRepoFile(page, 'Directory.Build.props')).toContain('<Nullable>disable</Nullable>');
+	expect((await readRepoFile(page, 'Directory.Build.props')).match(/<!--/g)).toHaveLength(1);
+});
+
+test('an edit undone before it saves writes nothing', async ({ page }) => {
+	await openSeededRepo(page, REPO_FILES);
+	await openStep(page, 'Formatting');
+	const indentStyle = page.getByRole('combobox', { name: 'All files: Indent style' });
+
+	await indentStyle.selectOption('tab');
+	await indentStyle.selectOption('space');
+
+	await expect(page.getByRole('button', { name: /^repo/ })).toContainText('Saved');
+	await page.waitForTimeout(1000);
+	expect(await readRepoFile(page, '.editorconfig')).toBe(REPO_FILES['.editorconfig']);
 });

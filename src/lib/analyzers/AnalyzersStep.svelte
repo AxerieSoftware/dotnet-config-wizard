@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CatalogRule } from '../catalog/catalog.ts';
 	import { PACKAGES } from '../catalog/loadCatalog.ts';
+	import { suitsKinds } from '../config/scopes.ts';
 	import { getRuleBlocker } from '../config/versionGates.ts';
 	import { SEVERITIES, type Severity } from '../config/wizardConfig.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
@@ -8,6 +9,7 @@
 	import { toUnsetLabel } from '../ui/inheritedLabel.ts';
 	import ValueSelect from '../ui/ValueSelect.svelte';
 	import { ANALYSIS_MODES, type AnalysisMode, parseAnalysisLevel } from './analysisLevel.ts';
+	import { PACKAGE_PROJECT_KINDS } from './analyzerPackages.ts';
 	import { BANNED_API_SETS } from './bannedApis.ts';
 	import { COMPILER_SOURCE, getEffectiveSeverity, isReported } from './effectiveSeverity.ts';
 	import { findActiveOverlaps, findCoveringRuleIds } from './overlaps.ts';
@@ -21,12 +23,15 @@
 	const NATURAL_ORDER = new Intl.Collator(undefined, { numeric: true });
 	const SONAR_PACKAGE = 'SonarAnalyzer.CSharp';
 	const BANNED_API_PACKAGE = 'Microsoft.CodeAnalysis.BannedApiAnalyzers';
-
 	const wizard = getWizardState();
-	// Analyzers that come with a framework, such as MSTest's, are never referenced; selecting one only configures its rules.
-	const referencedPackages = PACKAGES.filter(analyzerPackage => !analyzerPackage.includedWith);
-	const frameworkPackages = PACKAGES.filter(analyzerPackage => analyzerPackage.includedWith);
 	const scope = $derived(wizard.resolvedActiveScope);
+	// Public API tracking is for libraries, and the test frameworks' analyzers for tests. A package already chosen stays
+	// visible, so it can be cleared.
+	const suitedPackages = $derived(PACKAGES.filter(analyzerPackage => suitsKinds(PACKAGE_PROJECT_KINDS[analyzerPackage.id], wizard.reachedKinds) || scope.packages.includes(analyzerPackage.id)));
+	// Analyzers that come with a framework, such as MSTest's, are never referenced; selecting one only configures its rules.
+	const referencedPackages = $derived(suitedPackages.filter(analyzerPackage => !analyzerPackage.includedWith));
+	const frameworkPackages = $derived(suitedPackages.filter(analyzerPackage => analyzerPackage.includedWith));
+	const suitedBannedApiSets = $derived(BANNED_API_SETS.filter(set => suitsKinds(set.projectKinds, wizard.reachedKinds)));
 	const isInheritingPackages = $derived(!wizard.isRootActive && wizard.activeScope.packages === undefined);
 	const inheritedBannedApis = $derived(wizard.inheritedScope?.bannedApis ?? []);
 	const analysisMode = $derived(parseAnalysisLevel(scope.build.AnalysisLevel, wizard.catalog.band).mode);
@@ -151,15 +156,17 @@
 			{@render packageRow(analyzerPackage)}
 		{/each}
 	</div>
-	<div class="stack">
-		<h3>Frameworks you use</h3>
-		<p class="note">Their analyzers come with the framework, so nothing is added. Pick yours to configure its rules.</p>
-		<div class="package-list">
-			{#each frameworkPackages as analyzerPackage (analyzerPackage.id)}
-				{@render packageRow(analyzerPackage)}
-			{/each}
+	{#if frameworkPackages.length > 0}
+		<div class="stack">
+			<h3>Frameworks you use</h3>
+			<p class="note">Their analyzers ship with the framework, so no package is added. Pick yours to configure their rules.</p>
+			<div class="package-list">
+				{#each frameworkPackages as analyzerPackage (analyzerPackage.id)}
+					{@render packageRow(analyzerPackage)}
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 </section>
 
 <section class="card">
@@ -345,7 +352,7 @@
 			<p class="note">Written to <code>BannedSymbols.txt</code>. Using one reports RS0030.</p>
 		</div>
 		<div class="actions">
-			{#each BANNED_API_SETS as set (set.title)}
+			{#each suitedBannedApiSets as set (set.title)}
 				<button type="button" class="small" onclick={() => wizard.addBannedApis(set.apis)}>Add: {set.title}</button>
 			{/each}
 		</div>

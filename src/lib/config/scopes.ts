@@ -38,6 +38,31 @@ export function isInFolder(folderPath: string, parentPath: string): boolean {
 	return parentPath === '' || folderPath === parentPath || folderPath.startsWith(`${parentPath}/`);
 }
 
+/**
+ * The kinds of project a folder's settings reach: its own and those of the folders inside it. Projects of no known kind
+ * don't narrow what suits the folder.
+ */
+export function toReachedKinds(config: WizardConfig, scope: ScopeConfig): ProjectKind[] {
+	// A folder inside with no kind of its own holds what the nearest folder above it does, which is already counted.
+	const kindsInside = config.scopes.filter(other => other !== scope && isInFolder(other.path, scope.path)).map(other => other.projectKind);
+	const kinds = [resolveProjectKind(config, scope), ...kindsInside];
+	return [...new Set(kinds.filter(kind => kind !== undefined))];
+}
+
+/** What a folder holds: its own kind, or the kind of the nearest folder above it that sets one. */
+export function resolveProjectKind(config: WizardConfig, scope: ScopeConfig): ProjectKind | undefined {
+	for (let current: ScopeConfig | undefined = scope; current; current = getParentScope(config, current)) {
+		if (current.projectKind) return current.projectKind;
+	}
+
+	return undefined;
+}
+
+/** Whether a setting limited to `settingKinds` suits every kind a folder's settings reach. A setting with no kinds suits all. */
+export function suitsKinds(settingKinds: readonly ProjectKind[] | undefined, reachedKinds: readonly ProjectKind[]): boolean {
+	return settingKinds === undefined || reachedKinds.every(kind => settingKinds.includes(kind));
+}
+
 /** What a scope inherits from the folders above it, or undefined for the root scope. */
 export function resolveInheritedScope(config: WizardConfig, scope: ScopeConfig): ResolvedScope | undefined {
 	const parent = getParentScope(config, scope);

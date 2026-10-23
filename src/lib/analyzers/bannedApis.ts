@@ -4,13 +4,13 @@ import type { ProjectKind } from '../config/wizardConfig.ts';
 export type BannedApi = { symbol: string; message: string };
 
 /**
- * Starter sets for `BannedSymbols.txt`, each with the project kinds it suits. Every symbol is a documentation ID that
- * validate-output builds against the sample projects, which use each one, to prove RS0030 fires.
+ * Starter sets for `BannedSymbols.txt`, each with the kinds of project it suits, or none when every kind shares it.
+ * Every symbol is a documentation ID that validate-output builds against the sample projects, which use each one, to
+ * prove RS0030 fires.
  */
-export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly ProjectKind[]; apis: BannedApi[] }[] = [
+export const BANNED_API_SETS: readonly { title: string; projectKinds?: readonly ProjectKind[]; apis: BannedApi[] }[] = [
 	{
 		title: 'Clock access: use TimeProvider',
-		projectKinds: ['library', 'service'],
 		apis: [
 			{ symbol: 'P:System.DateTime.Now', message: 'Use TimeProvider.GetLocalNow() so time can be faked in tests.' },
 			{ symbol: 'P:System.DateTime.UtcNow', message: 'Use TimeProvider.GetUtcNow() so time can be faked in tests.' },
@@ -20,7 +20,6 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 	},
 	{
 		title: 'HttpClient construction: use IHttpClientFactory',
-		projectKinds: ['library', 'service'],
 		apis: [
 			{ symbol: 'M:System.Net.Http.HttpClient.#ctor', message: 'Use IHttpClientFactory; creating HttpClient per call exhausts sockets.' },
 			{ symbol: 'M:System.Net.Http.HttpClient.#ctor(System.Net.Http.HttpMessageHandler)', message: 'Use IHttpClientFactory; creating HttpClient per call exhausts sockets.' },
@@ -29,7 +28,6 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 	},
 	{
 		title: 'Blocking on tasks: use await',
-		projectKinds: ['library', 'service'],
 		apis: [
 			{ symbol: 'M:System.Threading.Tasks.Task.Wait', message: 'Await the task; blocking on it risks deadlocks and thread pool starvation.' },
 			{ symbol: 'M:System.Threading.Tasks.Task.Wait(System.Int32)', message: 'Await the task; blocking on it risks deadlocks and thread pool starvation.' },
@@ -44,7 +42,6 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 	},
 	{
 		title: 'Regular expressions without a timeout',
-		projectKinds: ['library', 'service'],
 		apis: [
 			{ symbol: 'M:System.Text.RegularExpressions.Regex.#ctor(System.String)', message: 'Pass a match timeout; without one, crafted input can make the regex run for minutes.' },
 			{
@@ -108,7 +105,6 @@ export const BANNED_API_SETS: readonly { title: string; projectKinds: readonly P
 	},
 	{
 		title: 'Legacy networking: use HttpClient',
-		projectKinds: ['library', 'service'],
 		apis: [
 			{ symbol: 'T:System.Net.WebClient', message: 'Obsolete; use HttpClient from IHttpClientFactory.' },
 			{ symbol: 'T:System.Net.HttpWebRequest', message: 'Obsolete; use HttpClient from IHttpClientFactory.' }

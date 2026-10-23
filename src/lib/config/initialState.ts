@@ -2,7 +2,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { BANDS, DEFAULT_BAND, loadCatalog } from '../catalog/loadCatalog.ts';
 import { clearSessionValues } from '../ui/sessionValue.svelte.ts';
 import type { Preset } from './presets.ts';
-import { decodeSavedState, encodeSavedState, restoreSavedState, type SavedState } from './shareLink.ts';
+import { decodeSavedState, encodeSavedState, restoreSavedState, type SavedState, type StoredState } from './shareLink.ts';
 import type { WizardConfig } from './wizardConfig.ts';
 
 const STORAGE_KEY = 'dotnet-config-wizard';
@@ -16,7 +16,7 @@ export type InitialState = {
 	catalog: Catalog;
 	source: 'new' | 'browser' | 'link';
 	restored?: { config: WizardConfig; preset: Preset };
-	replacedSaved?: SavedState;
+	replacedSaved?: StoredState;
 	notice?: string;
 };
 
@@ -53,7 +53,7 @@ export function getBrowserStorage(): Storage | undefined {
  * Saves the settings, or forgets them while they're untouched, so a visit that changes nothing leaves nothing behind.
  * Returns whether the settings are now saved.
  */
-export function saveState(storage: Storage | undefined, state: SavedState | undefined): boolean {
+export function saveState(storage: Storage | undefined, state: StoredState | undefined): boolean {
 	if (!state) {
 		forgetState(storage);
 		return false;
@@ -76,7 +76,7 @@ export function startOver(location: Location, storage: Storage | undefined): voi
 }
 
 /** Puts back the settings a share link replaced, then reloads them. */
-export function restoreReplaced(location: Location, storage: Storage | undefined, replaced: SavedState): void {
+export function restoreReplaced(location: Location, storage: Storage | undefined, replaced: StoredState): void {
 	saveState(storage, replaced);
 	location.reload();
 }
@@ -86,7 +86,7 @@ export function toShareUrl(location: Location, state: SavedState): string {
 	return `${location.origin}${location.pathname}${HASH_PREFIX}${encodeSavedState(state)}`;
 }
 
-function readSavedState(storage: Storage | undefined): SavedState | undefined {
+function readSavedState(storage: Storage | undefined): StoredState | undefined {
 	try {
 		const text = storage?.getItem(STORAGE_KEY);
 		return text ? decodeSavedState(text) : undefined;
@@ -104,7 +104,7 @@ function forgetState(storage: Storage | undefined): void {
 	}
 }
 
-async function restore(saved: SavedState): Promise<Omit<InitialState, 'source'>> {
+async function restore(saved: StoredState): Promise<Omit<InitialState, 'source'>> {
 	// A band that has since left support falls back to the default, and the restore skips rules it doesn't have.
 	const bandName = BANDS.some(band => band.band === saved.sdkBand) ? saved.sdkBand : DEFAULT_BAND.band;
 	const catalog = await loadCatalog(bandName);

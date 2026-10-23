@@ -1,4 +1,5 @@
 import { BUILD_PROPERTIES_BY_NAME, PROJECT_UNDER_TEST_ITEM, PROJECT_UNDER_TEST_PROPERTIES, readProjectNamePrefix, TEST_ACCESS_ITEM, toConditionKind } from '../build/buildProperties.ts';
+import { unescapeXml } from '../build/msbuildXml.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { isSupportedTargetFramework } from '../config/targetFrameworks.ts';
 import type { Severity } from '../config/wizardConfig.ts';
@@ -53,7 +54,7 @@ export function importMsBuildFile(text: string, catalog: Catalog): ImportResult 
 			}
 
 			const name = property.groups?.name ?? '';
-			const value = (property.groups?.value ?? '').trim();
+			const value = unescapeXml(property.groups?.value ?? '').trim();
 			notes.push(...importProperty(name, value, isCiOnly || propertyConditionKind === 'CI', catalog, settings, unsupported));
 		}
 	}

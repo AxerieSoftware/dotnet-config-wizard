@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { ALL_PRESETS, toPresetConfig, toPresetName } from '../src/lib/config/presets.ts';
+import { PRESET_LEVELS, SOURCE_KINDS, toPresetConfigWithSource, toPresetName } from '../src/lib/config/presets.ts';
 import { parseWizardConfig, type WizardConfig } from '../src/lib/config/wizardConfig.ts';
 import { checkEditorConfigKeys } from '../src/lib/export/checkEditorConfigKeys.ts';
 import { toExhaustiveConfig } from '../src/lib/export/exhaustiveConfig.ts';
@@ -37,15 +37,18 @@ for (const band of bands) {
 	const catalog = readCatalog(band.band);
 	const cases: ValidationCase[] = [{ name: `exhaustive ${band.band}`, config: withGlobalJson(toBannedApisLabeledBySymbol(toExhaustiveConfig(catalog))), checksBannedApis: true }];
 	if (!band.isPreview) {
-		// A project kind only adds settings at some levels, so presets whose files match one already built are skipped.
+		// Each preset is built with src holding each kind of project, or none. A kind only adds settings at some levels, so variants
+		// whose files match one already built are skipped.
 		const builtOutputs = new Set<string>();
-		for (const preset of ALL_PRESETS) {
-			const config = withGlobalJson(toPresetConfig(preset, catalog));
-			const files = JSON.stringify(toGeneratedOutput(config, catalog, { commentStyle: 'none' }).files);
-			if (builtOutputs.has(files)) continue;
+		for (const preset of PRESET_LEVELS) {
+			for (const sourceKind of SOURCE_KINDS) {
+				const config = withGlobalJson(toPresetConfigWithSource(preset, sourceKind, catalog));
+				const files = JSON.stringify(toGeneratedOutput(config, catalog, { commentStyle: 'none' }).files);
+				if (builtOutputs.has(files)) continue;
 
-			builtOutputs.add(files);
-			cases.push({ name: `preset ${toPresetName(preset)} ${band.band}`, config, checksBannedApis: false });
+				builtOutputs.add(files);
+				cases.push({ name: `preset ${toPresetName(preset)} with src as ${sourceKind ?? 'any'} ${band.band}`, config, checksBannedApis: false });
+			}
 		}
 		cases.push({ name: `exhaustive with Analyzers.globalconfig ${band.band}`, config: withGlobalJson({ ...toExhaustiveConfig(catalog), severityFile: 'globalconfig' }), checksBannedApis: false });
 	}

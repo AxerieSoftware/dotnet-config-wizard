@@ -3,7 +3,7 @@ import type { Catalog } from '../catalog/catalog.ts';
 import { toCodeStyleBlocks } from '../codeStyle/codeStyleBlocks.ts';
 import { resolveScope } from '../config/scopes.ts';
 import { toGateContext } from '../config/versionGates.ts';
-import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
+import { PROJECT_KINDS, type ProjectKind, type ScopeConfig, type WizardConfig } from '../config/wizardConfig.ts';
 import { CSHARP_GLOB, toCSharpFormattingEntries, toFormattingSections } from '../formatting/formattingSections.ts';
 import { toNamingBlocks } from '../naming/namingBlocks.ts';
 import type { EditorConfigBlock } from './editorConfigDocument.ts';
@@ -14,6 +14,37 @@ const FILE_NAME = '.editorconfig';
 
 /** Read back by the importer to list rules added since a config was made, and to restore the preset it started from. */
 export const HEADER_PATTERN = /^# Settings for \.NET SDK (?<band>\S+), catalog (?<catalogVersion>\d{4}-\d{2}-\d{2})(?:, preset (?<preset>.+))?$/m;
+
+/**
+ * The line below the header where the root file records what each folder holds, such as `# Projects: src library; tests
+ * test`, since nothing else on disk does. The repo root is `.`.
+ */
+export const PROJECTS_PATTERN = /^# Projects: (?<kinds>.+)$/m;
+
+// Written when no folder sets what it holds, so import can tell this header from an older one without a projects line.
+const NO_PROJECT_KINDS = 'none';
+
+/** What each folder holds, read back from the root `.editorconfig`, or undefined when it has no projects line. */
+export function readProjectKinds(text: string): Map<string, ProjectKind> | undefined {
+	const kinds = PROJECTS_PATTERN.exec(text)?.groups?.kinds;
+	if (kinds === undefined) return undefined;
+	if (kinds === NO_PROJECT_KINDS) return new Map();
+
+	return new Map(
+		kinds
+			.split('; ')
+			.map(toFolderKind)
+			.filter(([, kind]) => PROJECT_KINDS.includes(kind as ProjectKind))
+			.map(([path, kind]) => [path, kind as ProjectKind])
+	);
+}
+
+/** One `PATH KIND` entry of the projects line; paths can hold spaces, so the kind is what follows the last one. */
+function toFolderKind(entry: string): [path: string, kind: string] {
+	const separator = entry.lastIndexOf(' ');
+	const path = entry.slice(0, separator);
+	return [path === '.' ? '' : path, entry.slice(separator + 1)];
+}
 
 /** How files are written; `presetName` records the preset the settings started from in the root file's header. */
 export type EditorConfigOutputOptions = { commentStyle: CommentStyle; presetName?: string };
@@ -70,11 +101,13 @@ function toEditorConfigFile(
 
 	const file = {
 		path: isRoot ? FILE_NAME : `${scope.path}/${FILE_NAME}`,
-		content: renderEditorConfig({ headerComment: isRoot ? toHeaderComment(catalog, outputOptions.presetName) : undefined, isRoot, sections })
+		content: renderEditorConfig({ headerComment: isRoot ? toHeaderComment(config, catalog, outputOptions.presetName) : undefined, isRoot, sections })
 	};
 	return { file, skippedKeys, globalConfigBlocks };
 }
 
-function toHeaderComment(catalog: Catalog, presetName: string | undefined): string {
-	return `Settings for .NET SDK ${catalog.band.band}, catalog ${catalog.version}${presetName ? `, preset ${presetName}` : ''}`;
+function toHeaderComment(config: WizardConfig, catalog: Catalog, presetName: string | undefined): string {
+	const settings = `Settings for .NET SDK ${catalog.band.band}, catalog ${catalog.version}${presetName ? `, preset ${presetName}` : ''}`;
+	const kinds = config.scopes.filter(scope => scope.projectKind !== undefined).map(scope => `${scope.path === '' ? '.' : scope.path} ${scope.projectKind}`);
+	return `${settings}\nProjects: ${kinds.length === 0 ? NO_PROJECT_KINDS : kinds.join('; ')}`;
 }
