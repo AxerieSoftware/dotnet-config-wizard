@@ -1,6 +1,6 @@
 {
 	"id": "Microsoft.EntityFrameworkCore.Analyzers",
-	"version": "10.0.13",
+	"version": "10.0.14",
 	"rules": [
 		{
 			"id": "EF1001",

@@ -1,6 +1,6 @@
 {
 	"id": "Meziantou.Analyzer",
-	"version": "3.0.315",
+	"version": "3.0.317",
 	"rules": [
 		{
 			"id": "MA0001",
