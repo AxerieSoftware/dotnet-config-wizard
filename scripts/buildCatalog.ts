@@ -29,7 +29,9 @@ const sdkVersions = (JSON.parse(releasesIndexText) as ReleasesIndex)['releases-i
 await ensureSdksInstalled(sdkVersions);
 
 if (existsSync(join(DOCS_DIRECTORY, '.git'))) {
-	run('git', ['-C', DOCS_DIRECTORY, 'pull', '--quiet', '--depth', '1']);
+	// A depth-1 clone shares no history with the new tip, so pull sees divergent branches. Reset to it instead.
+	run('git', ['-C', DOCS_DIRECTORY, 'fetch', '--quiet', '--depth', '1', 'origin']);
+	run('git', ['-C', DOCS_DIRECTORY, 'reset', '--quiet', '--hard', 'FETCH_HEAD']);
 } else {
 	run('git', ['clone', '--quiet', '--depth', '1', '--filter=blob:none', '--sparse', 'https://github.com/dotnet/docs.git', DOCS_DIRECTORY]);
 }
