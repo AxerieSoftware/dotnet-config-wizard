@@ -206,10 +206,7 @@
 	}
 </script>
 
-{#snippet treeNode(
-	node: TreeNode,
-	depth: number
-)}
+{#snippet treeNode(node: TreeNode, depth: number)}
 	{#if node.kind === 'folder'}
 		{@const isCollapsed = isCollapsedFolder(node.path)}
 		{@const isEditing = node.isScope && node.path === folderPath}

@@ -84,12 +84,12 @@
 		hoverTimer = setTimeout(() => show(index), HOVER_DELAY_MS);
 	}
 
-	function describe(index: number): LineInfo | undefined {
+	function lineInfoAt(index: number): LineInfo | undefined {
 		return describeLine(file.path, lines[index], sections[index], wizard.catalog);
 	}
 
 	function show(index: number): void {
-		const info = describe(index);
+		const info = lineInfoAt(index);
 		const line = panel?.querySelector<HTMLElement>(`[data-line="${index}"]`);
 		hovered = info && line && panel ? { index, info, top: line.offsetTop + line.offsetHeight, left: panel.scrollLeft + 48 } : undefined;
 	}
@@ -123,7 +123,7 @@
 		event.preventDefault();
 		const startIndex = hovered?.index ?? (step > 0 ? -1 : lines.length);
 		for (let index = startIndex + step; index >= 0 && index < lines.length; index += step) {
-			if (!describe(index)) continue;
+			if (!lineInfoAt(index)) continue;
 
 			show(index);
 			panel?.querySelector(`[data-line="${index}"]`)?.scrollIntoView({ block: 'nearest' });
@@ -132,7 +132,7 @@
 	}
 
 	function openLine(index: number): void {
-		const target = describe(index)?.target;
+		const target = lineInfoAt(index)?.target;
 		if (target) void openTarget(target);
 	}
 

@@ -104,9 +104,7 @@
 	<p>Packages, analysis mode and rule severities. Unset rules keep their defaults.</p>
 </header>
 
-{#snippet packageRow(
-	analyzerPackage: (typeof PACKAGES)[number]
-)}
+{#snippet packageRow(analyzerPackage: (typeof PACKAGES)[number])}
 	<label class="package-row">
 		<input
 			type="checkbox"

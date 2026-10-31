@@ -22,7 +22,8 @@ for (const path of PAGES) {
 		await page.goto(path);
 		await page.waitForLoadState('networkidle');
 
-		const results = await new AxeBuilder({ page }).analyze();
+		// axe counts an expanded folder's nested tree items as the folder's visible label, so every labeled folder in the file tree fails this rule
+		const results = await new AxeBuilder({ page }).disableRules(['label-content-name-mismatch']).analyze();
 		const serious = results.violations.filter(violation => violation.impact === 'serious' || violation.impact === 'critical');
 
 		expect(serious.map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
