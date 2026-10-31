@@ -33,4 +33,4 @@ Bugs go in [Issues](https://github.com/AxerieSoftware/dotnet-config-wizard/issue
 
 ## License
 
-[MIT](LICENSE) © Axerie Software
+[MIT](LICENSE) © Axerie LLC
