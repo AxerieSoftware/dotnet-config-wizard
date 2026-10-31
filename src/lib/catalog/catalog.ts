@@ -102,7 +102,7 @@ export function createCatalog(
 		options.set(option.name, { ...option, groupTitle, groupOrder: groupOrder === -1 ? OPTION_GROUPS.length : groupOrder });
 	}
 
-	const version = Object.values(ruleHistory).reduce((newest, date) => (date > newest ? date : newest), '');
+	const version = Object.values(ruleHistory).sort().at(-1) ?? '';
 	return { band, version, history: new Map(Object.entries(ruleHistory)), rules, options, packages: packagesById, analysisLevels: sdkCatalog.analysisLevels };
 }
 
