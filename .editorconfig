@@ -1,4 +1,4 @@
-# Settings for .NET SDK 10.0.4xx, catalog 2026-10-20
+# Settings for .NET SDK 10.0.4xx, catalog 2026-11-02
 # Projects: . service; tools/CatalogBuilder.Tests test
 root = true
 

@@ -14,12 +14,12 @@
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
 		"includedWith": null,
-		"version": "3.0.317",
-		"latestVersion": "3.0.317",
-		"latestPublished": "2026-10-25",
+		"version": "3.0.320",
+		"latestVersion": "3.0.320",
+		"latestPublished": "2026-11-01",
 		"isDeprecated": false,
 		"isStale": false,
-		"ruleCount": 240
+		"ruleCount": 242
 	},
 	{
 		"id": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
@@ -80,9 +80,9 @@
 		"id": "MSTest.Analyzers",
 		"title": "MSTest analyzers",
 		"includedWith": "MSTest.Sdk and MSTest",
-		"version": "4.5.1",
-		"latestVersion": "4.5.1",
-		"latestPublished": "2026-10-07",
+		"version": "4.5.2",
+		"latestVersion": "4.5.2",
+		"latestPublished": "2026-10-27",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 80
