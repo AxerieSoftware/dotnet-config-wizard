@@ -1,6 +1,6 @@
 {
 	"id": "MSTest.Analyzers",
-	"version": "4.5.1",
+	"version": "4.5.2",
 	"rules": [
 		{
 			"id": "MSTEST0001",
