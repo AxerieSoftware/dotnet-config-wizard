@@ -1,6 +1,6 @@
 {
 	"id": "xunit.analyzers",
-	"version": "2.2.0",
+	"version": "2.3.0",
 	"rules": [
 		{
 			"id": "xUnit1000",
@@ -1020,6 +1020,22 @@
 			"helpLink": "https://xunit.net/xunit.analyzers/rules/xUnit1072",
 			"description": null,
 			"tags": [],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "xUnit1073",
+			"source": "xunit.analyzers",
+			"title": "Collection definition is never used",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": "https://xunit.net/xunit.analyzers/rules/xUnit1073",
+			"description": null,
+			"tags": [
+				"CompilationEnd"
+			],
 			"hasCodeFix": false,
 			"warningLevel": null,
 			"parameters": []

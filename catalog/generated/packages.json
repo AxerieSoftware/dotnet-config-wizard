@@ -14,9 +14,9 @@
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
 		"includedWith": null,
-		"version": "3.0.320",
-		"latestVersion": "3.0.320",
-		"latestPublished": "2026-11-01",
+		"version": "3.0.322",
+		"latestVersion": "3.0.322",
+		"latestPublished": "2026-11-08",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 242
@@ -69,12 +69,12 @@
 		"id": "xunit.analyzers",
 		"title": "xUnit analyzers",
 		"includedWith": "xunit.v3",
-		"version": "2.2.0",
-		"latestVersion": "2.2.0",
-		"latestPublished": "2026-10-09",
+		"version": "2.3.0",
+		"latestVersion": "2.3.0",
+		"latestPublished": "2026-11-09",
 		"isDeprecated": false,
 		"isStale": false,
-		"ruleCount": 114
+		"ruleCount": 115
 	},
 	{
 		"id": "MSTest.Analyzers",
