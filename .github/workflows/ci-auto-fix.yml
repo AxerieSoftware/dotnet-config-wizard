@@ -45,7 +45,7 @@ jobs:
           cache: npm
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
 
@@ -67,7 +67,7 @@ jobs:
         timeout-minutes: 5
 
       - name: Fix CI with Claude
-        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
+        uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe # v1.0.269
         with:
           # Set one of the two secrets.
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
