@@ -1,6 +1,6 @@
 {
 	"id": "Meziantou.Analyzer",
-	"version": "3.0.322",
+	"version": "3.0.341",
 	"rules": [
 		{
 			"id": "MA0001",
@@ -487,7 +487,9 @@
 			"isEnabledByDefault": true,
 			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0036.md",
 			"description": null,
-			"tags": [],
+			"tags": [
+				"CompilationEnd"
+			],
 			"hasCodeFix": true,
 			"warningLevel": null,
 			"parameters": []
@@ -515,7 +517,9 @@
 			"isEnabledByDefault": true,
 			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0038.md",
 			"description": null,
-			"tags": [],
+			"tags": [
+				"CompilationEnd"
+			],
 			"hasCodeFix": true,
 			"warningLevel": null,
 			"parameters": []
@@ -557,7 +561,9 @@
 			"isEnabledByDefault": true,
 			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0041.md",
 			"description": null,
-			"tags": [],
+			"tags": [
+				"CompilationEnd"
+			],
 			"hasCodeFix": true,
 			"warningLevel": null,
 			"parameters": []
@@ -725,7 +731,9 @@
 			"isEnabledByDefault": true,
 			"helpLink": "https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0053.md",
 			"description": null,
-			"tags": [],
+			"tags": [
+				"CompilationEnd"
+			],
 			"hasCodeFix": true,
 			"warningLevel": null,
 			"parameters": []

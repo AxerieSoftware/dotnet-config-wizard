@@ -1,5 +1,5 @@
 {
-	"sdkVersion": "11.0.100-rc.3.26522.148",
+	"sdkVersion": "11.0.100",
 	"band": "11.0.1xx",
 	"rules": [
 		{
@@ -6820,7 +6820,7 @@
 			"category": "Compiler",
 			"defaultSeverity": "warning",
 			"isEnabledByDefault": true,
-			"helpLink": "https://learn.microsoft.com/dotnet/csharp/misc/cs0626",
+			"helpLink": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-messages/attribute-usage-errors",
 			"description": null,
 			"tags": [],
 			"hasCodeFix": false,
@@ -7002,7 +7002,7 @@
 			"category": "Compiler",
 			"defaultSeverity": "warning",
 			"isEnabledByDefault": true,
-			"helpLink": "https://learn.microsoft.com/dotnet/csharp/misc/cs0684",
+			"helpLink": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-messages/attribute-usage-errors",
 			"description": null,
 			"tags": [],
 			"hasCodeFix": false,
