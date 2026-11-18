@@ -1,16 +1,16 @@
 [
 	{
 		"band": "11.0.1xx",
-		"sdkVersion": "11.0.100-rc.3.26522.148",
+		"sdkVersion": "11.0.100",
 		"channel": "11.0",
-		"supportPhase": "go-live",
+		"supportPhase": "active",
 		"releaseType": "sts",
-		"endOfLifeDate": null,
-		"isPreview": true
+		"endOfLifeDate": "2028-11-14",
+		"isPreview": false
 	},
 	{
 		"band": "10.0.4xx",
-		"sdkVersion": "10.0.403",
+		"sdkVersion": "10.0.404",
 		"channel": "10.0",
 		"supportPhase": "active",
 		"releaseType": "lts",

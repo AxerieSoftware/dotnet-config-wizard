@@ -1,6 +1,6 @@
 {
 	"id": "Microsoft.EntityFrameworkCore.Analyzers",
-	"version": "10.0.14",
+	"version": "11.0.0",
 	"rules": [
 		{
 			"id": "EF1001",
@@ -41,6 +41,20 @@
 			"description": null,
 			"tags": [],
 			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "EF1004",
+			"source": "Microsoft.EntityFrameworkCore.Analyzers",
+			"title": "Avoid using 'ToAsyncEnumerable' on an 'IQueryable'.",
+			"category": "Usage",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [],
+			"hasCodeFix": true,
 			"warningLevel": null,
 			"parameters": []
 		}

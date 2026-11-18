@@ -1,6 +1,6 @@
 {
 	"id": "SonarAnalyzer.CSharp",
-	"version": "10.35.0.4138",
+	"version": "10.36.0.15337",
 	"rules": [
 		{
 			"id": "S100",
@@ -7826,7 +7826,7 @@
 			"parameters": [
 				{
 					"key": "debugThreshold",
-					"description": "The maximum number of DEBUG, TRACE and VERBOSE statements allowed in the same code block.",
+					"description": "The maximum number of DEBUG and VERBOSE statements allowed in the same code block.",
 					"type": "Integer",
 					"defaultValue": "4"
 				},
@@ -8558,6 +8558,63 @@
 			"source": "SonarAnalyzer.CSharp",
 			"title": "Parameter names should match base declaration and other partial definitions",
 			"category": "Critical Code Smell",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [
+				"C#",
+				"MainSourceScope",
+				"TestSourceScope",
+				"SonarWay"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "S9414",
+			"source": "SonarAnalyzer.CSharp",
+			"title": "Local variable declarations and assignments should be joined",
+			"category": "Minor Code Smell",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [
+				"C#",
+				"MainSourceScope",
+				"TestSourceScope",
+				"SonarWay"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "S9415",
+			"source": "SonarAnalyzer.CSharp",
+			"title": "Local functions should be marked \"static\" when they don't capture variables",
+			"category": "Major Code Smell",
+			"defaultSeverity": "warning",
+			"isEnabledByDefault": true,
+			"helpLink": null,
+			"description": null,
+			"tags": [
+				"C#",
+				"MainSourceScope",
+				"TestSourceScope",
+				"SonarWay"
+			],
+			"hasCodeFix": false,
+			"warningLevel": null,
+			"parameters": []
+		},
+		{
+			"id": "S9422",
+			"source": "SonarAnalyzer.CSharp",
+			"title": "Lock object fields should use \"System.Threading.Lock\" type",
+			"category": "Major Code Smell",
 			"defaultSeverity": "warning",
 			"isEnabledByDefault": true,
 			"helpLink": null,

@@ -159,7 +159,7 @@ describe('repo-level files', () => {
 	it('allows prereleases in global.json only for a preview band', () => {
 		const globalJsonConfig = { rollForward: 'latestFeature' as const, isTestingPlatformRunner: false, msbuildSdks: {} };
 
-		expect(JSON.parse(toGlobalJson(globalJsonConfig, readCatalog('11.0.1xx').band)).sdk.allowPrerelease).toBe(true);
+		expect(JSON.parse(toGlobalJson(globalJsonConfig, { ...catalog.band, isPreview: true })).sdk.allowPrerelease).toBe(true);
 		expect(JSON.parse(toGlobalJson(globalJsonConfig, catalog.band)).sdk).toEqual({ version: catalog.band.sdkVersion, rollForward: 'latestFeature', allowPrerelease: false });
 	});
 

@@ -3,20 +3,20 @@
 		"id": "SonarAnalyzer.CSharp",
 		"title": "SonarAnalyzer",
 		"includedWith": null,
-		"version": "10.35.0.4138",
-		"latestVersion": "10.35.0.4138",
-		"latestPublished": "2026-09-28",
+		"version": "10.36.0.15337",
+		"latestVersion": "10.36.0.15337",
+		"latestPublished": "2026-11-11",
 		"isDeprecated": false,
 		"isStale": false,
-		"ruleCount": 456
+		"ruleCount": 459
 	},
 	{
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
 		"includedWith": null,
-		"version": "3.0.322",
-		"latestVersion": "3.0.322",
-		"latestPublished": "2026-11-08",
+		"version": "3.0.341",
+		"latestVersion": "3.0.341",
+		"latestPublished": "2026-11-15",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 242
@@ -80,9 +80,9 @@
 		"id": "MSTest.Analyzers",
 		"title": "MSTest analyzers",
 		"includedWith": "MSTest.Sdk and MSTest",
-		"version": "4.5.2",
-		"latestVersion": "4.5.2",
-		"latestPublished": "2026-10-27",
+		"version": "4.5.3",
+		"latestVersion": "4.5.3",
+		"latestPublished": "2026-11-11",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 80
@@ -91,11 +91,11 @@
 		"id": "Microsoft.EntityFrameworkCore.Analyzers",
 		"title": "EF Core analyzers",
 		"includedWith": "Microsoft.EntityFrameworkCore",
-		"version": "10.0.14",
-		"latestVersion": "11.0.0-rc.3.26522.148",
-		"latestPublished": "2026-10-25",
+		"version": "11.0.0",
+		"latestVersion": "11.0.0",
+		"latestPublished": "2026-11-10",
 		"isDeprecated": false,
 		"isStale": false,
-		"ruleCount": 3
+		"ruleCount": 4
 	}
 ]
