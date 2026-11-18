@@ -1,0 +1,15 @@
+# Merges Dependabot's patch and minor updates once the PR's other checks pass; majors stay open for review.
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+  actions: read
+
+jobs:
+  auto-merge:
+    uses: AxerieSoftware/.github/.github/workflows/dependabot-auto-merge.yml@main
