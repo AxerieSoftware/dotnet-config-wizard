@@ -1,11 +1,11 @@
 import type { Catalog, CatalogRule } from '../catalog/catalog.ts';
 import { type GateContext, getRuleBlocker } from '../config/versionGates.ts';
-import type { Severity } from '../config/wizardConfig.ts';
+import type { CommentStyle, Severity } from '../config/wizardConfig.ts';
+
+export type { CommentStyle };
+
 import type { EditorConfigBlock } from '../export/editorConfigDocument.ts';
 import type { SkippedKey } from '../export/generatedFile.ts';
-
-export const COMMENT_STYLES = ['none', 'idAndTitle', 'titleAndLink'] as const;
-export type CommentStyle = (typeof COMMENT_STYLES)[number];
 
 // SDK analyzers come first in this order, then packages alphabetically.
 const SOURCE_ORDER = ['Microsoft.CodeAnalysis.CSharp', 'Microsoft.CodeAnalysis.CSharp.CodeStyle', 'Microsoft.CodeAnalysis.NetAnalyzers', 'Microsoft.NET.ILLink.Tasks'];

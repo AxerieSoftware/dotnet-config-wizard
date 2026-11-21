@@ -23,6 +23,14 @@ describe('mergePatch', () => {
 });
 
 describe('share links', () => {
+	it('keeps the comment styles', () => {
+		const config = { ...toPresetConfig('strict', catalog), comments: { props: 'none' as const } };
+
+		const restored = restoreSavedState(toSavedState(config, 'strict', catalog), catalog);
+
+		expect(restored.status === 'restored' && restored.config.comments).toEqual({ props: 'none' });
+	});
+
 	it('stores only what changed from the preset and restores the same config', () => {
 		const config = toPresetConfig('recommended', catalog);
 		const tests = config.scopes.find(scope => scope.path === 'tests');

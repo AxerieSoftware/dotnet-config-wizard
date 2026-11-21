@@ -1,13 +1,12 @@
 import { createContext } from 'svelte';
 import { type AnalysisMode, toAnalysisLevelValue } from '../analyzers/analysisLevel.ts';
 import type { BannedApi } from '../analyzers/bannedApis.ts';
-import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
 import { isFrameworkProperty } from '../build/buildPropsFiles.ts';
 import { toList } from '../build/msbuildValues.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { BANDS, DEFAULT_BAND, loadCatalog } from '../catalog/loadCatalog.ts';
 import { toEffectiveFiles } from '../export/effectiveFiles.ts';
-import { toGeneratedOutput } from '../export/generatedOutput.ts';
+import { toCommentStyles, toGeneratedOutput } from '../export/generatedOutput.ts';
 import type { SettingLine } from '../export/lineInfo.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
@@ -26,7 +25,18 @@ import { toKindSettings } from './scopePresets.ts';
 import { type ResolvedScope, resolveInheritedScope, resolveScope, toReachedKinds } from './scopes.ts';
 import { toSavedState } from './shareLink.ts';
 import { toGateContext } from './versionGates.ts';
-import { type GlobalJsonConfig, type NuGetConfig, PROJECT_KIND_TITLES, type ProjectKind, type ScopeConfig, type Severity, type WizardConfig } from './wizardConfig.ts';
+import {
+	type CommentStyle,
+	type CommentStyles,
+	DEFAULT_COMMENT_STYLE,
+	type GlobalJsonConfig,
+	type NuGetConfig,
+	PROJECT_KIND_TITLES,
+	type ProjectKind,
+	type ScopeConfig,
+	type Severity,
+	type WizardConfig
+} from './wizardConfig.ts';
 
 type FrameworkSettings = Pick<ScopeConfig, 'tfms' | 'isTargetFrameworkShared'>;
 
@@ -60,10 +70,10 @@ export class WizardState {
 	public importNotes = $state<(ImportNote & { fileName: string })[]>([]);
 	/** The catalog version an imported `.editorconfig` was made with, when it's older than this catalog. */
 	public importedCatalogVersion = $state<string | undefined>(undefined);
-	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: this.commentStyle, presetName: toPresetName(this.preset) }));
+	public readonly output = $derived.by(() => toGeneratedOutput(this.config, this.catalog, { commentStyle: DEFAULT_COMMENT_STYLE, presetName: toPresetName(this.preset) }));
 	public readonly savedState = $derived.by(() => toSavedState(this.config, this.preset, this.catalog));
 	/** What a project in the active folder actually gets, or undefined at the repo root, where the files are already that. */
-	public readonly effectiveFiles = $derived.by(() => (this.isRootActive ? undefined : toEffectiveFiles(this.config, this.activeScope, this.catalog, this.commentStyle, this.output.files)));
+	public readonly effectiveFiles = $derived.by(() => (this.isRootActive ? undefined : toEffectiveFiles(this.config, this.activeScope, this.catalog, DEFAULT_COMMENT_STYLE, this.output.files)));
 	/** Whether the settings differ from the preset they started from, so replacing them loses work. */
 	public readonly hasChanges = $derived.by(() => Object.keys(this.savedState.changes as object).length > 0);
 	/** Whether the settings are still what a first visit starts with, so there's nothing worth saving or starting over from. */
@@ -81,9 +91,8 @@ export class WizardState {
 	/** The rule table's filters, which jumping to a rule from the preview sets. */
 	public readonly ruleFilters = $state({ ...RULE_FILTER_DEFAULTS });
 
-	// The folder being edited and the comment style survive a reload of the tab; the config itself is in localStorage.
+	// The folder being edited survives a reload of the tab; the config itself is in localStorage.
 	private readonly savedActiveScopePath = new SessionValue('folder', '');
-	private readonly savedCommentStyle = new SessionValue<CommentStyle>('comment-style', 'idAndTitle', { isValid: value => COMMENT_STYLES.includes(value as CommentStyle) });
 
 	public constructor(initialState: InitialState) {
 		this.catalog = $state.raw(initialState.catalog);
@@ -101,14 +110,22 @@ export class WizardState {
 		this.savedActiveScopePath.value = path;
 	}
 
-	public get commentStyle(): CommentStyle {
-		return this.savedCommentStyle.value;
+	/** The comments in `.editorconfig`, kept in the config's `comments` like a repo's `.config/dotnet.json`. */
+	public get editorConfigCommentStyle(): CommentStyle {
+		return toCommentStyles(this.config, DEFAULT_COMMENT_STYLE).editorConfig;
 	}
 
-	public set commentStyle(commentStyle: CommentStyle) {
-		const filesBefore = this.output.files;
-		this.savedCommentStyle.value = commentStyle;
-		if (this.repo && commentStyle !== 'none') this.repo.markFullyCommented(filesBefore, this.output.files);
+	public set editorConfigCommentStyle(commentStyle: CommentStyle) {
+		this.setCommentStyle('editorConfig', commentStyle === DEFAULT_COMMENT_STYLE ? undefined : commentStyle);
+	}
+
+	/** The comments in the props files, which follow `.editorconfig`'s until set. */
+	public get propsCommentStyle(): CommentStyle {
+		return toCommentStyles(this.config, DEFAULT_COMMENT_STYLE).props;
+	}
+
+	public set propsCommentStyle(commentStyle: CommentStyle) {
+		this.setCommentStyle('props', commentStyle === this.editorConfigCommentStyle ? undefined : commentStyle);
 	}
 
 	public get rootScope(): ScopeConfig {
@@ -426,6 +443,15 @@ export class WizardState {
 	/** Options rules read from .editorconfig, such as `MA0048.only_validate_first_type`, apply to the active folder. */
 	public setRuleOption(ruleId: string, key: string, value: string | undefined): void {
 		setScopeRuleParameter(this.activeScope, ruleId, key, value);
+	}
+
+	private setCommentStyle(file: keyof CommentStyles, commentStyle: CommentStyle | undefined): void {
+		const filesBefore = this.output.files;
+		this.config.comments ??= {};
+		setOrDelete(this.config.comments, file, commentStyle);
+		if (Object.keys(this.config.comments).length === 0) delete this.config.comments;
+		// A connected repo rewrites files whose comments came back in full, rather than only their changed lines.
+		if (this.repo && commentStyle !== 'none') this.repo.markFullyCommented(filesBefore, this.output.files);
 	}
 
 	public setNuGetConfig(nuget: NuGetConfig | undefined): void {

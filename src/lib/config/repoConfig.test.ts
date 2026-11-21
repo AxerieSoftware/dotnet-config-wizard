@@ -31,6 +31,12 @@ describe('toRepoWizardConfig', () => {
 		expect(src.build?.EnableTrimAnalyzer).toBe('true');
 	});
 
+	it('carries the comment styles into the config, where the app keeps them too', () => {
+		const result = toRepoWizardConfig({ preset: 'strict', sdkBand: '11.0.1xx', folders: {}, comments: { props: 'none' } }, catalog);
+
+		expect(result.status === 'valid' && result.config.comments).toEqual({ props: 'none' });
+	});
+
 	it("gives a folder that isn't src or tests its kind's defaults", () => {
 		const result = toRepoWizardConfig({ preset: 'recommended', sdkBand: '11.0.1xx', folders: { 'src/Api': 'service' } }, catalog);
 

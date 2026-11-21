@@ -450,6 +450,20 @@ test('opening a folder in the file tree makes it the folder being edited', async
 	await expect(page.getByTestId('file-tests/.editorconfig')).toBeVisible();
 });
 
+test('props comments turn off on their own and stay off after a reload', async ({ page }) => {
+	await page.goto('/wizard/start');
+	await page.getByRole('button', { name: /^Recommended/ }).click();
+	await openStep(page, 'Review and export');
+	await expect(page.getByTestId('file-Directory.Build.props')).toContainText('<!--');
+
+	await page.getByRole('combobox', { name: 'Props comments' }).selectOption('none');
+	await page.reload();
+
+	await expect(page.getByRole('combobox', { name: 'Props comments' })).toHaveValue('none');
+	await expect(page.getByTestId('file-Directory.Build.props')).not.toContainText('<!--');
+	await expect(page.getByTestId('file-.editorconfig')).toContainText('# IDE0055: ');
+});
+
 test('settings survive a reload', async ({ page }) => {
 	await page.goto('/wizard/start');
 	await page.getByRole('button', { name: /^Strict/ }).click();
