@@ -24,7 +24,7 @@ export type StoredState = SavedState | LegacySavedState;
 export type RestoreResult = { status: 'restored'; config: WizardConfig; preset: Preset } | { status: 'invalid'; reason: string };
 
 // Scopes are keyed by path while diffing, so a change in one folder doesn't rewrite every folder after it.
-type KeyedConfig = Omit<WizardConfig, 'scopes'> & { scopes: Record<string, ScopeConfig> };
+export type KeyedConfig = Omit<WizardConfig, 'scopes'> & { scopes: Record<string, ScopeConfig> };
 
 export function toSavedState(config: WizardConfig, preset: Preset, catalog: Catalog): SavedState {
 	const changes = toMergePatch(toKeyed(toPresetConfig(preset, catalog)), toKeyed(config)) ?? {};
@@ -89,7 +89,7 @@ export function toKeyed(config: WizardConfig): KeyedConfig {
 	return { ...config, scopes: Object.fromEntries(config.scopes.map(scope => [scope.path, scope])) };
 }
 
-function fromKeyed(config: KeyedConfig): WizardConfig {
+export function fromKeyed(config: KeyedConfig): WizardConfig {
 	// The root scope always comes first; the rest keep their order.
 	const scopes = Object.values(config.scopes).sort((left, right) => (left.path === '' ? -1 : right.path === '' ? 1 : 0));
 	return { ...config, scopes };
