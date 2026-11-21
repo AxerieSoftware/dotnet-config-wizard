@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readCatalog } from '../../../scripts/readCatalog.ts';
+import { toPresetConfigWithSource } from '../config/presets.ts';
 import type { ScopeConfig, WizardConfig } from '../config/wizardConfig.ts';
 import { toGeneratedOutput } from '../export/generatedOutput.ts';
 import { toGitAttributes } from '../formatting/gitattributes.ts';
@@ -187,5 +188,17 @@ describe('repo-level files', () => {
 		);
 		expect(output.files.find(file => file.path === '.editorconfig')?.content).not.toContain('CA1822');
 		expect(output.files.find(file => file.path === 'Directory.Build.props')?.content).toContain('<GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)Analyzers.globalconfig" />');
+	});
+});
+
+describe('props comments', () => {
+	it('leaves every props comment out with their own style of none, while .editorconfig keeps its comments', () => {
+		const config = toPresetConfigWithSource('opinionated', 'service', catalog);
+		const output = toGeneratedOutput(config, catalog, { commentStyle: 'idAndTitle', propsCommentStyle: 'none' });
+		const file = (path: string) => output.files.find(candidate => candidate.path === path)?.content ?? '';
+
+		for (const path of ['Directory.Build.props', 'Directory.Packages.props', 'src/Directory.Build.props', 'tests/Directory.Build.props']) expect(file(path)).not.toContain('<!--');
+		expect(file('src/Directory.Build.props')).toContain('<Import Project=');
+		expect(file('.editorconfig')).toContain('# CA2016: ');
 	});
 });

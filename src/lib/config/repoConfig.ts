@@ -1,3 +1,4 @@
+import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { applyMergePatch, isObject } from './mergePatch.ts';
 import { PRESET_LEVELS, type Preset, toPresetConfigWithSource } from './presets.ts';
@@ -10,7 +11,12 @@ import { PROJECT_KINDS, type ProjectKind, parseWizardConfig, type WizardConfig }
  * starts from the preset as the wizard defines it then, so a template's repos pick up new defaults with the wizard version
  * they pin instead of keeping copies of them.
  */
-export type RepoConfig = { preset: Preset; sdkBand: string; folders: Record<string, ProjectKind>; changes?: unknown };
+export type RepoConfig = { preset: Preset; sdkBand: string; folders: Record<string, ProjectKind>; changes?: unknown; comments?: RepoComments };
+
+/** The comments above each generated setting, set apart for `.editorconfig` and the props files. */
+export type RepoComments = { editorConfig?: CommentStyle; props?: CommentStyle };
+
+const COMMENT_FILES = ['editorConfig', 'props'];
 
 export type RepoConfigResult = { status: 'valid'; config: WizardConfig } | { status: 'invalid'; reason: string };
 
@@ -25,6 +31,11 @@ export function findRepoConfigProblem(value: Record<string, unknown>): string | 
 	if (!isObject(value.folders) || Object.values(value.folders).some(kind => !PROJECT_KINDS.includes(kind as ProjectKind))) return `folders must map folder paths to ${PROJECT_KINDS.join(', ')}.`;
 	if (Object.keys(value.folders).includes('')) return 'folders lists folders below the repo root; the root holds what they share.';
 	if (value.changes !== undefined && !isObject(value.changes)) return 'changes must be a JSON merge patch object.';
+	if (
+		value.comments !== undefined &&
+		!(isObject(value.comments) && Object.entries(value.comments).every(([file, style]) => COMMENT_FILES.includes(file) && COMMENT_STYLES.includes(style as CommentStyle)))
+	)
+		return `comments must map ${COMMENT_FILES.join(' and ')} to ${COMMENT_STYLES.join(', ')}.`;
 	return undefined;
 }
 

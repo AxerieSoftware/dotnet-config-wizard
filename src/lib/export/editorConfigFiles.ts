@@ -48,7 +48,8 @@ function toFolderKind(entry: string): [path: string, kind: string] {
 }
 
 /** How files are written; `presetName` records the preset the settings started from in the root file's header. */
-export type EditorConfigOutputOptions = { commentStyle: CommentStyle; presetName?: string };
+/** `propsCommentStyle` sets the props files' comments apart from `.editorconfig`'s; without it they follow `commentStyle`. */
+export type EditorConfigOutputOptions = { commentStyle: CommentStyle; propsCommentStyle?: CommentStyle; presetName?: string };
 
 /**
  * One `.editorconfig` per scope: the root file holds `root = true`, and nested files hold only what their scope

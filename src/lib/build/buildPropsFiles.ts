@@ -79,7 +79,7 @@ function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog
 	];
 
 	if (blocks.every(block => block.length === 0)) return undefined;
-	return toProjectDocument([isRoot ? [] : toParentImport(BUILD_PROPS), ...blocks]);
+	return toProjectDocument([isRoot ? [] : toParentImport(BUILD_PROPS, commentStyle), ...blocks]);
 }
 
 /** The frameworks a folder sets for its projects, clearing an inherited value that would conflict, such as a single TargetFramework that breaks multi-targeting. */
@@ -120,7 +120,7 @@ function toPackagesProps(config: WizardConfig, scope: ScopeConfig, catalog: Cata
 	const blocks = [...toPropertyGroups(scope.build ?? {}, 'packages', commentStyle), toGroup('ItemGroup', 'Analyzer packages', toPackageItems(config, scope, catalog, 'GlobalPackageReference'))];
 
 	if (!isRoot && blocks.every(block => block.length === 0)) return undefined;
-	return toProjectDocument([isRoot ? [] : toParentImport(PACKAGES_PROPS), ...blocks]);
+	return toProjectDocument([isRoot ? [] : toParentImport(PACKAGES_PROPS, commentStyle), ...blocks]);
 }
 
 function toPropertyGroups(values: Record<string, string>, file: PropertyFile, commentStyle: CommentStyle): XmlLine[][] {
