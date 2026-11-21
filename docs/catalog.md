@@ -21,6 +21,7 @@ Analyzers are loaded with the Roslyn build that ships in the same SDK, through r
 
 - **Code fixes.** A rule has one when some `CodeFixProvider` in the same assemblies lists it in `FixableDiagnosticIds`.
 - **Rule parameters.** Sonar-style `[RuleParameter]` attributes on analyzer properties become parameters, written to `SonarLint.xml`.
+- **Rule options.** Meziantou's analyzers read options such as `MA0048.only_validate_first_type` from `.editorconfig`, and only its docs list them. A package with `ruleOptionDocs` in `catalog/packages.json` has its GitHub archive downloaded at the tag matching the cataloged version, and the first code block under each rule page's `# Configuration` heading gives the keys, with `default: X` in the comments above each one. These parameters are marked `isEditorConfigKey` and written into `.editorconfig` with the whole key as written.
 - **Sonar descriptions** aren't copied, because Sonar's license doesn't allow republishing them; rules link to rules.sonarsource.com instead.
 - **Compiler warnings** come from Roslyn's internal `ErrorCode` enum (`WRN_*`), with titles from its resources and levels from `ErrorFacts.GetWarningLevel`. Levels 1 to 4 are always on; 5 and up are warning waves. Docs links come from the `f1_keywords` of the dotnet/docs compiler-message pages.
 - **Type-load failures** in packages are usually Roslyn helper types embedded for another Roslyn version. They're notes unless the type looks like an analyzer or code fix, which fails the run.

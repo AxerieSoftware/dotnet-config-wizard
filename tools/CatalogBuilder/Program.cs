@@ -83,6 +83,12 @@ foreach (var trackedPackage in trackedPackages)
 	var assemblies = PackageAnalyzerLocator.Find(packageDirectory, GetRoslynVersion(hostLayout));
 	var probeDirectories = assemblies.Select(Path.GetDirectoryName).Distinct().Concat(hostLayout.ProbeDirectories).ToList();
 	var result = AnalyzerReader.Read(trackedPackage.Id, assemblies, probeDirectories!, trackedPackage.RepublishDescriptions);
+	if (trackedPackage.RuleOptionDocs is { } ruleOptionDocs)
+	{
+		var ruleOptions = await RuleOptionDocsReader.ReadAsync(httpClient, ruleOptionDocs, catalogedVersion, cacheDirectory);
+		result = result with { Rules = [.. result.Rules.Select(rule => ruleOptions.TryGetValue(rule.Id, out var options) ? rule with { Parameters = [.. rule.Parameters, .. options] } : rule)] };
+	}
+
 	failures.AddRange(result.Failures.Select(failure => $"{trackedPackage.Id} {catalogedVersion}: {failure}"));
 	notes.AddRange(result.Notes.Select(note => $"{trackedPackage.Id} {catalogedVersion}: {note}"));
 

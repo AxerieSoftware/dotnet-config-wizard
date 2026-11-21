@@ -149,7 +149,7 @@ internal static partial class AnalyzerReader
 			.SelectMany(property => property.CustomAttributes)
 			.Where(attribute => attribute.AttributeType.Name == RuleParameterAttributeName)
 			.Select(attribute => attribute.ConstructorArguments.Select(ToText).ToList())
-			.Select(arguments => new RuleParameter(arguments[0]!, arguments.Count > 2 ? arguments[2] ?? "" : "", arguments[1] ?? "", arguments.Count > 3 ? arguments[3] : null))
+			.Select(arguments => new RuleParameter(arguments[0]!, arguments.Count > 2 ? arguments[2] ?? "" : "", arguments[1] ?? "", arguments.Count > 3 ? arguments[3] : null, IsEditorConfigKey: false))
 			.ToList();
 	}
 

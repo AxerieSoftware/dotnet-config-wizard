@@ -1,7 +1,7 @@
 import { MSTEST_PACKAGE, PUBLIC_API_PACKAGE } from '../analyzers/analyzerPackages.ts';
 import { BANNED_API_SETS } from '../analyzers/bannedApis.ts';
 import { getEffectiveSeverity, isReported } from '../analyzers/effectiveSeverity.ts';
-import { findActiveOverlaps } from '../analyzers/overlaps.ts';
+import { findActiveOverlaps, OVERLAPS } from '../analyzers/overlaps.ts';
 import { isSameList } from '../build/msbuildValues.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { MICROSOFT_NAMING_SYMBOLS, NAMING_TEMPLATES, type NamingRule } from '../naming/namingRule.ts';
@@ -370,6 +370,14 @@ export const SOURCE_KINDS: readonly (ProjectKind | undefined)[] = ['library', 's
 // Culture rules services turn off, since they run with invariant globalization.
 const SERVICE_CULTURE_RULES = ['MA0002', 'MA0076'];
 
+// Every analyzer's ConfigureAwait rule. Only library code can run under a caller's synchronization context.
+const CONFIGURE_AWAIT_RULES = OVERLAPS.find(overlap => overlap.concern === 'ConfigureAwait')?.ruleIds ?? [];
+
+// EF Core writes migrations into a Migrations folder, and they're regenerated rather than fixed by hand.
+const SERVICE_MIGRATIONS_FORMATTING: Record<string, Record<string, string>> = {
+	'[**/Migrations/*.cs]': { generated_code: 'true', 'dotnet_analyzer_diagnostic.severity': 'none' }
+};
+
 /**
  * Builds a preset for an SDK band. From Recommended up it adds src for libraries and tests for test projects. Rules the
  * band doesn't have are left out, and duplicates of active rules are turned off, so no preset ships duplicate warnings.
@@ -425,7 +433,8 @@ export function toPresetConfigWithSource(preset: Preset, sourceKind: ProjectKind
 		delete root.severities.CA1031;
 		// S134 caps nesting at its default of three levels; cognitive complexity is a backstop high enough that a long, flat
 		// sequence of guarded steps passes.
-		root.ruleParameters = { ...root.ruleParameters, S3776: { threshold: '25' } };
+		// A file may hold small types that belong to its first one, such as an endpoint's request and response records.
+		root.ruleParameters = { ...root.ruleParameters, S3776: { threshold: '25' }, MA0048: { 'MA0048.only_validate_first_type': 'true' } };
 		root.naming = toOpinionatedNaming();
 		root.build.UseArtifactsOutput = 'true';
 		root.build.DebugType = 'embedded';
@@ -452,7 +461,16 @@ export function toFolderDefaults(path: string, projectKind: ProjectKind | undefi
 	// A folder inside a library or service folder would otherwise build like one.
 	if (projectKind !== 'library') removeLibrarySettings(defaults, inherited);
 	if (projectKind !== 'service') removeServiceSettings(defaults, inherited, config, catalog);
+	if (projectKind === 'service' || projectKind === 'test') turnOffConfigureAwait(defaults, config, catalog);
 	return withoutRepeatedSettings(defaults, inherited);
+}
+
+/** Apps and tests have no synchronization context to keep, so none of the analyzers' ConfigureAwait rules should fire there. */
+function turnOffConfigureAwait(scope: ScopeConfig, config: WizardConfig, catalog: Catalog): void {
+	const resolved = resolveScope(config, scope);
+	for (const rule of CONFIGURE_AWAIT_RULES.map(id => catalog.rules.get(id))) {
+		if (rule && isReported(getEffectiveSeverity(rule, resolved, catalog))) scope.severities = { ...scope.severities, [rule.id]: 'none' };
+	}
 }
 
 /** A folder's defaults cleaned up the way presets are: rules the band doesn't have left out, and duplicates turned off. */
@@ -489,6 +507,7 @@ function toShippedDefaults(scope: ScopeConfig, preset: Preset, inherited: Resolv
 
 	// Apps that don't format for people run fine without ICU, and behave the same in every locale and container.
 	if (projectKind === 'service' && preset === 'opinionated') scope.build = { InvariantGlobalization: 'true' };
+	if (projectKind === 'service') scope.formatting = structuredClone(SERVICE_MIGRATIONS_FORMATTING);
 
 	// Libraries can't rely on the app's culture, so string interpolation and sorting must name theirs too. Services run with
 	// invariant globalization, where neither can vary.
@@ -556,9 +575,14 @@ function removeServiceSettings(scope: ScopeConfig, inherited: ResolvedScope | un
 
 /** Leaves out what the folder would inherit anyway, so its files hold only what it changes. */
 function withoutRepeatedSettings(scope: ScopeConfig, inherited: ResolvedScope | undefined): ScopeConfig {
-	const { severities, build, categorySeverities, bannedApis, packages, ...rest } = scope;
+	const { severities, build, categorySeverities, bannedApis, packages, formatting, ...rest } = scope;
 	const own: ScopeConfig = {
 		...rest,
+		formatting: Object.fromEntries(
+			Object.entries(formatting ?? {})
+				.map(([glob, section]) => [glob, withoutInherited(section, inherited?.formatting[glob] ?? {})] as const)
+				.filter(([, section]) => !isEmpty(section))
+		),
 		severities: withoutInherited(severities ?? {}, inherited?.severities ?? {}),
 		build: withoutInherited(build ?? {}, inherited?.build ?? {}),
 		categorySeverities: withoutInherited(categorySeverities ?? {}, inherited?.categorySeverities ?? {}),

@@ -147,6 +147,20 @@ test('turning off duplicates leaves one active rule per concern', async ({ page 
 	await expect(page.getByTestId('file-.editorconfig')).toContainText('dotnet_diagnostic.MA0040.severity = none');
 });
 
+test('a rule option lands in the .editorconfig of the folder it was set on', async ({ page }) => {
+	await page.goto('/wizard/analyzers');
+	await page.getByRole('checkbox', { name: /Meziantou\.Analyzer/ }).check();
+	await openStep(page, 'Start');
+	await addFolder(page, 'tests');
+	await openStep(page, 'Analyzers');
+
+	await page.getByRole('combobox', { name: 'MA0048.only_validate_first_type' }).selectOption('true');
+	await openStep(page, 'Review and export');
+
+	await expect(page.getByTestId('file-tests/.editorconfig')).toContainText('## Rule options\n# MA0048: File name must match type name\nMA0048.only_validate_first_type = true');
+	await expect(page.getByTestId('file-.editorconfig')).not.toContainText('only_validate_first_type');
+});
+
 test('banned APIs are exported as BannedSymbols.txt', async ({ page }) => {
 	await page.goto('/wizard/analyzers');
 	await page.getByRole('checkbox', { name: /Banned API analyzers/ }).check();

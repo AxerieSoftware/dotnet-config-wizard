@@ -8,7 +8,7 @@ import { HEADER_PATTERN, readProjectKinds } from '../export/editorConfigFiles.ts
 import { toFileName, toFolderPath } from '../export/fileTree.ts';
 import { importFile } from '../import/importFile.ts';
 import type { ImportNote } from '../import/importResult.ts';
-import { mergeImport } from '../import/mergeImport.ts';
+import { mergeImport, mergeRuleParameters } from '../import/mergeImport.ts';
 import { importBannedSymbols, importGlobalJson, importNuGetConfig, importSonarLintXml } from '../import/repoSettingsImport.ts';
 import { findUnmanaged } from './preserve.ts';
 import { isConfigFile, type RepoFile } from './repoFiles.ts';
@@ -112,7 +112,7 @@ function importRepoFile(file: RepoFile, scope: ScopeConfig, config: WizardConfig
 	}
 
 	if (fileName === 'SonarLint.xml') {
-		config.scopes[0].ruleParameters = importSonarLintXml(file.text);
+		mergeRuleParameters(config.scopes[0], importSonarLintXml(file.text));
 		return [];
 	}
 

@@ -42,7 +42,7 @@ export function checkEditorConfigKeys(content: string, catalog: Catalog): KeyPro
 }
 
 function findKeyProblem(key: string, catalog: Catalog): string | undefined {
-	if (STANDARD_KEYS.has(key) || ROSLYN_KEYS.has(key) || catalog.options.has(key)) return undefined;
+	if (STANDARD_KEYS.has(key) || ROSLYN_KEYS.has(key) || catalog.options.has(key) || isRuleOptionKey(key, catalog)) return undefined;
 	if (ROSLYN_KEY_PATTERNS.some(pattern => pattern.test(key))) return undefined;
 
 	const diagnosticMatch = DIAGNOSTIC_KEY.exec(key);
@@ -52,4 +52,8 @@ function findKeyProblem(key: string, catalog: Catalog): string | undefined {
 	if (namingMatch?.groups) return NAMING_SUBKEYS[namingMatch.groups.kind].has(namingMatch.groups.subkey) ? undefined : `${key} isn't a naming key Roslyn reads.`;
 
 	return `${key} isn't a key Roslyn reads.`;
+}
+
+function isRuleOptionKey(key: string, catalog: Catalog): boolean {
+	return catalog.rules.values().some(rule => rule.parameters.some(parameter => parameter.isEditorConfigKey && parameter.key === key));
 }

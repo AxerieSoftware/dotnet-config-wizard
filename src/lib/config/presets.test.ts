@@ -131,6 +131,16 @@ describe('C2: performance', () => {
 		expect(render({ level: 'recommended', kind: 'library' }).file('tests/.editorconfig')).toContain('dotnet_diagnostic.CA2007.severity = none');
 	});
 
+	it("turns off Meziantou's ConfigureAwait rule too in services and tests, but not in libraries", () => {
+		const service = render({ level: 'opinionated', kind: 'service' });
+		const library = render({ level: 'opinionated', kind: 'library' });
+
+		expect(service.file('src/.editorconfig')).toContain('dotnet_diagnostic.MA0004.severity = none');
+		expect(service.file('tests/.editorconfig')).toContain('dotnet_diagnostic.MA0004.severity = none');
+		expect(library.file('tests/.editorconfig')).toContain('dotnet_diagnostic.MA0004.severity = none');
+		expect(library.file('src/.editorconfig')).toContain('dotnet_diagnostic.CA2007.severity = warning');
+	});
+
 	it("uses only Microsoft's analyzers in Recommended, with the threading analyzers' general async rules", () => {
 		const { file } = render({ level: 'recommended', kind: undefined });
 
@@ -175,6 +185,14 @@ describe('C3: security and supply chain', () => {
 		expect(library.file('src/BannedSymbols.txt')).toContain('T:System.Console;');
 		expect(library.file('BannedSymbols.txt')).not.toContain('T:System.Console;');
 		expect(render({ level: 'recommended', kind: 'service' }).file('src/BannedSymbols.txt')).not.toContain('T:System.Console;');
+	});
+
+	it("treats EF Core migrations as generated code in services' src only", () => {
+		const service = render({ level: 'recommended', kind: 'service' });
+
+		expect(service.file('src/.editorconfig')).toMatch(/\[\*\*\/Migrations\/\*\.cs\]\s*generated_code = true/);
+		expect(service.file('.editorconfig')).not.toContain('Migrations');
+		expect(render({ level: 'recommended', kind: 'library' }).file('src/.editorconfig')).not.toContain('Migrations');
 	});
 
 	it("bans synchronous form reads in services' src only", () => {

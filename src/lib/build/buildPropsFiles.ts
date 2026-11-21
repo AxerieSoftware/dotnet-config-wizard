@@ -1,4 +1,5 @@
 import { GLOBAL_CONFIG_FILE } from '../analyzers/globalConfig.ts';
+import { toSonarLintParameters } from '../analyzers/ruleParameters.ts';
 import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { type ResolvedScope, resolveInheritedScope, resolveScope } from '../config/scopes.ts';
@@ -71,7 +72,7 @@ function toBuildProps(config: WizardConfig, scope: ScopeConfig, catalog: Catalog
 		isRoot && hasCiSettings(config) ? toGroup('PropertyGroup', 'Continuous integration', [toElement('ContinuousIntegrationBuild', 'true')], CI_CONDITION) : [],
 		toGroup('PropertyGroup', 'CI builds only', toPropertyLines(scope.ciBuild ?? {}, 'props', commentStyle), CI_ONLY_CONDITION),
 		isCentrallyManaged ? [] : toGroup('ItemGroup', 'Analyzer packages', toPackageItems(config, scope, catalog, 'PackageReference')),
-		toGroup('ItemGroup', 'Analyzer files', toAnalyzerFileItems(config, scope, resolved.packages)),
+		toGroup('ItemGroup', 'Analyzer files', toAnalyzerFileItems(config, scope, resolved.packages, catalog)),
 		toGroup('ItemGroup', 'Package files', toPackFileItems(scope.build ?? {})),
 		toGroup('ItemGroup', 'Test access', toTestAccessItems(config, scope)),
 		...toProjectUnderTestGroups(config, scope)
@@ -159,12 +160,13 @@ function toPackageItems(config: WizardConfig, scope: ScopeConfig, catalog: Catal
 	];
 }
 
-function toAnalyzerFileItems(config: WizardConfig, scope: ScopeConfig, packages: string[]): XmlLine[] {
+function toAnalyzerFileItems(config: WizardConfig, scope: ScopeConfig, packages: string[], catalog: Catalog): XmlLine[] {
 	const isRoot = scope.path === '';
 	const items: XmlLine[] = [];
 
 	if (packages.includes(BANNED_API_PACKAGE) && (scope.bannedApis ?? []).length > 0) items.push(toItem('AdditionalFiles', { Include: '$(MSBuildThisFileDirectory)BannedSymbols.txt' }));
-	if (isRoot && packages.includes(SONAR_PACKAGE) && Object.keys(scope.ruleParameters ?? {}).length > 0) items.push(toItem('AdditionalFiles', { Include: '$(MSBuildThisFileDirectory)SonarLint.xml' }));
+	if (isRoot && packages.includes(SONAR_PACKAGE) && Object.keys(toSonarLintParameters(scope.ruleParameters ?? {}, catalog)).length > 0)
+		items.push(toItem('AdditionalFiles', { Include: '$(MSBuildThisFileDirectory)SonarLint.xml' }));
 	if (isRoot && config.severityFile === 'globalconfig' && Object.keys(scope.severities ?? {}).length > 0)
 		items.push(toItem('GlobalAnalyzerConfigFiles', { Include: `$(MSBuildThisFileDirectory)${GLOBAL_CONFIG_FILE}` }));
 	if (packages.includes(PUBLIC_API_PACKAGE) && !(resolveInheritedScope(config, scope)?.packages ?? []).includes(PUBLIC_API_PACKAGE)) {

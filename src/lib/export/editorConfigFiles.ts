@@ -1,3 +1,4 @@
+import { toRuleOptionBlock } from '../analyzers/ruleParameters.ts';
 import { type CommentStyle, toCategorySeverityBlock, toSeverityBlocks } from '../analyzers/severityBlocks.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { toCodeStyleBlocks } from '../codeStyle/codeStyleBlocks.ts';
@@ -89,7 +90,14 @@ function toEditorConfigFile(
 			title: 'C# files',
 			glob: CSHARP_GLOB,
 			parts: [
-				{ blocks: [{ entries: toCSharpFormattingEntries(scope) }, ...codeStyle.blocks, ...toNamingBlocks(scope.naming ?? [])] },
+				{
+					blocks: [
+						{ entries: toCSharpFormattingEntries(scope) },
+						...codeStyle.blocks,
+						...toNamingBlocks(scope.naming ?? []),
+						toRuleOptionBlock(scope.ruleParameters ?? {}, catalog, outputOptions.commentStyle)
+					]
+				},
 				{ title: 'Diagnostic severities', blocks: editorConfigSeverityBlocks }
 			]
 		}

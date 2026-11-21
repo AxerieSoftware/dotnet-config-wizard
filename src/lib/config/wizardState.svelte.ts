@@ -418,13 +418,14 @@ export class WizardState {
 		this.activeScope.naming?.splice(index, 1);
 	}
 
-	/** Sonar reads a single SonarLint.xml, so rule parameters are repo-wide. */
+	/** Sonar reads a single SonarLint.xml, so its rule parameters are repo-wide. */
 	public setRuleParameter(ruleId: string, key: string, value: string | undefined): void {
-		this.rootScope.ruleParameters ??= {};
-		const parameters = this.rootScope.ruleParameters;
-		parameters[ruleId] ??= {};
-		setOrDelete(parameters[ruleId], key, value);
-		if (Object.keys(parameters[ruleId]).length === 0) delete parameters[ruleId];
+		setScopeRuleParameter(this.rootScope, ruleId, key, value);
+	}
+
+	/** Options rules read from .editorconfig, such as `MA0048.only_validate_first_type`, apply to the active folder. */
+	public setRuleOption(ruleId: string, key: string, value: string | undefined): void {
+		setScopeRuleParameter(this.activeScope, ruleId, key, value);
 	}
 
 	public setNuGetConfig(nuget: NuGetConfig | undefined): void {
@@ -473,4 +474,12 @@ function toFrameworkSettings(scope: ScopeConfig): FrameworkSettings {
 function setOrDelete<TRecord extends object, TKey extends keyof TRecord>(record: TRecord, key: TKey, value: TRecord[TKey] | undefined): void {
 	if (value === undefined) delete record[key];
 	else record[key] = value;
+}
+
+function setScopeRuleParameter(scope: ScopeConfig, ruleId: string, key: string, value: string | undefined): void {
+	scope.ruleParameters ??= {};
+	scope.ruleParameters[ruleId] ??= {};
+	setOrDelete(scope.ruleParameters[ruleId], key, value);
+	if (Object.keys(scope.ruleParameters[ruleId]).length === 0) delete scope.ruleParameters[ruleId];
+	if (Object.keys(scope.ruleParameters).length === 0) delete scope.ruleParameters;
 }

@@ -1,6 +1,6 @@
 {
 	"id": "SonarAnalyzer.CSharp",
-	"version": "10.36.0.15337",
+	"version": "10.37.0.15768",
 	"rules": [
 		{
 			"id": "S100",
@@ -79,7 +79,8 @@
 					"key": "maximumLineLength",
 					"description": "The maximum authorized line length.",
 					"type": "Integer",
-					"defaultValue": "200"
+					"defaultValue": "200",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -104,7 +105,8 @@
 					"key": "maximumFileLocThreshold",
 					"description": "Maximum authorized lines in a file.",
 					"type": "Integer",
-					"defaultValue": "1000"
+					"defaultValue": "1000",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -201,7 +203,8 @@
 					"key": "max",
 					"description": "Maximum number of allowed conditional operators in an expression",
 					"type": "Integer",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -227,7 +230,8 @@
 					"key": "max",
 					"description": "Maximum authorized number of parameters",
 					"type": "Integer",
-					"defaultValue": "7"
+					"defaultValue": "7",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -307,13 +311,15 @@
 					"key": "max",
 					"description": "Maximum depth of the inheritance tree. (Number)",
 					"type": "Integer",
-					"defaultValue": "5"
+					"defaultValue": "5",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "filteredClasses",
 					"description": "Comma-separated list of classes or records to be filtered out of the count of inheritance. Depth counting will stop when a filtered class or record is reached. For example: System.Windows.Controls.UserControl, System.Windows.*. (String)",
 					"type": "String",
-					"defaultValue": ""
+					"defaultValue": "",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -653,7 +659,8 @@
 					"key": "max",
 					"description": "Maximum number of statements.",
 					"type": "Integer",
-					"defaultValue": "8"
+					"defaultValue": "8",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -790,7 +797,8 @@
 					"key": "threshold",
 					"description": "Number of times a literal must be duplicated to trigger an issue.",
 					"type": "Integer",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -833,7 +841,8 @@
 					"key": "max",
 					"description": "Maximum number of types a single type is allowed to depend upon",
 					"type": "Integer",
-					"defaultValue": "30"
+					"defaultValue": "30",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1167,7 +1176,8 @@
 					"key": "maximumNestingLevel",
 					"description": "Maximum allowed control flow statement nesting depth.",
 					"type": "Integer",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1191,7 +1201,8 @@
 					"key": "max",
 					"description": "Maximum authorized lines of code in a method",
 					"type": "Integer",
-					"defaultValue": "80"
+					"defaultValue": "80",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1251,13 +1262,15 @@
 					"key": "headerFormat",
 					"description": "Expected copyright and license header.",
 					"type": "Text",
-					"defaultValue": "/*\n * <Your-Product-Name>\n * Copyright (c) <Year-From>-<Year-To> <Your-Company-Name>\n *\n * Please configure this header in your SonarCloud/SonarQube quality profile.\n * You can also set it in SonarLint.xml additional file for SonarLint or standalone NuGet analyzer.\n */\n"
+					"defaultValue": "/*\n * <Your-Product-Name>\n * Copyright (c) <Year-From>-<Year-To> <Your-Company-Name>\n *\n * Please configure this header in your SonarCloud/SonarQube quality profile.\n * You can also set it in SonarLint.xml additional file for SonarLint or standalone NuGet analyzer.\n */\n",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "isRegularExpression",
 					"description": "Whether the headerFormat is a regular expression.",
 					"type": "Boolean",
-					"defaultValue": "false"
+					"defaultValue": "false",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1283,7 +1296,8 @@
 					"key": "maximum",
 					"description": "Maximum number of case",
 					"type": "Integer",
-					"defaultValue": "30"
+					"defaultValue": "30",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1326,7 +1340,8 @@
 					"key": "maximumFunctionComplexityThreshold",
 					"description": "The maximum authorized complexity.",
 					"type": "Integer",
-					"defaultValue": "10"
+					"defaultValue": "10",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -1737,7 +1752,8 @@
 					"key": "credentialWords",
 					"description": "Comma separated list of words identifying potential credentials",
 					"type": "String",
-					"defaultValue": "password, passwd, pwd, passphrase"
+					"defaultValue": "password, passwd, pwd, passphrase",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -2497,13 +2513,15 @@
 					"key": "format",
 					"description": "Regular expression used to check the enumeration type names against.",
 					"type": "String",
-					"defaultValue": "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$"
+					"defaultValue": "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "flagsAttributeFormat",
 					"description": "Regular expression used to check the flags enumeration type names against.",
 					"type": "String",
-					"defaultValue": "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$"
+					"defaultValue": "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -2729,13 +2747,15 @@
 					"key": "max",
 					"description": "Maximum authorized number of generic parameters.",
 					"type": "Integer",
-					"defaultValue": "2"
+					"defaultValue": "2",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "maxMethod",
 					"description": "Maximum authorized number of generic parameters for methods.",
 					"type": "Integer",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -4863,13 +4883,15 @@
 					"key": "threshold",
 					"description": "The maximum authorized complexity.",
 					"type": "Integer",
-					"defaultValue": "15"
+					"defaultValue": "15",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "propertyThreshold",
 					"description": "The maximum authorized complexity in a property.",
 					"type": "Integer",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -7147,7 +7169,8 @@
 					"key": "fileUploadSizeLimit",
 					"description": "The maximum size of HTTP requests handling file uploads (in bytes).",
 					"type": "Integer",
-					"defaultValue": "8388608"
+					"defaultValue": "8388608",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -7263,13 +7286,15 @@
 					"key": "secretWords",
 					"description": "Comma separated list of words identifying potential secret",
 					"type": "String",
-					"defaultValue": "api[_\\-]?key, auth, credential, secret, token"
+					"defaultValue": "api[_\\-]?key, auth, credential, secret, token",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "randomnessSensibility",
 					"description": "Allows to tune the Randomness Sensibility (from 0 to 10)",
 					"type": "Float",
-					"defaultValue": "3"
+					"defaultValue": "3",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -7828,25 +7853,29 @@
 					"key": "debugThreshold",
 					"description": "The maximum number of DEBUG and VERBOSE statements allowed in the same code block.",
 					"type": "Integer",
-					"defaultValue": "4"
+					"defaultValue": "4",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "errorThreshold",
 					"description": "The maximum number of ERROR and FATAL statements allowed in the same code block.",
 					"type": "Integer",
-					"defaultValue": "1"
+					"defaultValue": "1",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "informationThreshold",
 					"description": "The maximum number of INFORMATION statements allowed in the same code block.",
 					"type": "Integer",
-					"defaultValue": "2"
+					"defaultValue": "2",
+					"isEditorConfigKey": false
 				},
 				{
 					"key": "warningThreshold",
 					"description": "The maximum number of WARNING statements allowed in the same code block.",
 					"type": "Integer",
-					"defaultValue": "1"
+					"defaultValue": "1",
+					"isEditorConfigKey": false
 				}
 			]
 		},
@@ -7907,7 +7936,8 @@
 					"key": "format",
 					"description": "Regular expression used to check the field or property names against",
 					"type": "RegularExpression",
-					"defaultValue": "^_?[Ll]og(ger)?$"
+					"defaultValue": "^_?[Ll]og(ger)?$",
+					"isEditorConfigKey": false
 				}
 			]
 		},

@@ -19,11 +19,12 @@ export type SdkRuleEntry = {
 	hasCodeFix: boolean;
 	/** Compiler warnings only: 1 to 4 are always on; 5 and up are warning waves that AnalysisLevel turns on. */
 	warningLevel: number | null;
-	/** Settings read from an additional file rather than .editorconfig, such as Sonar's `SonarLint.xml`. */
+	/** Settings beyond the severity, read from `SonarLint.xml` for Sonar or from .editorconfig keys for Meziantou. */
 	parameters: RuleParameter[];
 };
 
-export type RuleParameter = { key: string; description: string; type: string; defaultValue: string | null };
+/** With `isEditorConfigKey`, `key` is the whole .editorconfig key, such as `MA0048.only_validate_first_type`. */
+export type RuleParameter = { key: string; description: string; type: string; defaultValue: string | null; isEditorConfigKey: boolean };
 
 /** One entry of `catalog/generated/packages.json`: an analyzer package with its maintenance details. */
 export type PackageEntry = {

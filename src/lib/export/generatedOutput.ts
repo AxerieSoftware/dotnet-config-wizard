@@ -1,5 +1,6 @@
 import { toBannedSymbolsText } from '../analyzers/bannedApis.ts';
 import { GLOBAL_CONFIG_FILE, toGlobalConfig } from '../analyzers/globalConfig.ts';
+import { toSonarLintParameters } from '../analyzers/ruleParameters.ts';
 import { toSonarLintXml } from '../analyzers/sonarLintXml.ts';
 import { toBuildFiles } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
@@ -37,9 +38,9 @@ export function toGeneratedOutput(config: WizardConfig, catalog: Catalog, output
 		const { packages } = resolveScope(config, scope);
 
 		if (packages.includes(BANNED_API_PACKAGE) && (scope.bannedApis ?? []).length > 0) files.push({ path: `${directory}BannedSymbols.txt`, content: toBannedSymbolsText(scope.bannedApis ?? []) });
-		// Sonar reads a single SonarLint.xml, so parameters are repo-wide.
-		if (scope.path === '' && packages.includes(SONAR_PACKAGE) && Object.keys(scope.ruleParameters ?? {}).length > 0)
-			files.push({ path: 'SonarLint.xml', content: toSonarLintXml(scope.ruleParameters ?? {}) });
+		// Sonar reads a single SonarLint.xml, so its parameters are repo-wide.
+		const sonarLintParameters = scope.path === '' ? toSonarLintParameters(scope.ruleParameters ?? {}, catalog) : {};
+		if (packages.includes(SONAR_PACKAGE) && Object.keys(sonarLintParameters).length > 0) files.push({ path: 'SonarLint.xml', content: toSonarLintXml(sonarLintParameters) });
 
 		return files;
 	});
