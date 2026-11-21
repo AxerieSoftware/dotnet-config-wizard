@@ -5,7 +5,7 @@ import { toSonarLintXml } from '../analyzers/sonarLintXml.ts';
 import { toBuildFiles } from '../build/buildPropsFiles.ts';
 import type { Catalog } from '../catalog/catalog.ts';
 import { resolveScope } from '../config/scopes.ts';
-import type { WizardConfig } from '../config/wizardConfig.ts';
+import type { CommentStyle, CommentStyles, WizardConfig } from '../config/wizardConfig.ts';
 import { toGitAttributes } from '../formatting/gitattributes.ts';
 import { toNuGetConfig } from '../packages/nugetConfig.ts';
 import { toGlobalJson } from '../sdk/globalJson.ts';
@@ -20,8 +20,9 @@ const SONAR_PACKAGE = 'SonarAnalyzer.CSharp';
  * the analyzer files scopes need, and the repo-level `global.json`, `nuget.config` and `.gitattributes`.
  */
 export function toGeneratedOutput(config: WizardConfig, catalog: Catalog, outputOptions: EditorConfigOutputOptions): GeneratedOutput {
-	const editorConfigOutput = toEditorConfigFiles(config, catalog, outputOptions);
-	const buildOutput = toBuildFiles(config, catalog, outputOptions.propsCommentStyle ?? outputOptions.commentStyle);
+	const { editorConfig, props } = toCommentStyles(config, outputOptions.commentStyle);
+	const editorConfigOutput = toEditorConfigFiles(config, catalog, { ...outputOptions, commentStyle: editorConfig });
+	const buildOutput = toBuildFiles(config, catalog, props);
 	const [rootScope] = config.scopes;
 	const repoFiles: GeneratedFile[] = [];
 
@@ -49,4 +50,10 @@ export function toGeneratedOutput(config: WizardConfig, catalog: Catalog, output
 		files: [...editorConfigOutput.files, ...buildOutput.files, ...analyzerFiles, ...repoFiles],
 		skippedKeys: [...editorConfigOutput.skippedKeys, ...buildOutput.skippedKeys]
 	};
+}
+
+/** The comment style for `.editorconfig` and for the props files, which follow it unless the config sets their own. */
+export function toCommentStyles(config: WizardConfig, fallback: CommentStyle): Required<CommentStyles> {
+	const editorConfig = config.comments?.editorConfig ?? fallback;
+	return { editorConfig, props: config.comments?.props ?? editorConfig };
 }

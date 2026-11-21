@@ -17,7 +17,8 @@ const GROUP_LABELS: Readonly<Record<string, string>> = {
 	ruleParameters: 'Rule parameter',
 	globalJson: 'global.json',
 	nuget: 'nuget.config',
-	versions: 'SDK'
+	versions: 'SDK',
+	comments: 'Comments'
 };
 
 // Settings that are a single value or a list, rather than a group of keyed settings.

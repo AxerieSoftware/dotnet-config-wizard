@@ -4,6 +4,13 @@ import { CAPITALIZATIONS, type Capitalization, type NamingRule } from '../naming
 export const SEVERITIES = ['none', 'silent', 'suggestion', 'warning', 'error'] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
+export const COMMENT_STYLES = ['none', 'idAndTitle', 'titleAndLink'] as const;
+export type CommentStyle = (typeof COMMENT_STYLES)[number];
+export const DEFAULT_COMMENT_STYLE: CommentStyle = 'idAndTitle';
+
+/** The comments above generated settings in `.editorconfig` and in the props files, where any style but none describes each property. */
+export type CommentStyles = { editorConfig?: CommentStyle; props?: CommentStyle };
+
 export const PROJECT_KINDS = ['library', 'service', 'test'] as const;
 export type ProjectKind = (typeof PROJECT_KINDS)[number];
 
@@ -63,6 +70,8 @@ export type WizardConfig = {
 	severityFile?: 'editorconfig' | 'globalconfig';
 	/** A prefix the root Directory.Build.props adds to every project's assembly name and root namespace, such as `Contoso`. */
 	projectNamePrefix?: string;
+	/** Unset, both are `idAndTitle`; props follow `.editorconfig` when only it is set. */
+	comments?: CommentStyles;
 };
 
 export type ParseResult = { status: 'valid'; config: WizardConfig } | { status: 'invalid'; reason: string };
@@ -83,8 +92,18 @@ export function parseWizardConfig(value: unknown): ParseResult {
 	if (value.globalJson !== undefined && !isGlobalJsonConfig(value.globalJson)) return invalid('globalJson must have rollForward, isTestingPlatformRunner and msbuildSdks.');
 	if (value.severityFile !== undefined && value.severityFile !== 'editorconfig' && value.severityFile !== 'globalconfig') return invalid('severityFile must be editorconfig or globalconfig.');
 	if (value.projectNamePrefix !== undefined && typeof value.projectNamePrefix !== 'string') return invalid('projectNamePrefix must be a string.');
+	const commentsProblem = findCommentStylesProblem(value.comments);
+	if (commentsProblem) return invalid(commentsProblem);
 
 	return { status: 'valid', config: value as WizardConfig };
+}
+
+const COMMENT_FILES = ['editorConfig', 'props'];
+
+export function findCommentStylesProblem(comments: unknown): string | undefined {
+	if (comments === undefined) return undefined;
+	const isValid = isRecord(comments) && Object.entries(comments).every(([file, style]) => COMMENT_FILES.includes(file) && COMMENT_STYLES.includes(style as CommentStyle));
+	return isValid ? undefined : `comments must map ${COMMENT_FILES.join(' and ')} to ${COMMENT_STYLES.join(', ')}.`;
 }
 
 function findScopeProblem(scope: unknown): string | undefined {

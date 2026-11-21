@@ -164,7 +164,7 @@ test('choosing a comment style while a repo is open writes its comments into the
 	});
 	await openStep(page, 'Review and export');
 
-	await page.getByRole('combobox', { name: 'Rule comments' }).selectOption('titleAndLink');
+	await page.getByRole('combobox', { name: '.editorconfig comments' }).selectOption('titleAndLink');
 	await expect.poll(() => readRepoFile(page, '.editorconfig')).toContain('Mark members as static');
 	await openStep(page, 'Build');
 	await page.getByRole('combobox', { name: 'Nullable', exact: true }).selectOption('disable');

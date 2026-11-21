@@ -193,12 +193,20 @@ describe('repo-level files', () => {
 
 describe('props comments', () => {
 	it('leaves every props comment out with their own style of none, while .editorconfig keeps its comments', () => {
-		const config = toPresetConfigWithSource('opinionated', 'service', catalog);
-		const output = toGeneratedOutput(config, catalog, { commentStyle: 'idAndTitle', propsCommentStyle: 'none' });
+		const config = { ...toPresetConfigWithSource('opinionated', 'service', catalog), comments: { props: 'none' as const } };
+		const output = toGeneratedOutput(config, catalog, { commentStyle: 'idAndTitle' });
 		const file = (path: string) => output.files.find(candidate => candidate.path === path)?.content ?? '';
 
 		for (const path of ['Directory.Build.props', 'Directory.Packages.props', 'src/Directory.Build.props', 'tests/Directory.Build.props']) expect(file(path)).not.toContain('<!--');
 		expect(file('src/Directory.Build.props')).toContain('<Import Project=');
 		expect(file('.editorconfig')).toContain('# CA2016: ');
+	});
+
+	it('has props follow .editorconfig until they set their own style', () => {
+		const config = { ...toPresetConfigWithSource('opinionated', 'service', catalog), comments: { editorConfig: 'none' as const } };
+		const output = toGeneratedOutput(config, catalog, { commentStyle: 'idAndTitle' });
+
+		expect(output.files.find(file => file.path === 'Directory.Build.props')?.content).not.toContain('<!--');
+		expect(output.files.find(file => file.path === '.editorconfig')?.content).not.toContain('# CA2016: ');
 	});
 });

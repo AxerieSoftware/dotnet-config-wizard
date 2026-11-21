@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { COMMENT_STYLES, type CommentStyle } from '../analyzers/severityBlocks.ts';
 	import { toPresetChanges } from '../config/presetChanges.ts';
 	import { toPresetName } from '../config/presets.ts';
+	import { COMMENT_STYLES, type CommentStyle } from '../config/wizardConfig.ts';
 	import { getWizardState } from '../config/wizardState.svelte.ts';
 	import ProjectCleanupCard from '../projects/ProjectCleanupCard.svelte';
 	import RepeatedSettingsCard from '../projects/RepeatedSettingsCard.svelte';
@@ -11,6 +11,9 @@
 	import { NEXT_STEPS_FILE_NAME, toNextSteps } from './nextSteps.ts';
 
 	const COMMENT_STYLE_LABELS: Record<CommentStyle, string> = { none: 'None', idAndTitle: 'Rule ID and title', titleAndLink: 'Rule ID, title and docs link' };
+	// A props comment describes its property, so the two styles that write one read the same there.
+	const PROPS_COMMENT_STYLES: readonly CommentStyle[] = ['idAndTitle', 'none'];
+	const PROPS_COMMENT_STYLE_LABELS: Partial<Record<CommentStyle, string>> = { idAndTitle: 'Describe each property', none: 'None' };
 
 	const wizard = getWizardState();
 	const presetChanges = $derived(toPresetChanges(wizard.savedState, wizard.config, wizard.catalog));
@@ -80,14 +83,32 @@
 <section class="card" aria-labelledby="files-heading">
 	<div class="card-header">
 		<h2 id="files-heading">Files</h2>
-		<label class="field inline">
-			<span>Rule comments</span>
-			<select bind:value={wizard.commentStyle}>
-				{#each COMMENT_STYLES as commentStyle (commentStyle)}
-					<option value={commentStyle}>{COMMENT_STYLE_LABELS[commentStyle]}</option>
-				{/each}
-			</select>
-		</label>
+		<div class="comment-styles">
+			<label class="field inline">
+				<span>.editorconfig comments</span>
+				<select bind:value={wizard.editorConfigCommentStyle}>
+					{#each COMMENT_STYLES as commentStyle (commentStyle)}
+						<option value={commentStyle}>{COMMENT_STYLE_LABELS[commentStyle]}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="field inline">
+				<span>Props comments</span>
+				<select value={wizard.propsCommentStyle === 'none' ? 'none' : 'idAndTitle'} onchange={event => (wizard.propsCommentStyle = event.currentTarget.value as CommentStyle)}>
+					{#each PROPS_COMMENT_STYLES as commentStyle (commentStyle)}
+						<option value={commentStyle}>{PROPS_COMMENT_STYLE_LABELS[commentStyle]}</option>
+					{/each}
+				</select>
+			</label>
+		</div>
 	</div>
 	<div class="review-explorer"><FileExplorer /></div>
 </section>
+
+<style>
+	.comment-styles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 16px;
+	}
+</style>
