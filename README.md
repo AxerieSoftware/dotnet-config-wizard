@@ -15,6 +15,22 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 | `node scripts/validateOutput.ts` | Build the sample projects in `validation/` with generated config on every cataloged SDK, failing on config breakage. |
 | `dotnet test --solution dotnet-config-wizard.slnx` | Test CatalogBuilder. |
 
+## Repo configs
+
+`renderConfig.ts` also takes a repo config: a preset, what each folder holds, and a [JSON merge patch](https://www.rfc-editor.org/rfc/rfc7396) of what the repo changes. Every render starts from the preset as the wizard version you run defines it, so repos that pin one wizard version get the same defaults without copying them.
+
+```json
+{
+	"preset": "opinionated",
+	"sdkBand": "11.0.1xx",
+	"folders": { "src": "service", "tests": "test" },
+	"changes": { "scopes": { "src": { "build": { "EnableAotAnalyzer": null } } } }
+}
+```
+
+- `folders` maps paths below the root to `library`, `service` or `test`. Each gets that kind's defaults, as in the wizard.
+- `changes` is keyed by folder path, with `""` for the root. `null` removes a setting.
+
 ## Layout
 
 - `src/` — the SvelteKit app, organized by wizard feature under `src/lib/`.
