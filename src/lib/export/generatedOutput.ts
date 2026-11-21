@@ -21,7 +21,7 @@ const SONAR_PACKAGE = 'SonarAnalyzer.CSharp';
  */
 export function toGeneratedOutput(config: WizardConfig, catalog: Catalog, outputOptions: EditorConfigOutputOptions): GeneratedOutput {
 	const editorConfigOutput = toEditorConfigFiles(config, catalog, outputOptions);
-	const buildOutput = toBuildFiles(config, catalog, outputOptions.commentStyle);
+	const buildOutput = toBuildFiles(config, catalog, outputOptions.propsCommentStyle ?? outputOptions.commentStyle);
 	const [rootScope] = config.scopes;
 	const repoFiles: GeneratedFile[] = [];
 

@@ -30,6 +30,7 @@ A client-side wizard at [dotnetconfig.axerie.com](https://dotnetconfig.axerie.co
 
 - `folders` maps paths below the root to `library`, `service` or `test`. Each gets that kind's defaults, as in the wizard.
 - `changes` is keyed by folder path, with `""` for the root. `null` removes a setting.
+- `comments` is optional: `{ "editorConfig": "idAndTitle", "props": "none" }`. Each takes `none`, `idAndTitle` or `titleAndLink`. Both default to `idAndTitle`, and `props` follows `editorConfig` when only that is set. In props files, anything but `none` writes the description comments.
 
 ## Layout
 

@@ -48,4 +48,12 @@ describe('findRepoConfigProblem', () => {
 		expect(findRepoConfigProblem({ preset: 'strict', sdkBand: '11.0.1xx', folders: { '': 'service' } })).toMatch(/below the repo root/);
 		expect(findRepoConfigProblem({ preset: 'strict', sdkBand: '11.0.1xx', folders: { src: 'library' } })).toBeUndefined();
 	});
+
+	it('accepts a comment style for .editorconfig and props, and nothing else', () => {
+		const config = { preset: 'strict', sdkBand: '11.0.1xx', folders: {} };
+
+		expect(findRepoConfigProblem({ ...config, comments: { props: 'none', editorConfig: 'titleAndLink' } })).toBeUndefined();
+		expect(findRepoConfigProblem({ ...config, comments: { props: 'short' } })).toMatch(/^comments must map/);
+		expect(findRepoConfigProblem({ ...config, comments: { csproj: 'none' } })).toMatch(/^comments must map/);
+	});
 });

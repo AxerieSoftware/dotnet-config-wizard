@@ -1,3 +1,4 @@
+import type { CommentStyle } from '../analyzers/severityBlocks.ts';
 /** One line inside a generated MSBuild file, already indented by its caller. */
 export type XmlLine = string;
 
@@ -46,6 +47,9 @@ export function toProjectDocument(blocks: readonly (readonly XmlLine[])[]): stri
 }
 
 /** Imports the same file from the folder above, so a nested file adds to its parent instead of replacing it. */
-export function toParentImport(fileName: string): XmlLine[] {
-	return [`<!-- Explicitly import the parent ${fileName} -->`, `<Import Project="$([MSBuild]::GetPathOfFileAbove('${fileName}', '$(MSBuildThisFileDirectory)../'))" />`];
+export function toParentImport(fileName: string, commentStyle: CommentStyle): XmlLine[] {
+	return [
+		...(commentStyle === 'none' ? [] : [`<!-- Explicitly import the parent ${fileName} -->`]),
+		`<Import Project="$([MSBuild]::GetPathOfFileAbove('${fileName}', '$(MSBuildThisFileDirectory)../'))" />`
+	];
 }
