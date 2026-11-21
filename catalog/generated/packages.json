@@ -3,9 +3,9 @@
 		"id": "SonarAnalyzer.CSharp",
 		"title": "SonarAnalyzer",
 		"includedWith": null,
-		"version": "10.36.0.15337",
-		"latestVersion": "10.36.0.15337",
-		"latestPublished": "2026-11-11",
+		"version": "10.37.0.15768",
+		"latestVersion": "10.37.0.15768",
+		"latestPublished": "2026-11-20",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 459

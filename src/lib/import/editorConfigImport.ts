@@ -95,6 +95,13 @@ export function importEditorConfig(text: string, catalog: Catalog): ImportResult
 			continue;
 		}
 
+		const ruleId = findRuleWithOption(key, catalog);
+		if (ruleId) {
+			settings.ruleParameters ??= {};
+			settings.ruleParameters[ruleId] = { ...settings.ruleParameters[ruleId], [key]: value };
+			continue;
+		}
+
 		const option = catalog.options.get(lowerKey);
 		if (option) {
 			const [optionValue, legacySeverity] = value.split(':').map(part => part.trim());
@@ -163,6 +170,11 @@ function toList(value: string): string[] {
 		.split(',')
 		.map(entry => entry.trim())
 		.filter(entry => entry !== '');
+}
+
+/** The rule that reads a .editorconfig key as one of its options, such as MA0048 for `MA0048.only_validate_first_type`. */
+function findRuleWithOption(key: string, catalog: Catalog): string | undefined {
+	return catalog.rules.values().find(rule => rule.parameters.some(parameter => parameter.isEditorConfigKey && parameter.key === key))?.id;
 }
 
 function isSeverity(value: string): value is Severity {

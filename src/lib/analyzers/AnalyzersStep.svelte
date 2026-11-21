@@ -14,6 +14,7 @@
 	import { COMPILER_SOURCE, getEffectiveSeverity, isReported } from './effectiveSeverity.ts';
 	import { findActiveOverlaps, findCoveringRuleIds } from './overlaps.ts';
 	import RuleBrowser, { type RuleRow } from './RuleBrowser.svelte';
+	import { getRuleOptions, getSonarLintParameters } from './ruleParameters.ts';
 
 	const ALL = '';
 	// The rule table lists the SDK's own analyzers first and ASP.NET Core's, which only web projects run, last.
@@ -53,7 +54,10 @@
 	const analyzerCategories = $derived([...new Set(availableRules.filter(rule => rule.source !== COMPILER_SOURCE).map(rule => rule.category))].sort());
 	const sources = $derived([...new Set(availableRules.map(rule => rule.sourceTitle))].sort());
 	const categories = $derived([...new Set(availableRules.filter(rule => filters.source === ALL || rule.sourceTitle === filters.source).map(rule => rule.category))].sort());
-	const sonarRules = $derived(scope.packages.includes(SONAR_PACKAGE) ? availableRules.filter(rule => rule.parameters.length > 0).sort((left, right) => left.id.localeCompare(right.id)) : []);
+	const sonarRules = $derived(
+		scope.packages.includes(SONAR_PACKAGE) ? availableRules.filter(rule => getSonarLintParameters(rule).length > 0).sort((left, right) => left.id.localeCompare(right.id)) : []
+	);
+	const optionRules = $derived(availableRules.filter(rule => getRuleOptions(rule).length > 0).sort((left, right) => NATURAL_ORDER.compare(left.id, right.id)));
 
 	// Sorting and each rule's severities don't depend on the filters, so typing in the search only reruns the filter.
 	const sortedRules = $derived(
@@ -323,7 +327,7 @@
 				<div class="stack param-row">
 					<span><span class="rule-id">{rule.id}</span> {rule.title}</span>
 					<div class="field-grid">
-						{#each rule.parameters as parameter (parameter.key)}
+						{#each getSonarLintParameters(rule) as parameter (parameter.key)}
 							<label class="field">
 								<span>{parameter.key}</span>
 								<input
@@ -334,6 +338,49 @@
 									placeholder={parameter.defaultValue ?? ''}
 									onchange={event => wizard.setRuleParameter(rule.id, parameter.key, event.currentTarget.value.trim() || undefined)}
 								>
+							</label>
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+	</section>
+{/if}
+
+{#if optionRules.length > 0}
+	<section class="card">
+		<div class="card-header">
+			<h2>Rule options</h2>
+			<p class="note">Settings rules read from <code>.editorconfig</code>, for this folder and the ones inside it.</p>
+		</div>
+		<div class="rows">
+			{#each optionRules as rule (rule.id)}
+				<div class="stack param-row">
+					<span><span class="rule-id">{rule.id}</span> {rule.title}</span>
+					<div class="field-grid">
+						{#each getRuleOptions(rule) as option (option.key)}
+							{@const configured = wizard.activeScope.ruleParameters?.[rule.id]?.[option.key]}
+							{@const inherited = wizard.inheritedScope?.ruleParameters[rule.id]?.[option.key]}
+							<label class="field" title={option.description}>
+								<span>{option.key}</span>
+								{#if option.type === 'Boolean'}
+									<ValueSelect
+										label={option.key}
+										value={configured}
+										values={['true', 'false']}
+										unsetLabel={toUnsetLabel(inherited, option.defaultValue ? `Default (${option.defaultValue})` : 'Default')}
+										fallbackValue={inherited ?? option.defaultValue ?? undefined}
+										onchange={value => wizard.setRuleOption(rule.id, option.key, value)}
+									/>
+								{:else}
+									<input
+										aria-label={option.key}
+										class:changed={configured !== undefined && configured !== (inherited ?? option.defaultValue)}
+										value={configured ?? ''}
+										placeholder={inherited ?? option.defaultValue ?? ''}
+										onchange={event => wizard.setRuleOption(rule.id, option.key, event.currentTarget.value.trim() || undefined)}
+									>
+								{/if}
 							</label>
 						{/each}
 					</div>

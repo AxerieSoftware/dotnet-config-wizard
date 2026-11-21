@@ -30,4 +30,30 @@ describe('analyzer files', () => {
 		expect(withoutPackages.files.map(file => file.path)).toEqual(['.editorconfig']);
 		expect(withPackages.files.map(file => file.path)).toEqual(['.editorconfig', 'Directory.Build.props', 'BannedSymbols.txt', 'SonarLint.xml']);
 	});
+
+	it('writes options a rule reads from .editorconfig there, and only Sonar parameters to SonarLint.xml', () => {
+		const catalog = readCatalog('10.0.4xx');
+		const scope = {
+			path: '',
+			packages: ['Meziantou.Analyzer', 'SonarAnalyzer.CSharp'],
+			ruleParameters: { MA0048: { 'MA0048.only_validate_first_type': 'true' }, S107: { max: '5' } }
+		};
+
+		const output = toGeneratedOutput({ versions: { sdkBand: '10.0.4xx' }, scopes: [scope] }, catalog, { commentStyle: 'idAndTitle' });
+		const file = (path: string) => output.files.find(candidate => candidate.path === path)?.content ?? '';
+
+		expect(file('.editorconfig')).toMatch(/## Rule options\n# MA0048: File name must match type name\nMA0048\.only_validate_first_type = true/);
+		expect(file('SonarLint.xml')).toContain('<Key>S107</Key>');
+		expect(file('SonarLint.xml')).not.toContain('MA0048');
+	});
+
+	it('writes no SonarLint.xml when every parameter is an .editorconfig option', () => {
+		const catalog = readCatalog('10.0.4xx');
+		const scope = { path: '', packages: ['Meziantou.Analyzer', 'SonarAnalyzer.CSharp'], ruleParameters: { MA0048: { 'MA0048.mode': 'Prefix' } } };
+
+		const output = toGeneratedOutput({ versions: { sdkBand: '10.0.4xx' }, scopes: [scope] }, catalog, { commentStyle: 'none' });
+
+		expect(output.files.map(file => file.path)).not.toContain('SonarLint.xml');
+		expect(output.files.find(file => file.path === 'Directory.Build.props')?.content).not.toContain('SonarLint.xml');
+	});
 });

@@ -13,6 +13,7 @@ export function mergeImport(config: WizardConfig, scope: ScopeConfig, { settings
 	}
 
 	if (settings.options) scope.options = { ...scope.options, ...settings.options };
+	mergeRuleParameters(scope, settings.ruleParameters ?? {});
 	if (settings.severities) scope.severities = { ...scope.severities, ...settings.severities };
 	if (settings.categorySeverities) scope.categorySeverities = { ...scope.categorySeverities, ...settings.categorySeverities };
 	if (settings.build) scope.build = { ...scope.build, ...settings.build };
@@ -26,5 +27,13 @@ export function mergeImport(config: WizardConfig, scope: ScopeConfig, { settings
 	if (settings.naming) {
 		const importedSymbols = new Set(settings.naming.map(rule => rule.symbols));
 		scope.naming = [...(scope.naming ?? []).filter(rule => !importedSymbols.has(rule.symbols)), ...settings.naming];
+	}
+}
+
+/** Adds rule parameters to a scope's, so `.editorconfig` options and `SonarLint.xml` parameters for one rule both survive. */
+export function mergeRuleParameters(scope: Pick<ScopeConfig, 'ruleParameters'>, ruleParameters: Record<string, Record<string, string>>): void {
+	for (const [ruleId, values] of Object.entries(ruleParameters)) {
+		scope.ruleParameters ??= {};
+		scope.ruleParameters[ruleId] = { ...scope.ruleParameters[ruleId], ...values };
 	}
 }

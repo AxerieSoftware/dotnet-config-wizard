@@ -101,6 +101,15 @@ describe('importEditorConfig', () => {
 	});
 });
 
+describe('importEditorConfig rule options', () => {
+	it("reads a rule's .editorconfig options back as its parameters", () => {
+		const result = importEditorConfig('[*.cs]\nMA0048.only_validate_first_type = true\ndotnet_diagnostic.MA0048.excluded_symbol_names = Foo*', catalog);
+
+		expect(result.settings.ruleParameters).toEqual({ MA0048: { 'MA0048.only_validate_first_type': 'true', 'dotnet_diagnostic.MA0048.excluded_symbol_names': 'Foo*' } });
+		expect(result.notes).toEqual([]);
+	});
+});
+
 describe('importMsBuildFile', () => {
 	it('reads properties, CI-only groups, suppressions, frameworks and analyzer packages', () => {
 		const result = importMsBuildFile(
