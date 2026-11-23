@@ -14,9 +14,9 @@
 		"id": "Meziantou.Analyzer",
 		"title": "Meziantou.Analyzer",
 		"includedWith": null,
-		"version": "3.0.341",
-		"latestVersion": "3.0.341",
-		"latestPublished": "2026-11-15",
+		"version": "3.0.342",
+		"latestVersion": "3.0.342",
+		"latestPublished": "2026-11-22",
 		"isDeprecated": false,
 		"isStale": false,
 		"ruleCount": 242
