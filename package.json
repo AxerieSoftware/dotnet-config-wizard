@@ -23,15 +23,15 @@
 		"@biomejs/biome": "2.6.8",
 		"@playwright/test": "^1.65.1",
 		"@sveltejs/adapter-static": "^4.0.1",
-		"@sveltejs/kit": "^3.2.0",
+		"@sveltejs/kit": "^3.4.0",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@types/node": "26.6.6",
-		"knip": "6.45.1",
-		"svelte": "^5.57.3",
+		"knip": "6.47.0",
+		"svelte": "^5.59.1",
 		"svelte-check": "^4.7.8",
 		"typescript": "^6.0.3",
 		"vite": "^8.3.8",
-		"vitest": "^5.1.0"
+		"vitest": "^5.1.1"
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*"
@@ -41,7 +41,7 @@
 		"node": ">=26"
 	},
 	"dependencies": {
-		"@fluentui/svg-icons": "1.1.346",
+		"@fluentui/svg-icons": "1.1.347",
 		"@fontsource/cascadia-code": "5.3.0",
 		"fflate": "0.8.3",
 		"lz-string": "1.5.0",
